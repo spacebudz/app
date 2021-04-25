@@ -1,0 +1,26 @@
+.customInput {
+  border-radius: 25px;
+  border-style: solid;
+  border-color: #4a148c;
+  background-color: #4a148c;
+  border-width: 2px;
+  font-size: 15px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  padding-left: 20px;
+  padding-right: 10px;
+  outline: none;
+  caret-color: white;
+  color: white;
+  transition: 0.2s;
+  width: 100%;
+}
+
+::placeholder {
+  opacity: 0.8;
+  color: white;
+}
+
+/* .customInput:focus {
+  border-color: rgba(77, 182, 172, 1);
+} */

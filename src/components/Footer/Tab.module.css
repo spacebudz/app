@@ -1,0 +1,8 @@
+.footerTab {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.footerTab:hover {
+  color: #5e35b1;
+}

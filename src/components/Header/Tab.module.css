@@ -1,0 +1,10 @@
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: #5e35b1;
+}

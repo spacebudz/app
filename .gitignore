@@ -1,0 +1,8 @@
+node_modules/
+.cache/
+public/
+static/
+.firebase/
+.firebaserc
+firebase.json
+package-lock.json

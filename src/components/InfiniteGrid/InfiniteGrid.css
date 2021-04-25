@@ -1,0 +1,66 @@
+.itemGrid {
+  width: 280px;
+  opacity: 1;
+  cursor: pointer;
+  animation-duration: 1s;
+  animation: fadeIn;
+}
+.itemGrid .thumbnail {
+  height: 280px;
+  /* background: #9fa8da; */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.itemGrid .thumbnail img {
+  width: 100%;
+  /* border-radius: 50%; */
+}
+
+.itemGrid:hover {
+  transform: scale(1.02);
+}
+
+.itemGrid .info {
+  text-align: center;
+  margin-top: -26px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  color: #777;
+}
+.itemGrid.animate {
+  transition: opacity ease 1s;
+  transition-delay: 0.2s;
+  opacity: 1;
+}
+.loading {
+  position: absolute;
+  width: 100%;
+  height: 50px;
+  line-height: 50px;
+  text-align: center;
+  font-weight: bold;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  .itemGrid {
+    width: 180px;
+  }
+  .itemGrid .thumbnail {
+    height: 180px;
+  }
+}
