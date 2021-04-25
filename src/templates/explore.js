@@ -12,7 +12,7 @@ import {
   Badge,
 } from "@geist-ui/react";
 import { FloatingButton } from "../components/Button";
-import { Filter } from "@geist-ui/react-icons";
+import { Filter, ChevronUp, ChevronDown } from "@geist-ui/react-icons";
 import { FilterModal } from "../components/Filter";
 
 import Layout from "./layout";
@@ -40,7 +40,7 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
   // const [array, setArray] = React.useState(fullList);
   const [array, setArray] = React.useState([]);
   const [filters, setFilters] = React.useState({
-    // price: null,
+    order_id: null,
     // search: null,
     // forSale: false,
   });
@@ -48,7 +48,8 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
   const [loading, setLoading] = React.useState(true);
   const { visible, setVisible, bindings } = useModal();
 
-  const setColor = (order, up = true) => {
+  const setColor = (up = true) => {
+    const order = filters.order_id;
     if (order == null) return "#b5b5b5";
     if (order == "ASC" && up) return "black";
     if (order == "ASC" && !up) return "#b5b5b5";
@@ -70,6 +71,7 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
   const applySearch = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
+    const order_id = urlParams.get("order_id");
     const types = urlParams.getAll("type");
     const gadgets = urlParams.getAll("gadget");
     const range = urlParams.getAll("range");
@@ -79,7 +81,8 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
       types +
       gadgets +
       range +
-      gadgetsCount
+      gadgetsCount +
+      order_id
     ).toString();
     if (searchString == recentSearch) return;
     recentSearch = searchString;
@@ -90,7 +93,8 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
       types.length > 0 ||
       gadgets.length > 0 ||
       range.length > 0 ||
-      gadgetsCount
+      gadgetsCount ||
+      order_id
     ) {
       if (id || id == 0) setParam(id);
       await sleep();
@@ -100,6 +104,7 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
       f.gadgets = gadgets;
       f.range = range;
       f.gadgetsCount = gadgetsCount;
+      f.order_id = order_id;
       const filtered = await setFilter(fullList, f);
       setArray(null);
       setTimeout(() => setArray(filtered));
@@ -244,9 +249,10 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
 
                       <GButton
                         effect={false}
-                        onClick={() =>
-                          window.history.pushState({}, null, `/explore/`)
-                        }
+                        onClick={() => {
+                          window.history.pushState({}, null, `/explore/`);
+                          setFilters({ order_id: null });
+                        }}
                       >
                         Clear
                       </GButton>
@@ -308,25 +314,37 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
                           <b style={{ fontSize: 16 }}>For Sale</b>
                         </Checkbox>
                       </div>
-                      <div style={{ width: 20 }} />
+                      <div style={{ width: 20 }} />  */}
                       <div
                         style={{
                           width: "100%",
-                          // display: "flex",
-                          // alignItems: "center",
-                          // justifyContent: "center",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         <div
                           onClick={() => {
                             const f = filters;
-                            f.price = filters.price
-                              ? filters.price == "ASC"
+                            f.order_id = filters.order_id
+                              ? filters.order_id == "ASC"
                                 ? "DESC"
                                 : null
                               : "ASC";
-                            setFilter(fullList, setArray, f);
-                            setFilters(f);
+                            const urlParams = new URLSearchParams(
+                              window.location.search
+                            );
+                            console.log(!urlParams);
+                            let base = "/explore/";
+                            if (f.order_id) {
+                              urlParams.set("order_id", f.order_id);
+                              base += "?" + urlParams;
+                            } else {
+                              urlParams.delete("order_id");
+                              base += "?" + urlParams;
+                            }
+
+                            window.history.pushState({}, null, base);
                           }}
                           style={{
                             display: "flex",
@@ -338,20 +356,14 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
                             style={{ display: "flex", flexDirection: "column" }}
                           >
                             {" "}
-                            <ChevronUp
-                              size={18}
-                              color={setColor(filters.price)}
-                            />
+                            <ChevronUp size={18} color={setColor()} />
                             <div style={{ marginBottom: -10 }} />
-                            <ChevronDown
-                              size={18}
-                              color={setColor(filters.price, false)}
-                            />
+                            <ChevronDown size={18} color={setColor(false)} />
                           </div>
                           <div style={{ width: 3 }} />
-                          <b style={{ fontSize: 16 }}>Price</b>
+                          <b style={{ color: "#777777", fontSize: 16 }}>ID #</b>
                         </div>
-                        </div> */}
+                      </div>
                     </div>
                   </Grid>
                 </Grid.Container>

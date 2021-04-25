@@ -42,20 +42,15 @@ const FAQ = (props) => {
             <Collapse.Group>
               <Collapse title="Which wallet can I use?">
                 <Text>
-                  <b>Yoroi</b> is currently the only wallet that supports multi
-                  assets.
-                  <br /> <b>Daedalus</b> doesn't have the support yet, but works
-                  of course (you see the transaction in your wallet, but not the
-                  token yet). You could however use Daedalus Flight (
-                  <a
-                    target="_blank"
-                    href="https://daedaluswallet.io/en/flight/"
-                  >
-                    See here
-                  </a>
-                  ).
+                  <Link href="https://yoroi-wallet.com/#/">Yoroi</Link>
                   <br />
-                  <b>Never sent ADA from an exchange!</b>
+                  <Link href="https://daedaluswallet.io/">Daedalus</Link>
+                  <br />
+                  <Link href="https://adalite.io/">AdaLite</Link> (Hardware
+                  wallet recommended)
+                  <br />
+                  <br />
+                  <b>Never send ADA from an exchange!</b>
                 </Text>
               </Collapse>
               <Collapse title="Tokens without Smart Contracts, how?">

@@ -4,9 +4,10 @@ import { Grid, Link, Spacer } from "@geist-ui/react";
 
 import Layout from "../templates/layout";
 import Metadata from "../components/Metadata";
+import { useBreakpoint } from "gatsby-plugin-breakpoints";
 
 //assets
-import { useBreakpoint } from "gatsby-plugin-breakpoints";
+import TeamImage from "../images/assets/team.png";
 
 const About = (props) => {
   const matches = useBreakpoint();
@@ -47,7 +48,9 @@ const About = (props) => {
               Cardano stake pool Berry. And I'm Zieg, the founder of the ETH-MEN
               collection on Ethereum.
             </div>
-            <Spacer y={3} />
+            <Spacer y={1} />
+            <img src={TeamImage} />
+            <Spacer y={2} />
             <div
               style={{
                 fontSize: 32,

@@ -419,41 +419,26 @@ const FilterModal = (props) => {
       </Modal.Action>
       <Modal.Action
         onClick={() => {
-          const paramsType = new URLSearchParams();
+          const urlParams = new URLSearchParams();
           Object.keys(types).forEach(
-            (type) => types[type] && paramsType.append("type", type)
+            (type) => types[type] && urlParams.append("type", type)
           );
-          const paramsGadget = new URLSearchParams();
           Object.keys(gadgets).forEach(
-            (gadget) => gadgets[gadget] && paramsGadget.append("gadget", gadget)
+            (gadget) => gadgets[gadget] && urlParams.append("gadget", gadget)
           );
 
           let base = "/explore/?";
 
-          if (paramsType.has("type")) {
-            base += paramsType + "&";
-          }
-          if (paramsGadget.has("gadget")) {
-            base += paramsGadget + "&";
-          }
-
           if (sliderId != [0, 9999].toString()) {
-            const paramsIdRange = new URLSearchParams();
-            paramsIdRange.append("range", sliderId[0]);
-            paramsIdRange.append("range", sliderId[1]);
-            base += paramsIdRange + "&";
+            urlParams.append("range", sliderId[0]);
+            urlParams.append("range", sliderId[1]);
           }
 
           if (sliderGadgets != "Any") {
-            const paramsGadgetsCount = new URLSearchParams();
-            paramsGadgetsCount.append("gadgetsCount", sliderGadgets);
-            base += paramsGadgetsCount + "&";
+            urlParams.append("gadgetsCount", sliderGadgets);
           }
 
-          if (base != "/explore/?") {
-            base = base.slice(0, -1);
-            window.history.pushState({}, null, base);
-          }
+          window.history.pushState({}, null, base + urlParams);
 
           setGadgets(null);
           setTypes(null);

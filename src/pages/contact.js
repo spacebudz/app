@@ -1,6 +1,4 @@
 import React from "react";
-import { LaunchButton } from "../components/Button";
-import { Grid, Spacer } from "@geist-ui/react";
 
 import Layout from "../templates/layout";
 import Metadata from "../components/Metadata";

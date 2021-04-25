@@ -1,5 +1,5 @@
 export const setFilter = async (array, filters) => {
-  let filtered = array;
+  let filtered = [...array];
   // filters.price != null && (filtered = sortArray(filtered, filters.price));
   // filters.forSale &&
   //   (filtered = filterBudz(
@@ -37,6 +37,12 @@ export const setFilter = async (array, filters) => {
   if (filters.gadgetsCount || filters.gadgetsCount == 0) {
     filtered = filtered.filter(
       (bud) => bud.gadgets.length >= parseInt(filters.gadgetsCount)
+    );
+  }
+
+  if (filters.order_id) {
+    filtered = filtered.sort((a, b) =>
+      filters.order_id == "ASC" ? a.id - b.id : b.id - a.id
     );
   }
 
