@@ -44,9 +44,10 @@ const About = (props) => {
             <Spacer y={1} />
             <div>
               Hey there, we are two crypto enthusiast, who found the true
-              potential of Cardano. <br /> I'm Alessandro and I operate the
-              Cardano stake pool Berry. And I'm Zieg, the founder of the ETH-MEN
-              collection on Ethereum.
+              potential of Cardano.
+              <br /> I'm Alessandro and I operate the Cardano stake pool Berry.
+              And I'm Zieg, NFT-enthousiast since claiming his first cryptopunk
+              in 2017!
             </div>
             <Spacer y={1} />
             <img src={TeamImage} />

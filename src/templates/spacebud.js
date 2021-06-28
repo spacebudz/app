@@ -92,7 +92,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           >
             <div
               style={{
-                zIndex: 1,
+                zIndex: 10,
                 position: "absolute",
                 left: 25,
                 top: 25,
@@ -208,9 +208,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                       onClick={(e) => {
                         e.preventDefault();
                         if (owner)
-                          window.open(
-                            `https://cardanoscan.io/address/${item.address}`
-                          );
+                          window.open(`https://pool.pm/${item.address}`);
                       }}
                     >
                       {item.address}
