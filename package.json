@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@egjs/react-infinitegrid": "^3.0.5",
+    "@emurgo/cardano-serialization-lib-browser": "^7.1.0",
     "@geist-ui/react": "^2.1.0-canary.0",
     "@geist-ui/react-icons": "^1.0.1",
     "@mdi/js": "^5.7.55",
