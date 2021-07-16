@@ -1,6 +1,6 @@
 import React from "react";
 import { useMediaQuery } from "@geist-ui/react";
-import style from "./Button.module.css";
+import * as style from "./Button.module.css";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 
 const Button = (props) => {

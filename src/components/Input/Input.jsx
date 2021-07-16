@@ -1,7 +1,7 @@
 import React from "react";
 import { mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
-import styles from "./Input.module.css";
+import * as styles from "./Input.module.css";
 
 const Input = (props) => {
   return (

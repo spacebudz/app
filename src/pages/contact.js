@@ -18,11 +18,9 @@ const Contact = (props) => {
         title="SpaceBudz"
         description="Collect your unique SpaceBud as NFT on the Cardano blockchain."
       />
-      <Layout>
-        <div style={{ minHeight: "100vh" }}>
-          <div style={{ marginTop: 100 }}>Privacy Policy</div>
-        </div>
-      </Layout>
+      <div style={{ minHeight: "100vh" }}>
+        <div style={{ marginTop: 100 }}>Privacy Policy</div>
+      </div>
     </>
   );
 };

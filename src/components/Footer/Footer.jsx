@@ -1,6 +1,6 @@
 import { Grid } from "@geist-ui/react";
 import React from "react";
-import styles from "./Tab.module.css";
+import * as styles from "./Tab.module.css";
 import { navigate } from "gatsby";
 
 const Footer = (props) => {
@@ -101,16 +101,18 @@ const Footer = (props) => {
         </div>
       </div>
       <div
-        onClick={() => navigate("/privacyPolicy")}
         style={{
-          cursor: "pointer",
-          width: "100%",
           textAlign: "center",
-          fontSize: 12,
+
           marginBottom: 16,
         }}
       >
-        Privacy Policy
+        <span
+          style={{ fontSize: 11, cursor: "pointer" }}
+          onClick={() => navigate("/privacyPolicy")}
+        >
+          Privacy Policy
+        </span>
       </div>
     </div>
   );

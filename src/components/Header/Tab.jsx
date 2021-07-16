@@ -1,6 +1,6 @@
 import React from "react";
 import Icon from "@mdi/react";
-import style from "./Tab.module.css";
+import * as style from "./Tab.module.css";
 import { Spacer, Popover } from "@geist-ui/react";
 import { mdiMenuDown } from "@mdi/js";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";

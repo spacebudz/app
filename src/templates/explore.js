@@ -34,10 +34,9 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const Explore = ({ pageContext: { spacebudz }, location }) => {
-  // const fullList = spacebudz.map((bud) => ({ ...bud }));
+const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
+  fullList = initialOrder.map((id) => spacebudz[id]);
 
-  // const [array, setArray] = React.useState(fullList);
   const [array, setArray] = React.useState([]);
   const [filters, setFilters] = React.useState({
     order_id: null,
@@ -117,11 +116,6 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
   };
 
   const fetchData = async () => {
-    const API = "https://us-central1-space-budz.cloudfunctions.net/api";
-    let tokens = await fetch(API + "/minted").then((res) => res.json());
-    tokens = tokens.minted.map((id) => spacebudz[id]);
-
-    fullList = tokens;
     setLoading(false);
     filterInterval = setInterval(() => {
       applySearch();
@@ -143,249 +137,224 @@ const Explore = ({ pageContext: { spacebudz }, location }) => {
         title="SpaceBudz | Explore"
         description="Collect your unique SpaceBud as NFT on the Cardano blockchain."
       />
-      <Layout>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          flexDirection: "column",
+          marginTop: 110,
+        }}
+      >
+        <FloatingButton onClick={() => window.scrollTo(0, 0)} />
+
         <div
           style={{
-            position: "relative",
             width: "100%",
-            display: "flex",
-            alignItems: "center",
-            flexDirection: "column",
-            marginTop: 110,
+            maxWidth: 1400,
           }}
         >
-          <FloatingButton onClick={() => window.scrollTo(0, 0)} />
-
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 1400,
-            }}
-          >
-            <Headroom style={{ zIndex: 2 }}>
+          <Headroom style={{ zIndex: 2 }}>
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <div
                 style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  marginBottom: 20,
+                  marginTop: 20,
+                  width: "85%",
+                  maxWidth: 310,
                 }}
               >
+                <Search
+                  param={param}
+                  onKeyUp={(e) => {
+                    if (e.key === "Enter") {
+                      window.scrollTo(0, 0);
+                      if (e.target.value == "") return;
+                      window.history.pushState(
+                        {},
+                        null,
+                        `/explore/?id=${e.target.value}`
+                      );
+                    }
+                  }}
+                  onSearch={(e) => {
+                    window.scrollTo(0, 0);
+
+                    if (e == "") return;
+                    window.history.pushState({}, null, `/explore/?id=${e}`);
+                  }}
+                  onChange={(e) => {
+                    if (e.target.value) e.persist();
+                    if (e.target.value == "" && array.toString() != fullList) {
+                      window.history.pushState({}, null, `/explore/`);
+                      return;
+                    }
+                  }}
+                />
+                <Spacer y={0.8} />
                 <div
                   style={{
-                    marginBottom: 20,
-                    marginTop: 20,
-                    width: "85%",
-                    maxWidth: 310,
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  <Search
-                    param={param}
-                    onKeyUp={(e) => {
-                      if (e.key === "Enter") {
-                        window.scrollTo(0, 0);
-                        if (e.target.value == "") return;
-                        window.history.pushState(
-                          {},
-                          null,
-                          `/explore/?id=${e.target.value}`
-                        );
-                      }
-                    }}
-                    onSearch={(e) => {
-                      window.scrollTo(0, 0);
-
-                      if (e == "") return;
-                      window.history.pushState({}, null, `/explore/?id=${e}`);
-                    }}
-                    onChange={(e) => {
-                      if (e.target.value) e.persist();
-                      if (
-                        e.target.value == "" &&
-                        array.toString() != fullList
-                      ) {
-                        window.history.pushState({}, null, `/explore/`);
-                        return;
-                      }
-                    }}
-                  />
-                  <Spacer y={0.8} />
-                  <div
+                  <ButtonGroup
                     style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      borderRadius: 16,
+                      overflow: "visible",
+                      border: "none",
                     }}
+                    type="success"
                   >
-                    <ButtonGroup
-                      style={{
-                        borderRadius: 16,
-                        overflow: "visible",
-                        border: "none",
-                      }}
-                      type="success"
-                    >
-                      <Badge.Anchor>
-                        {array &&
-                          array.length < fullList.length &&
-                          !filters.id && (
-                            <Badge type="warning">
-                              {numberOfAppliedFilter()}
-                            </Badge>
-                          )}
-                        <GButton
-                          icon={<Filter />}
-                          effect={false}
-                          onClick={() => setVisible(true)}
-                        >
-                          {array &&
-                          array.length < fullList.length &&
-                          !filters.id
-                            ? "Change Filter"
-                            : "Apply Filter"}
-                        </GButton>
-                      </Badge.Anchor>
-
+                    <Badge.Anchor>
+                      {array &&
+                        array.length < fullList.length &&
+                        !filters.id && (
+                          <Badge type="warning">
+                            {numberOfAppliedFilter()}
+                          </Badge>
+                        )}
                       <GButton
+                        icon={<Filter />}
                         effect={false}
-                        onClick={() => {
-                          window.history.pushState({}, null, `/explore/`);
-                          setFilters({ order_id: null });
-                        }}
+                        onClick={() => setVisible(true)}
                       >
-                        Clear
+                        {array && array.length < fullList.length && !filters.id
+                          ? "Change Filter"
+                          : "Apply Filter"}
                       </GButton>
-                    </ButtonGroup>
-                  </div>
+                    </Badge.Anchor>
+
+                    <GButton
+                      effect={false}
+                      onClick={() => {
+                        window.history.pushState({}, null, `/explore/`);
+                        setFilters({ order_id: null });
+                      }}
+                    >
+                      Clear
+                    </GButton>
+                  </ButtonGroup>
                 </div>
               </div>
-            </Headroom>
-            <div>
-              <Spacer y={0.8} />
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                }}
-              >
-                <Grid.Container
-                  gap={1}
-                  style={{ width: "100%", maxWidth: 550 }}
-                >
-                  <Grid xs={24} md={12}>
-                    <div
-                      style={{
-                        textAlign: "center",
-                      }}
-                    >
-                      <b style={{ fontSize: 16, color: "#777777" }}>
-                        Total SpaceBudz:
-                      </b>{" "}
-                      {fullList.length.toLocaleString()} / 10,000
+            </div>
+          </Headroom>
+          <div>
+            <Spacer y={0.8} />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+              }}
+            >
+              <Grid.Container gap={1} style={{ width: "100%", maxWidth: 550 }}>
+                <Grid xs={24} md={12}>
+                  <div
+                    style={{
+                      textAlign: "center",
+                    }}
+                  >
+                    <b style={{ fontSize: 16, color: "#777777" }}>
+                      Total SpaceBudz:
+                    </b>{" "}
+                    10,000
+                  </div>
+                </Grid>
+                <Grid xs={24} md={12}>
+                  <div
+                    style={{
+                      display: "flex",
+                      // alignItems: "center",
+                      // justifyContent: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ width: "100%" }}>
+                      <b style={{ color: "#777777", fontSize: 16 }}>Result: </b>
+                      {array ? array.length.toLocaleString() : 0}
                     </div>
-                  </Grid>
-                  <Grid xs={24} md={12}>
                     <div
                       style={{
+                        width: "100%",
                         display: "flex",
-                        // alignItems: "center",
-                        // justifyContent: "center",
-                        textAlign: "center",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
-                      <div style={{ width: "100%" }}>
-                        <b style={{ color: "#777777", fontSize: 16 }}>
-                          Result:{" "}
-                        </b>
-                        {array ? array.length.toLocaleString() : 0}
-                      </div>
-                      {/* <div style={{ width: "100%", textAlign: "end" }}>
-                        <Checkbox
-                          onChange={(e) => {
-                            const f = filters;
-                            f.forSale = e.target.checked;
-                            setFilter(fullList, setArray, f);
-                            setFilters(f);
-                          }}
-                        >
-                          <b style={{ fontSize: 16 }}>For Sale</b>
-                        </Checkbox>
-                      </div>
-                      <div style={{ width: 20 }} />  */}
                       <div
+                        onClick={() => {
+                          const f = filters;
+                          f.order_id = filters.order_id
+                            ? filters.order_id == "ASC"
+                              ? "DESC"
+                              : null
+                            : "ASC";
+                          const urlParams = new URLSearchParams(
+                            window.location.search
+                          );
+                          console.log(!urlParams);
+                          let base = "/explore/";
+                          if (f.order_id) {
+                            urlParams.set("order_id", f.order_id);
+                            base += "?" + urlParams;
+                          } else {
+                            urlParams.delete("order_id");
+                            base += "?" + urlParams;
+                          }
+
+                          window.history.pushState({}, null, base);
+                        }}
                         style={{
-                          width: "100%",
                           display: "flex",
+                          cursor: "pointer",
                           alignItems: "center",
-                          justifyContent: "center",
                         }}
                       >
                         <div
-                          onClick={() => {
-                            const f = filters;
-                            f.order_id = filters.order_id
-                              ? filters.order_id == "ASC"
-                                ? "DESC"
-                                : null
-                              : "ASC";
-                            const urlParams = new URLSearchParams(
-                              window.location.search
-                            );
-                            console.log(!urlParams);
-                            let base = "/explore/";
-                            if (f.order_id) {
-                              urlParams.set("order_id", f.order_id);
-                              base += "?" + urlParams;
-                            } else {
-                              urlParams.delete("order_id");
-                              base += "?" + urlParams;
-                            }
-
-                            window.history.pushState({}, null, base);
-                          }}
-                          style={{
-                            display: "flex",
-                            cursor: "pointer",
-                            alignItems: "center",
-                          }}
+                          style={{ display: "flex", flexDirection: "column" }}
                         >
-                          <div
-                            style={{ display: "flex", flexDirection: "column" }}
-                          >
-                            {" "}
-                            <ChevronUp size={18} color={setColor()} />
-                            <div style={{ marginBottom: -10 }} />
-                            <ChevronDown size={18} color={setColor(false)} />
-                          </div>
-                          <div style={{ width: 3 }} />
-                          <b style={{ color: "#777777", fontSize: 16 }}>ID #</b>
+                          {" "}
+                          <ChevronUp size={18} color={setColor()} />
+                          <div style={{ marginBottom: -10 }} />
+                          <ChevronDown size={18} color={setColor(false)} />
                         </div>
+                        <div style={{ width: 3 }} />
+                        <b style={{ color: "#777777", fontSize: 16 }}>ID #</b>
                       </div>
                     </div>
-                  </Grid>
-                </Grid.Container>
-              </div>
-            </div>
-            <Spacer y={3} />
-            <div
-              style={{
-                marginBottom: 100,
-              }}
-            >
-              {loading ? (
-                <Loading size="large" type="success" />
-              ) : (
-                array && <InfiniteGrid array={array} spacebudz={spacebudz} />
-              )}
+                  </div>
+                </Grid>
+              </Grid.Container>
             </div>
           </div>
+          <Spacer y={3} />
+          <div
+            style={{
+              marginBottom: 100,
+            }}
+          >
+            {loading ? (
+              <Loading size="large" type="success" />
+            ) : (
+              array && <InfiniteGrid array={array} spacebudz={spacebudz} />
+            )}
+          </div>
         </div>
-        {/* FilterModal */}
-        <FilterModal modal={{ visible, setVisible, bindings }} />
-      </Layout>
+      </div>
+      {/* FilterModal */}
+      <FilterModal modal={{ visible, setVisible, bindings }} />
     </>
   );
 };

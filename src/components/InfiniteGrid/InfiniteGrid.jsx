@@ -171,7 +171,7 @@ class InfiniteGrid extends React.Component {
       </div>
     ) : (
       <div style={{ width: "100%", textAlign: "center" }}>
-        SpaceBud not found
+        No SpaceBud found
       </div>
     );
   }

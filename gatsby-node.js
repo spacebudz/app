@@ -1,6 +1,6 @@
 const fs = require("fs");
 const metadata = require("./metadata.json");
-// const fetch = require("node-fetch");
+const initialOrder = require("./order.json");
 
 const getSpacebudz = () => {
   return Object.keys(metadata).map((id) => {
@@ -28,6 +28,14 @@ const shuffle = (array) => {
   }
 };
 
+exports.onCreateWebpackConfig = ({ stage, actions }) => {
+  actions.setWebpackConfig({
+    experiments: {
+      asyncWebAssembly: true,
+    },
+  });
+};
+
 exports.createPages = async ({ actions: { createPage } }) => {
   // `getPokemonData` is a function that fetches our data
   const spacebudz = getSpacebudz();
@@ -36,7 +44,7 @@ exports.createPages = async ({ actions: { createPage } }) => {
   createPage({
     path: `/explore/`,
     component: require.resolve("./src/templates/explore.js"),
-    context: { spacebudz },
+    context: { spacebudz, initialOrder },
   });
   // Create a page for each Pokémon.
   spacebudz.forEach((spacebud) => {
@@ -45,5 +53,11 @@ exports.createPages = async ({ actions: { createPage } }) => {
       component: require.resolve("./src/templates/spacebud.js"),
       context: { spacebud },
     });
+  });
+  createPage({
+    path: `/profile`,
+    matchPath: "/profile/:address",
+    component: require.resolve("./src/templates/profile.js"),
+    context: { spacebudz },
   });
 };

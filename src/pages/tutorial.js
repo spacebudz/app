@@ -20,11 +20,9 @@ const Tutorial = (props) => {
         title="SpaceBudz"
         description="Collect your unique SpaceBud as NFT on the Cardano blockchain."
       />
-      <Layout>
-        <div style={{ minHeight: "100vh" }}>
-          <div style={{ marginTop: 100 }}>(Coming soon)</div>
-        </div>
-      </Layout>
+      <div style={{ minHeight: "100vh" }}>
+        <div style={{ marginTop: 100 }}>(Coming soon)</div>
+      </div>
     </>
   );
 };

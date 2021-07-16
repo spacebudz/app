@@ -8,3 +8,8 @@
 .startButton:active {
   transform: scale(0.96);
 }
+
+.accountButton:hover {
+  opacity: 0.9;
+  color: #5e35b1;
+}

@@ -96,220 +96,219 @@ const Opening = (props) => {
         title="SpaceBudz"
         description="Collect your unique SpaceBud as NFT on the Cardano blockchain."
       />
-      <Layout>
+      <div
+        style={{
+          minHeight: "100vh",
+          alignItems: "center",
+          display: "flex",
+          marginTop: !matches.md ? 110 : 60,
+          flexDirection: "column",
+          overflow: matches.md && "hidden",
+          position: "relative",
+        }}
+      >
         <div
           style={{
-            minHeight: "100vh",
-            alignItems: "center",
-            display: "flex",
-            marginTop: !matches.md ? 110 : 60,
-            flexDirection: "column",
-            overflow: matches.md && "hidden",
-            position: "relative",
+            position: "absolute",
+            left: -340,
+            bottom: 0,
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: -340,
-              bottom: 0,
-            }}
-          >
-            <img src={Bear} width="60%" />
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              left: -260,
-              bottom: -100,
-            }}
-          >
-            <img src={Alien} width="60%" />
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              right: -750,
-              bottom: -100,
-            }}
-          >
-            <img src={Dino} width="70%" />
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              left: "30%",
-              top: "-4%",
-              width: "8%",
-              opacity: 0.2,
-            }}
-          >
-            <img src={Moon} width="70%" />
-          </div>
-          <div
-            style={{
-              width: "100%",
-              maxWidth: 1000,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              // marginBottom: !matches.md && -70,
-            }}
-          >
-            <Animation
-              matches={matches}
-              id={showCongrats && result.id}
-              ref={animationRef}
-            />
-          </div>
-          {showCongrats && (
-            <FadeIn>
-              <div
-                style={{
-                  marginTop: !matches.md ? -170 : -110,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                }}
-              >
-                <div style={{ width: "90%", zIndex: 20 }}>
-                  <div
-                    style={{
-                      fontWeight: 800,
-                      fontSize: 22,
-                      color: "#777777",
-                      textAlign: "center",
-                    }}
-                  >
-                    Congratulations!
-                  </div>
-                  <div style={{ height: 15 }} />
-                  <div
-                    style={{
-                      textAlign: "center",
-                      maxWidth: 400,
-                    }}
-                  >
-                    <b>SpaceBud #{result.id}</b>
-                    <br /> will be soon reflected in your wallet and on the
-                    website.
-                  </div>
-                  <div style={{ height: 5 }} />
-                  <div style={{ textAlign: "center" }}>
-                    <Link
-                      style={{ textDecoration: "underline" }}
-                      underline
-                      color="success"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        window.open(
-                          `https://explorer.cardano.org/en/transaction?id=${result.txHash}`
-                        );
-                      }}
-                    >
-                      View Transaction
-                      <span style={{ fontSize: 11, marginLeft: 4 }}>
-                        (may take a while)
-                      </span>
-                    </Link>
-                  </div>
-                  <div style={{ height: 40 }} />
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <Button
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        minWidth: 50,
-                      }}
-                      bgcolor="#263238"
-                      onClick={() => {
-                        setVisible(true);
-                      }}
-                    >
-                      <Share2 size={22} />
-                    </Button>
-                    <Button
-                      bgcolor="#263238"
-                      onClick={() => {
-                        window.open(`/explore/spacebud/${result.id}`);
-                      }}
-                    >
-                      Details
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        priceInternal = null;
-                        animationRef.current.reset();
-                        setShowCongrats(false);
-                        setPrice(null);
-                        setResult(null);
-                        setTimeout(() => {
-                          fetchPrice();
-                          setOpen(true);
-                        });
-                      }}
-                    >
-                      Unpack More
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-          )}
-          {showUnpack && (
+          <img src={Bear} width="60%" />
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: -260,
+            bottom: -100,
+          }}
+        >
+          <img src={Alien} width="60%" />
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            right: -750,
+            bottom: -100,
+          }}
+        >
+          <img src={Dino} width="70%" />
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            left: "30%",
+            top: "-4%",
+            width: "8%",
+            opacity: 0.2,
+          }}
+        >
+          <img src={Moon} width="70%" />
+        </div>
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            // marginBottom: !matches.md && -70,
+          }}
+        >
+          <Animation
+            matches={matches}
+            id={showCongrats && result.id}
+            ref={animationRef}
+          />
+        </div>
+        {showCongrats && (
+          <FadeIn>
             <div
               style={{
-                width: "100%",
+                marginTop: !matches.md ? -170 : -110,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexDirection: "column",
-                zIndex: 12,
-                marginTop: !matches.md ? -60 : -30,
               }}
             >
-              <Button
-                style={{ width: 300, opacity: 0.3 }}
-                onClick={() => {
-                  // fetchPrice();
-                  // setOpen(true);
-                }}
-              >
-                Presale is over
-              </Button>
+              <div style={{ width: "90%", zIndex: 20 }}>
+                <div
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 22,
+                    color: "#777777",
+                    textAlign: "center",
+                  }}
+                >
+                  Congratulations!
+                </div>
+                <div style={{ height: 15 }} />
+                <div
+                  style={{
+                    textAlign: "center",
+                    maxWidth: 400,
+                  }}
+                >
+                  <b>SpaceBud #{result.id}</b>
+                  <br /> will be soon reflected in your wallet and on the
+                  website.
+                </div>
+                <div style={{ height: 5 }} />
+                <div style={{ textAlign: "center" }}>
+                  <Link
+                    style={{ textDecoration: "underline" }}
+                    underline
+                    color="success"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.open(
+                        `https://explorer.cardano.org/en/transaction?id=${result.txHash}`
+                      );
+                    }}
+                  >
+                    View Transaction
+                    <span style={{ fontSize: 11, marginLeft: 4 }}>
+                      (may take a while)
+                    </span>
+                  </Link>
+                </div>
+                <div style={{ height: 40 }} />
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Button
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minWidth: 50,
+                    }}
+                    bgcolor="#263238"
+                    onClick={() => {
+                      setVisible(true);
+                    }}
+                  >
+                    <Share2 size={22} />
+                  </Button>
+                  <Button
+                    bgcolor="#263238"
+                    onClick={() => {
+                      window.open(`/explore/spacebud/${result.id}`);
+                    }}
+                  >
+                    Details
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      priceInternal = null;
+                      animationRef.current.reset();
+                      setShowCongrats(false);
+                      setPrice(null);
+                      setResult(null);
+                      setTimeout(() => {
+                        fetchPrice();
+                        setOpen(true);
+                      });
+                    }}
+                  >
+                    Unpack More
+                  </Button>
+                </div>
+              </div>
             </div>
-          )}
-          <Spacer y={3} />
+          </FadeIn>
+        )}
+        {showUnpack && (
           <div
             style={{
-              zIndex: 1,
-              textAlign: "center",
-              maxWidth: 500,
-              width: "90%",
-
-              borderRadius: 16,
-              border: "1px solid #4a148c",
-              backgroundColor: "white",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              zIndex: 12,
+              marginTop: !matches.md ? -60 : -30,
             }}
           >
-            <div style={{ fontSize: 15, padding: "30px 20px" }}>
-              <span style={{ fontWeight: 500, fontSize: 18 }}>
-                Thank you everyone for participating!
-              </span>
-            </div>
+            <Button
+              style={{ width: 300, opacity: 0.3 }}
+              onClick={() => {
+                // fetchPrice();
+                // setOpen(true);
+              }}
+            >
+              Presale is over
+            </Button>
           </div>
-          <Spacer y={3} />
+        )}
+        <Spacer y={3} />
+        <div
+          style={{
+            zIndex: 1,
+            textAlign: "center",
+            maxWidth: 500,
+            width: "90%",
+
+            borderRadius: 16,
+            border: "1px solid #4a148c",
+            backgroundColor: "white",
+          }}
+        >
+          <div style={{ fontSize: 15, padding: "30px 20px" }}>
+            <span style={{ fontWeight: 500, fontSize: 18 }}>
+              Thank you everyone for participating!
+            </span>
+          </div>
         </div>
-        {/* Modal */}
-        {/* <PaymentModal
+        <Spacer y={3} />
+      </div>
+      {/* Modal */}
+      {/* <PaymentModal
           result={result}
           price={price}
           open={open}
@@ -317,11 +316,10 @@ const Opening = (props) => {
           setPrice={(p) => setPrice(p)}
           setShowUnpack={(u) => setShowUnpack(u)}
         /> */}
-        {/* <ShareModal
+      {/* <ShareModal
           id={result && result.txHash && result.id}
           modal={{ visible, setVisible, bindings }}
         />{" "} */}
-      </Layout>
     </>
   );
 };
