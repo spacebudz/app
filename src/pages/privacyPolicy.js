@@ -1,13 +1,9 @@
 import React from "react";
-import { LaunchButton } from "../components/Button";
-import { Grid, Spacer } from "@geist-ui/react";
+import { Spacer } from "@geist-ui/react";
 
-import Layout from "../templates/layout";
 import Metadata from "../components/Metadata";
 
 //assets
-import BudRepresent from "../images/assets/spacebud.svg";
-import { navigate } from "gatsby";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 
 const PrivacyPolicy = (props) => {

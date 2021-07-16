@@ -9,8 +9,8 @@ import Loader from "../../cardano/loader";
 
 // Asset
 import Avatar from "../../images/assets/avatar.png";
-import buffer from "buffer";
 import { useStoreActions, useStoreState } from "easy-peasy";
+import buffer from "buffer";
 const Buffer = buffer.Buffer;
 
 const addressToBech32 = async () => {
@@ -23,7 +23,7 @@ const addressToBech32 = async () => {
 const StartButton = (props) => {
   const matches = useBreakpoint();
   const [loading, setLoading] = React.useState(false);
-  const [account, setAccount] = React.useState(null);
+  const [flag, setFlag] = React.useState(false);
   const connected = useStoreState((state) => state.connection.connected);
   const setConnected = useStoreActions(
     (actions) => actions.connection.setConnected
@@ -31,11 +31,16 @@ const StartButton = (props) => {
   const [, setToast] = useToasts();
 
   React.useEffect(() => {
-    if (connected)
-      window.cardano.onAccountChange(() => window.location.reload());
+    if (connected && !flag)
+      window.cardano.onAccountChange(async () => {
+        const address = await addressToBech32();
+        console.log(address);
+        setConnected(address);
+        setFlag(true);
+      });
   }, [connected]);
 
-  return account ? (
+  return connected ? (
     <div
       className={style.accountButton}
       style={{
@@ -47,7 +52,7 @@ const StartButton = (props) => {
         justifyContent: "center",
         cursor: "pointer",
       }}
-      onClick={() => navigate(`/profile/${account}`)}
+      onClick={() => navigate(`/profile?address=${connected}`)}
     >
       <img src={Avatar} width={24} />
       <Spacer x={0.2} />
@@ -93,6 +98,7 @@ const StartButton = (props) => {
           setLoading(false);
           return;
         }
+        await window.cardano.enable();
         if ((await window.cardano.getNetworkId()) !== 1) {
           setToast({
             delay: 5000,
@@ -105,11 +111,8 @@ const StartButton = (props) => {
           setLoading(false);
           return;
         }
-        await window.cardano.enable().then(async () => {
-          const address = await addressToBech32();
-          setAccount(address);
-          setConnected();
-        });
+        const address = await addressToBech32();
+        setConnected(address);
         setLoading(false);
       }}
     >

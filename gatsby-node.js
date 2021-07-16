@@ -56,7 +56,6 @@ exports.createPages = async ({ actions: { createPage } }) => {
   });
   createPage({
     path: `/profile`,
-    matchPath: "/profile/:address",
     component: require.resolve("./src/templates/profile.js"),
     context: { spacebudz },
   });

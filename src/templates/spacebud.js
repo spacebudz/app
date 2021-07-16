@@ -202,7 +202,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                     color="success"
                     onClick={(e) => {
                       e.preventDefault();
-                      if (owner) navigate(`/profile/${item.address}`);
+                      if (owner) navigate(`/profile?address=${item.address}`);
                     }}
                   >
                     {item.address}

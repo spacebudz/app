@@ -2,9 +2,9 @@ const { createStore, action } = require("easy-peasy");
 
 const store = createStore({
   connection: {
-    connected: false,
-    setConnected: action((state) => {
-      state.connected = true;
+    connected: null,
+    setConnected: action((state, payload) => {
+      state.connected = payload;
     }),
   },
 });

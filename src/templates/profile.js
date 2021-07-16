@@ -26,11 +26,12 @@ const addressToBech32 = async () => {
   ).to_bech32();
 };
 
-const Profile = ({ address, pageContext: { spacebudz } }) => {
+const Profile = ({ pageContext: { spacebudz } }) => {
+  const [address, setAddress] = React.useState("");
   const [tokens, setTokens] = React.useState(null);
   const connected = useStoreState((state) => state.connection.connected);
-  const [connectedAddress, setConnectedAddress] = React.useState(false);
-  const fetchAddressBudz = async () => {
+  const didMount = React.useRef(false);
+  const fetchAddressBudz = async (address) => {
     setTokens(null);
     const amount = await fetch(
       `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${address}`,
@@ -48,18 +49,33 @@ const Profile = ({ address, pageContext: { spacebudz } }) => {
       setTokens([]);
     }
   };
-  const checkConnected = async () => {
-    if (connected) {
-      const walletAddress = await addressToBech32();
-      if (walletAddress === address) setConnectedAddress(true);
-      else setConnectedAddress(false);
-    }
+  const update = async () => {
+    const address =
+      typeof window !== "undefined" &&
+      new URL(window.location.href).searchParams.get("address");
+    setAddress(address);
+    fetchAddressBudz(address);
   };
   React.useEffect(() => {
+    if (didMount.current) {
+      if (connected)
+        window.history.pushState({}, null, `/profile?address=${connected}`);
+    } else didMount.current = true;
     window.scrollTo(0, 0);
-    checkConnected();
-    fetchAddressBudz();
-  }, [address, connected]);
+    update();
+  }, [connected]);
+  React.useEffect(() => {
+    let url = window.location.href;
+    const urlChange = setInterval(() => {
+      const newUrl = window.location.href;
+      if (url !== newUrl) {
+        url = newUrl;
+        update();
+      }
+    });
+    return () => clearInterval(urlChange);
+  }, []);
+
   return (
     <>
       <Metadata
@@ -85,7 +101,7 @@ const Profile = ({ address, pageContext: { spacebudz } }) => {
           }}
         >
           <div style={{ fontWeight: 600, fontSize: 26 }}>
-            Account Details {connectedAddress && "(Connected)"}
+            Account Details {address === connected && "(Connected)"}
           </div>
           <Spacer y={0.5} />
           <div style={{ display: "flex" }}>
