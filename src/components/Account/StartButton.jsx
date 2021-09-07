@@ -54,8 +54,6 @@ const StartButton = (props) => {
       }}
       onClick={() => navigate(`/profile?address=${connected}`)}
     >
-      <img src={Avatar} width={24} />
-      <Spacer x={0.2} />
       <div style={{ fontWeight: "bold" }}>Account</div>
     </div>
   ) : (

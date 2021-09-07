@@ -140,8 +140,8 @@ const Landing = (props) => {
                           fontWeight: "bold",
                         }}
                       >
-                        10,000 SpaceBudz are out there. What are you waiting
-                        for!
+                        10,000 SpaceBudz are out there. Where will your
+                        SpaceBudz take you?
                       </div>
                     </div>
                     <Spacer y={1.8} />
