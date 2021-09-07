@@ -116,28 +116,29 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
 
     Bid details -> case tradeAction of
         BidHigher -> 
-            traceIfFalse "expected correct script output datum" (Bid details == scriptOutputDatum) &&
-            traceIfFalse "expected correct bid amount" (Ada.fromValue (scriptInputValue) + Ada.lovelaceOf (bidStep contractInfo) <= Ada.fromValue scriptOutputValue) &&
-            traceIfFalse "expected correct bidPolicy NFT" (containsPolicyBidNFT scriptOutputValue (budId details)) &&
-            traceIfFalse "expected previous bidder refund" (Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue)
+            Bid details == scriptOutputDatum && -- expected correct script output datum
+            Ada.fromValue (scriptInputValue) + Ada.lovelaceOf (bidStep contractInfo) <= Ada.fromValue scriptOutputValue && -- expected correct bid amount
+            containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
+            Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expected previous bidder refund
         Sell -> 
-            traceIfFalse "expected correct script output datum" (scriptOutputDatum == StartBid) &&
-            traceIfFalse "expected correct bidPolicy NFT" (containsPolicyBidNFT scriptOutputValue (budId details)) &&
-            traceIfFalse "expected bidder to be paid" (containsSpaceBudNFT (valuePaidTo txInfo (tradeOwner details)) (budId details)) &&
-            traceIfFalse "expected ada to be split correctly" (correctSplit signer)
+            scriptOutputDatum == StartBid && -- expected correct script output datum
+            containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
+            containsSpaceBudNFT (valuePaidTo txInfo (tradeOwner details)) (budId details) && -- expected bidder to be paid
+            correctSplit (getLovelace (Ada.fromValue scriptInputValue)) signer -- expected ada to be split correctly
         Cancel -> 
-            traceIfFalse "expected correct owner" (txInfo `txSignedBy` tradeOwner details) &&
-            traceIfFalse "expected correct script output datum" (scriptOutputDatum == StartBid) &&
-            traceIfFalse "expected correct bidPolicy NFT" (containsPolicyBidNFT scriptOutputValue (budId details)) &&
-            traceIfFalse "expect correct refund" (Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue)
+            txInfo `txSignedBy` tradeOwner details && -- expected correct owner
+            scriptOutputDatum == StartBid && -- expected correct script output datum
+            containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
+            Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expect correct refund
 
     Offer details -> case tradeAction of
         Buy ->
-            traceIfFalse "expected bidder to be paid" (containsSpaceBudNFT (valuePaidTo txInfo signer) (budId details)) &&
-            traceIfFalse "expected ada to be split correctly" (correctSplit (tradeOwner details))
+            containsSpaceBudNFT (valuePaidTo txInfo signer) (budId details) && -- expected buyer to be paid
+            minPrice contractInfo >= requestedAmount details && -- expected at least minPrice buy
+            correctSplit (requestedAmount details) (tradeOwner details) -- expected ada to be split correctly
         Cancel -> 
-            traceIfFalse "expected correct owner" (txInfo `txSignedBy` tradeOwner details) &&
-            traceIfFalse "expect correct refund" (containsSpaceBudNFT (valuePaidTo txInfo (tradeOwner details)) (budId details))
+            txInfo `txSignedBy` tradeOwner details && -- expected correct owner
+            containsSpaceBudNFT (valuePaidTo txInfo (tradeOwner details)) (budId details) -- expect correct refund
 
     where
         txInfo :: TxInfo
@@ -153,31 +154,28 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
         signer :: PubKeyHash
         signer = case txInfoSignatories txInfo of
             [pubKey] -> pubKey
-            _ -> traceError "too many signers involved"
 
 
         (owner1PubKeyHash, owner1Fee1, owner1Fee2, owner1Fee3) = owner1 contractInfo
         (owner2PubKeyHash, owner2Fee1) = owner2 contractInfo
 
         -- minADA requirement forces the contract to give up certain fee recipients
-        correctSplit :: PubKeyHash -> Bool
-        correctSplit tradeRecipient
+        correctSplit :: Integer -> PubKeyHash -> Bool
+        correctSplit lovelaceAmount tradeRecipient
             | lovelaceAmount > 3000000000 = let (amount1, amount2, amount3) = (lovelacePercentage lovelaceAmount (owner1Fee1),lovelacePercentage lovelaceAmount (owner2Fee1),lovelacePercentage lovelaceAmount (extraRecipient contractInfo)) 
                 in 
-                  traceIfFalse "expected owner1 to receive right amount" (Ada.fromValue (valuePaidTo txInfo owner1PubKeyHash) >= Ada.lovelaceOf amount1) &&
-                  traceIfFalse "expected owner2 to receive right amount" (Ada.fromValue (valuePaidTo txInfo owner2PubKeyHash) >= Ada.lovelaceOf amount2) &&
-                  traceIfFalse "expected trade recipient to receive right amount" (Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1 - amount2 - amount3))
+                  Ada.fromValue (valuePaidTo txInfo owner1PubKeyHash) >= Ada.lovelaceOf amount1 && -- expected owner1 to receive right amount
+                  Ada.fromValue (valuePaidTo txInfo owner2PubKeyHash) >= Ada.lovelaceOf amount2 && -- expected owner2 to receive right amount
+                  Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1 - amount2 - amount3) -- expected trade recipient to receive right amount
             | lovelaceAmount > 600000000 = let (amount1, amount2) = (lovelacePercentage lovelaceAmount (owner1Fee2),lovelacePercentage lovelaceAmount (owner2Fee1))
                 in 
-                  traceIfFalse "expected owner1 to receive right amount" (Ada.fromValue (valuePaidTo txInfo owner1PubKeyHash) >= Ada.lovelaceOf amount1) &&
-                  traceIfFalse "expected owner2 to receive right amount" (Ada.fromValue (valuePaidTo txInfo owner2PubKeyHash) >= Ada.lovelaceOf amount2) &&
-                  traceIfFalse "expected trade recipient to receive right amount" (Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1 - amount2))
+                  Ada.fromValue (valuePaidTo txInfo owner1PubKeyHash) >= Ada.lovelaceOf amount1 && -- expected owner1 to receive right amount
+                  Ada.fromValue (valuePaidTo txInfo owner2PubKeyHash) >= Ada.lovelaceOf amount2 && -- expected owner2 to receive right amount
+                  Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1 - amount2) -- expected trade recipient to receive right amount
             | otherwise = let amount1 = lovelacePercentage lovelaceAmount (owner1Fee3)
                 in 
-                  traceIfFalse "expected owner1 to receive right amount" (Ada.fromValue (valuePaidTo txInfo owner1PubKeyHash) >= Ada.lovelaceOf amount1) &&
-                  traceIfFalse "expected trade recipient to receive right amount" (Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1))
-            where
-              lovelaceAmount = getLovelace (Ada.fromValue scriptInputValue)
+                  Ada.fromValue (valuePaidTo txInfo owner1PubKeyHash) >= Ada.lovelaceOf amount1 && -- expected owner1 to receive right amount
+                  Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1) -- expected trade recipient to receive right amount
           
         lovelacePercentage :: Integer -> Integer -> Integer
         lovelacePercentage am p = (am * 10) `divide` p
@@ -186,13 +184,9 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
         outputInfo :: TxOut -> (Value, TradeDatum)
         outputInfo o = case txOutAddress o of
             Address (ScriptCredential _) _  -> case txOutDatumHash o of
-                Nothing -> traceError "datum hash not found"
                 Just h -> case findDatum h txInfo of
-                    Nothing -> traceError "datum not found"
                     Just (Datum d) ->  case PlutusTx.fromBuiltinData d of
                         Just b -> (txOutValue o, b)
-                        Nothing  -> traceError "error decoding data"
-            _ -> traceError "wrong output type"
 
         policyBidLength :: Value -> Integer
         policyBidLength v = length $ policyAssets v (policyBid contractInfo)
@@ -216,14 +210,12 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
             in
                 case xs of
                     [i] -> txOutValue (txInInfoResolved i)
-                    _ -> traceError "expected exactly one script input"
             
 
         scriptOutputValue :: Value
         scriptOutputDatum :: TradeDatum
         (scriptOutputValue, scriptOutputDatum) = case getContinuingOutputs context of
             [o] -> outputInfo o
-            _ -> traceError "expected exactly one continuing output"
 
         -- 2 outputs possible because of distribution of inital bid NFT tokens and only applies if datum is StartBid
         correctStartBidOutputs :: Bool
@@ -233,32 +225,26 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
                     [o1, o2] -> let (info1, info2) = (outputInfo o1, outputInfo o2) in
                                 case info1 of
                                     (v1, StartBid) -> 
-                                        traceIfFalse "expected correct policyBid NFTs amount in output" (policyBidLength scriptInputValue - 1 == policyBidLength v1) &&
+                                        policyBidLength scriptInputValue - 1 == policyBidLength v1 && -- expected correct policyBid NFTs amount in output
                                         case info2 of
                                             (v2, Bid details) ->
-                                                traceIfFalse "expected policyBid NFT in output" (containsPolicyBidNFT v2 (budId details)) &&
-                                                traceIfFalse "expected at least minPrice bid" (containsAdaAmount v2 (minPrice contractInfo)) &&
-                                                traceIfFalse "expeced correct output datum amount" (requestedAmount details == 1)
-                                            _ -> traceError "not possible state transition"
+                                                containsPolicyBidNFT v2 (budId details) && -- expected policyBid NFT in output
+                                                containsAdaAmount v2 (minPrice contractInfo) && -- expected at least minPrice bid
+                                                requestedAmount details == 1 -- expeced correct output datum amount
                                     (v1, Bid details) -> 
-                                        traceIfFalse "expected policyBid NFT in output" (containsPolicyBidNFT v1 (budId details)) &&
-                                        traceIfFalse "expected at least minPrice bid" (containsAdaAmount v1 (minPrice contractInfo)) &&
-                                        traceIfFalse "expeced correct output datum amount" (requestedAmount details == 1) &&
+                                        containsPolicyBidNFT v1 (budId details) && -- expected policyBid NFT in output
+                                        containsAdaAmount v1 (minPrice contractInfo) && -- expected at least minPrice bid
+                                        requestedAmount details == 1 && -- expeced correct output datum amount
                                         case info2 of
                                             (v2, StartBid) -> 
-                                                traceIfFalse "expect correct policyBid NFTs amount in output" (policyBidLength scriptInputValue - 1 == policyBidLength v2)
-                                            _ -> traceError "not possible state transition"
-                                    _ -> traceError "not a valid datum"
-                    _ -> traceError "expected exactly two continuing output"
+                                                policyBidLength scriptInputValue - 1 == policyBidLength v2 -- expect correct policyBid NFTs amount in output
             else
                 case getContinuingOutputs context of
                     [o] -> let (value, datum) = outputInfo o in case datum of
                             (Bid details) ->
-                                traceIfFalse "expected policyBid NFT in output" (containsPolicyBidNFT value (budId details)) &&
-                                traceIfFalse "expected at least minPrice bid" (containsAdaAmount value (minPrice contractInfo)) &&
-                                traceIfFalse "expeced correct output datum amount" (requestedAmount details == 1)
-                            _ -> traceError "not possible state transition"
-                    _ -> traceError "expected exactly one continuing output"
+                                containsPolicyBidNFT value (budId details) && -- expected policyBid NFT in output
+                                containsAdaAmount value (minPrice contractInfo) && -- expected at least minPrice bid
+                                requestedAmount details == 1 -- expeced correct output datum amount
 
         
 
