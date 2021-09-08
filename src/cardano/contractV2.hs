@@ -18,6 +18,9 @@
 module Cardano.PlutusExample.Trade
   ( tradeSerialised
   , tradeSBS
+  , TradeDatum(..)
+  , TradeDetails(..)
+  , TradeAction(..)
   ) where
 import           Control.Monad        hiding (fmap)
 import           Data.Aeson           (ToJSON, FromJSON,encode)
@@ -54,6 +57,8 @@ import qualified Plutus.V1.Ledger.Api as Plutus
 data ContractInfo = ContractInfo
     { policySpaceBudz :: !CurrencySymbol
     , policyBid :: !CurrencySymbol
+    , prefixSpaceBud :: !BuiltinByteString
+    , prefixSpaceBudBid :: !BuiltinByteString
     , owner1 :: !(PubKeyHash, Integer, Integer, Integer)
     , owner2 :: !(PubKeyHash, Integer)
     , extraRecipient :: !Integer
@@ -66,10 +71,12 @@ toFraction p = toInteger $ floor (1 / (p / 1000))
 
 
 contractInfo = ContractInfo 
-    { policySpaceBudz = "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
-    , policyBid = "21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9"
-    , owner1 = ("21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9", toFraction 1.95, toFraction 2, toFraction 2.5)
-    , owner2 = ("21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9", toFraction 0.5)
+    { policySpaceBudz = "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a"
+    , policyBid = "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a"
+    , prefixSpaceBud = "SpaceBud"
+    , prefixSpaceBudBid = "SpaceBudBid"
+    , owner1 = ("2bd88ae9736d59bbd5714f0ded14648f8cffc9f5e8e85cea3bfb033f", toFraction 1.95, toFraction 2, toFraction 2.5)
+    , owner2 = ("9fb0a5cbecf77d8a8688749337f2f12538b7d3f90b8891c242d22867", toFraction 0.5)
     , extraRecipient = toFraction 0.05
     , minPrice = 50000000
     , bidStep = 10000
@@ -79,7 +86,7 @@ contractInfo = ContractInfo
 
 data TradeDetails = TradeDetails
     { tradeOwner :: !PubKeyHash
-    , budId :: !TokenName
+    , budId :: !BuiltinByteString
     , requestedAmount :: !Integer
     } deriving (Generic, ToJSON, FromJSON)
 
@@ -98,13 +105,9 @@ instance Eq TradeDatum where
     Bid a == Bid b = a == b
     Offer a == Offer b = a == b
 
-data TradeAction = Buy | Sell | BidHigher | Cancel
+data TradeAction = Buy PubKeyHash | Sell PubKeyHash | BidHigher | Cancel
     deriving (Generic, ToJSON, FromJSON)
 
-
-instance Semigroup TokenName where
-    {-# INLINABLE (<>) #-}
-    TokenName a <> TokenName b = TokenName (a <> b)
 
 -- Validator
 
@@ -120,11 +123,11 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
             Ada.fromValue (scriptInputValue) + Ada.lovelaceOf (bidStep contractInfo) <= Ada.fromValue scriptOutputValue && -- expected correct bid amount
             containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
             Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expected previous bidder refund
-        Sell -> 
+        Sell seller -> 
             scriptOutputDatum == StartBid && -- expected correct script output datum
             containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
             containsSpaceBudNFT (valuePaidTo txInfo (tradeOwner details)) (budId details) && -- expected bidder to be paid
-            correctSplit (getLovelace (Ada.fromValue scriptInputValue)) signer -- expected ada to be split correctly
+            correctSplit (getLovelace (Ada.fromValue scriptInputValue)) seller -- expected ada to be split correctly
         Cancel -> 
             txInfo `txSignedBy` tradeOwner details && -- expected correct owner
             scriptOutputDatum == StartBid && -- expected correct script output datum
@@ -132,9 +135,9 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
             Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expect correct refund
 
     Offer details -> case tradeAction of
-        Buy ->
-            containsSpaceBudNFT (valuePaidTo txInfo signer) (budId details) && -- expected buyer to be paid
-            minPrice contractInfo >= requestedAmount details && -- expected at least minPrice buy
+        Buy buyer ->
+            containsSpaceBudNFT (valuePaidTo txInfo buyer) (budId details) && -- expected buyer to be paid
+            requestedAmount details >= minPrice contractInfo && -- expected at least minPrice buy
             correctSplit (requestedAmount details) (tradeOwner details) -- expected ada to be split correctly
         Cancel -> 
             txInfo `txSignedBy` tradeOwner details && -- expected correct owner
@@ -144,16 +147,8 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
         txInfo :: TxInfo
         txInfo = scriptContextTxInfo context
 
-        prefixSpaceBud :: BuiltinByteString
-        prefixSpaceBudBid :: BuiltinByteString
-        (prefixSpaceBud,prefixSpaceBudBid)  = ("SpaceBud", "SpaceBudBid")
-
         policyAssets :: Value -> CurrencySymbol -> [(CurrencySymbol, TokenName, Integer)]
         policyAssets v cs = P.filter (\(cs',_,am) -> cs == cs' && am == 1) (flattenValue v)
-
-        signer :: PubKeyHash
-        signer = case txInfoSignatories txInfo of
-            [pubKey] -> pubKey
 
 
         (owner1PubKeyHash, owner1Fee1, owner1Fee2, owner1Fee3) = owner1 contractInfo
@@ -173,7 +168,7 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
                   Ada.fromValue (valuePaidTo txInfo owner2PubKeyHash) >= Ada.lovelaceOf amount2 && -- expected owner2 to receive right amount
                   Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1 - amount2) -- expected trade recipient to receive right amount
             | otherwise = let amount1 = lovelacePercentage lovelaceAmount (owner1Fee3)
-                in 
+                in
                   Ada.fromValue (valuePaidTo txInfo owner1PubKeyHash) >= Ada.lovelaceOf amount1 && -- expected owner1 to receive right amount
                   Ada.fromValue (valuePaidTo txInfo tradeRecipient) >= Ada.lovelaceOf (lovelaceAmount - amount1) -- expected trade recipient to receive right amount
           
@@ -191,14 +186,12 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
         policyBidLength :: Value -> Integer
         policyBidLength v = length $ policyAssets v (policyBid contractInfo)
 
-        containsPolicyBidNFT :: Value -> TokenName -> Bool
-        containsPolicyBidNFT v tn = valueOf v (policyBid contractInfo) (TokenName prefixSpaceBudBid <> tn) == 1
+        containsPolicyBidNFT :: Value -> BuiltinByteString -> Bool
+        containsPolicyBidNFT v tn = valueOf v (policyBid contractInfo) (TokenName ((prefixSpaceBudBid contractInfo) <> tn)) >= 1
 
-        containsSpaceBudNFT :: Value -> TokenName -> Bool
-        containsSpaceBudNFT v tn = valueOf v (policySpaceBudz contractInfo) (TokenName prefixSpaceBud <> tn) == 1
+        containsSpaceBudNFT :: Value -> BuiltinByteString -> Bool
+        containsSpaceBudNFT v tn = valueOf v (policySpaceBudz contractInfo) (TokenName ((prefixSpaceBud contractInfo) <> tn)) >= 1
 
-        containsAdaAmount :: Value -> Integer -> Bool
-        containsAdaAmount v n = getLovelace (Ada.fromValue v) == n
 
         scriptInputValue :: Value
         scriptInputValue =
@@ -229,11 +222,11 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
                                         case info2 of
                                             (v2, Bid details) ->
                                                 containsPolicyBidNFT v2 (budId details) && -- expected policyBid NFT in output
-                                                containsAdaAmount v2 (minPrice contractInfo) && -- expected at least minPrice bid
+                                                getLovelace (Ada.fromValue v2) >= minPrice contractInfo && -- expected at least minPrice bid
                                                 requestedAmount details == 1 -- expeced correct output datum amount
                                     (v1, Bid details) -> 
                                         containsPolicyBidNFT v1 (budId details) && -- expected policyBid NFT in output
-                                        containsAdaAmount v1 (minPrice contractInfo) && -- expected at least minPrice bid
+                                        getLovelace (Ada.fromValue v1) >= minPrice contractInfo && -- expected at least minPrice bid
                                         requestedAmount details == 1 && -- expeced correct output datum amount
                                         case info2 of
                                             (v2, StartBid) -> 
@@ -243,7 +236,7 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
                     [o] -> let (value, datum) = outputInfo o in case datum of
                             (Bid details) ->
                                 containsPolicyBidNFT value (budId details) && -- expected policyBid NFT in output
-                                containsAdaAmount value (minPrice contractInfo) && -- expected at least minPrice bid
+                                getLovelace (Ada.fromValue value) >= minPrice contractInfo && -- expected at least minPrice bid
                                 requestedAmount details == 1 -- expeced correct output datum amount
 
         
