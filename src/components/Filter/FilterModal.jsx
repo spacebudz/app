@@ -121,7 +121,7 @@ const FilterModal = ({ isOpen, onOpen, onClose }) => {
       isCentered
     >
       <ModalOverlay />
-      <ModalContent overflow="scroll" height="80vh">
+      <ModalContent overflowY="scroll" height="80vh">
         <ModalHeader>Filter</ModalHeader>
         <ModalCloseButton
           _hover={{ background: "none" }}
