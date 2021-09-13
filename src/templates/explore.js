@@ -327,7 +327,9 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
             }}
           >
             {loading ? (
-              <BeatLoader size="5" color="#6B46C1" />
+              <Box display="flex" alignItems="center" justifyContent="center">
+                <BeatLoader size="5" color="#6B46C1" />
+              </Box>
             ) : (
               array && <InfiniteGrid array={array} spacebudz={spacebudz} />
             )}
