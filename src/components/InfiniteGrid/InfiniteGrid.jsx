@@ -2,10 +2,11 @@ import React from "react";
 import { GridLayout } from "@egjs/react-infinitegrid";
 import "./InfiniteGrid.css";
 import { Link } from "gatsby";
-import { Loading } from "@geist-ui/react";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import styled, { keyframes } from "styled-components";
+import { BeatLoader } from "react-spinners";
+import { Box } from "@chakra-ui/layout";
 
 var converterEngine = function (input) {
   // fn BLOB => Binary => Base64 ?
@@ -47,7 +48,8 @@ const CustomLazyImage = styled(LazyLoadImage)`
 const Item = ({ bud, im }) => {
   const [image, setImage] = React.useState(null);
   React.useEffect(() => {
-    getImageBase64(im, (data) => setImage("data:image/png;base64," + data));
+    // getImageBase64(im, (data) => setImage("data:image/png;base64," + data));
+    setImage(im);
   }, []);
 
   return (
@@ -72,7 +74,6 @@ const Item = ({ bud, im }) => {
             <span style={{ color: "#777777" }}>Buy</span>{" "}
             <span>{bud.price && bud.price + " ₳"}</span>
           </div>
-          {/* <img src={`../spacebudz/bud${bud.id}.png`} /> */}
           {!image ? (
             <div></div>
           ) : (
@@ -80,7 +81,6 @@ const Item = ({ bud, im }) => {
               threshold={400}
               alt={`SpaceBud #${bud.id}`}
               effect="opacity"
-              // src={`../spacebudz/bud${bud.id}.png`}
               src={image}
             />
           )}
@@ -163,10 +163,15 @@ class InfiniteGrid extends React.Component {
         </GridLayout>
         {(!(this.state.list.length >= this.props.array.length) ||
           this.state.lastLoad) && (
-          <>
+          <Box
+            w="full"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
             <div style={{ height: 100 }} />
-            <Loading size="large" type="success" />
-          </>
+            <BeatLoader size="5" color="#6B46C1" />
+          </Box>
         )}
       </div>
     ) : (

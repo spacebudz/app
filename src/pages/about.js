@@ -1,16 +1,12 @@
 import React from "react";
-import { Link, Spacer } from "@geist-ui/react";
 
-import Layout from "../templates/layout";
 import Metadata from "../components/Metadata";
-import { useBreakpoint } from "gatsby-plugin-breakpoints";
+import { Box, Link } from "@chakra-ui/layout";
 
 //assets
 import TeamImage from "../images/assets/team.png";
 
-const About = (props) => {
-  const matches = useBreakpoint();
-
+const About = () => {
   return (
     <>
       <Metadata
@@ -39,17 +35,17 @@ const About = (props) => {
           >
             About Us
           </div>
-          <Spacer y={1} />
+          <Box h={3} />
           <div>
             Hey there, we are two crypto enthusiast, who found the true
             potential of Cardano.
             <br /> I'm Alessandro and I operate the Cardano stake pool Berry.
-            And I'm Zieg, NFT-enthousiast since claiming his first cryptopunk in
+            And I'm Zieg, NFT-enthusiast since claiming my first CrypoPunk in
             2017!
           </div>
-          <Spacer y={1} />
+          <Box h={3} />
           <img src={TeamImage} />
-          <Spacer y={2} />
+          <Box h={5} />
           <div
             style={{
               fontSize: 32,
@@ -57,7 +53,7 @@ const About = (props) => {
           >
             Token Policy
           </div>
-          <Spacer y={1} />
+          <Box h={3} />
           <div>
             In order to verify the validity of your SpaceBud, check if its
             Policy Id matches the following.
@@ -74,7 +70,7 @@ const About = (props) => {
                 underline
               >
                 here
-              </Link>{" "}
+              </Link>
             </p>
           </div>
         </div>

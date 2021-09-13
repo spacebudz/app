@@ -8,10 +8,7 @@ import { navigate } from "gatsby-link";
 import Loader from "../../cardano/loader";
 
 // Asset
-import Avatar from "../../images/assets/avatar.png";
 import { useStoreActions, useStoreState } from "easy-peasy";
-import buffer from "buffer";
-const Buffer = buffer.Buffer;
 
 const addressToBech32 = async () => {
   await Loader.load();

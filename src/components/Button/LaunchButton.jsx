@@ -38,7 +38,7 @@ const LaunchButton = (props) => {
   return (
     <div>
       {" "}
-      <a href="" className="rocket-button" style={{ padding: "25px 34px" }}>
+      <a href="" className="rocket-button" style={{ padding: "24px 30px" }}>
         <div className="default">Explore Collectibles</div>
 
         <div className="animation">

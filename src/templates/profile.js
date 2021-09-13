@@ -1,13 +1,13 @@
-import { Loading, Spacer } from "@geist-ui/react";
 import React from "react";
 import InfiniteGrid from "../components/InfiniteGrid";
 import Metadata from "../components/Metadata";
 import { ExternalLink } from "@geist-ui/react-icons";
-import Loader from "../cardano/loader";
-import buffer from "buffer";
 import { useStoreState } from "easy-peasy";
 import { FloatingButton } from "../components/Button";
-const Buffer = buffer.Buffer;
+import { Box } from "@chakra-ui/layout";
+import { BeatLoader } from "react-spinners";
+import Icon from "@mdi/react";
+import { mdiOpenInNew } from "@mdi/js";
 
 const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc";
 
@@ -17,14 +17,6 @@ function fromHex(hex) {
     str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
   return str;
 }
-
-const addressToBech32 = async () => {
-  await Loader.load();
-  const address = (await window.cardano.getUsedAddresses())[0];
-  return Loader.Cardano.Address.from_bytes(
-    Buffer.from(address, "hex")
-  ).to_bech32();
-};
 
 const Profile = ({ pageContext: { spacebudz } }) => {
   const [address, setAddress] = React.useState("");
@@ -103,7 +95,8 @@ const Profile = ({ pageContext: { spacebudz } }) => {
           <div style={{ fontWeight: 600, fontSize: 26 }}>
             Account Details {address === connected && "(Connected)"}
           </div>
-          <Spacer y={0.5} />
+          {/* <Spacer y={0.5} /> */}
+          <Box h={4} />
           <div style={{ display: "flex" }}>
             <div
               style={{
@@ -116,10 +109,12 @@ const Profile = ({ pageContext: { spacebudz } }) => {
               }
             >
               <span style={{ fontSize: 12, marginRight: 6 }}>{address}</span>
-              <ExternalLink size={12} />
+              <Icon path={mdiOpenInNew} size={0.6} />
+              {/* <ExternalLink size={12} /> */}
             </div>
           </div>
-          <Spacer y={2} />
+          {/* <Spacer y={2} /> */}
+          <Box h={10} />
           <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
             <div
               style={{
@@ -146,10 +141,18 @@ const Profile = ({ pageContext: { spacebudz } }) => {
               </div>
             </div>
           </div>
-          <Spacer y={3} />
+          {/* <Spacer y={3} /> */}
+          <Box h={14} />
           <div style={{ marginBottom: 100 }}>
             {!tokens ? (
-              <Loading size="large" type="success" />
+              <Box
+                w="full"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <BeatLoader size="5" color="#6B46C1" />
+              </Box>
             ) : (
               <InfiniteGrid array={tokens} spacebudz={spacebudz} />
             )}

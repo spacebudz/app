@@ -1,7 +1,7 @@
 import React from "react";
 
-import favicon from "./favicon.ico";
-import appleTouch from "./apple-touch-icon.png";
+import favicon from "./images/favicons/favicon.ico";
+import appleTouch from "./images/favicons/apple-touch-icon.png";
 
 export default class HTML extends React.Component {
   render() {

@@ -8,18 +8,21 @@ import {
   mdiTelegram,
   mdiDiscord,
 } from "@mdi/js";
-import { Spacer, Popover, Link } from "@geist-ui/react";
+import { Popover, Text } from "@geist-ui/react";
 import Icon from "@mdi/react";
 import { StartButton } from "../Account";
 import { navigate } from "gatsby";
 
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 
-//assets
-import Logo from "../../images/assets/logo3.svg";
-import Title from "../../images/assets/title.png";
+import * as style from "./Tab.module.css";
 
-const Header = (props) => {
+//assets
+import Logo from "../../images/assets/spacebudz.svg";
+import Title from "../../images/assets/title.png";
+import { Box, Link } from "@chakra-ui/layout";
+
+const Header = () => {
   const matches = useBreakpoint();
 
   return (
@@ -59,7 +62,7 @@ const Header = (props) => {
           />
           {!matches.md && (
             <>
-              <Spacer x={0.8} />
+              <Box w={4} />
               <img src={Title} width={140} draggable={false} />
             </>
           )}
@@ -86,80 +89,112 @@ const Header = (props) => {
           >
             Explore
           </Tab>
-          <Spacer x={1.2} />
+          <Box w={7} />
           <Tab
             icon={mdiBookOpenOutline}
-            menu={
-              <>
-                <Popover.Item
-                  style={{ cursor: "pointer" }}
-                  onClick={() => navigate("/tutorial")}
+            menu={(onClose) => (
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                flexDir="column"
+                p="2"
+              >
+                <Box
+                  color="gray.600"
+                  className={style.tabItem}
+                  onClick={() => {
+                    onClose();
+                    navigate("/tutorial");
+                  }}
                 >
-                  <span>How It Works</span>
-                </Popover.Item>
-                <Popover.Item line />
-                <Popover.Item
-                  style={{ cursor: "pointer" }}
-                  onClick={() => navigate("/FAQ")}
+                  How It Works
+                </Box>
+                <Box w="120%" h="1px" my="2.5" background="gray.200" />
+                <Box
+                  color="gray.600"
+                  className={style.tabItem}
+                  onClick={() => {
+                    onClose();
+                    navigate("/FAQ");
+                  }}
                 >
-                  <span>FAQ</span>
-                </Popover.Item>
-              </>
-            }
+                  FAQ
+                </Box>
+              </Box>
+            )}
           >
             Guide
           </Tab>
-          <Spacer x={1.2} />
+          <Box w={7} />
           <Tab
             icon={mdiSortVariant}
-            menu={
-              <>
-                <Popover.Item title>
-                  <span>Social Media</span>
-                </Popover.Item>
-                <Popover.Item>
-                  <Link
-                    href="https://twitter.com/spacebudzNFT"
-                    target="_blank"
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
-                    <Icon path={mdiTwitter} size={0.7} />{" "}
-                    <span style={{ marginLeft: 4 }}>Twitter</span>
-                  </Link>
-                </Popover.Item>
-                <Popover.Item>
-                  <Link
-                    href="https://t.me/spacebudz"
-                    target="_blank"
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
-                    <Icon path={mdiTelegram} size={0.7} />{" "}
-                    <span style={{ marginLeft: 4 }}>Telegram</span>
-                  </Link>
-                </Popover.Item>
-                <Popover.Item>
-                  <Link
-                    href="https://discord.gg/ePJZBVwQNq"
-                    target="_blank"
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
-                    <Icon path={mdiDiscord} size={0.7} />{" "}
-                    <span style={{ marginLeft: 4 }}>Discord</span>
-                  </Link>
-                </Popover.Item>
-                <Popover.Item line />
-                <Popover.Item
-                  style={{ cursor: "pointer" }}
-                  onClick={() => navigate("/about")}
+            menu={(onClose) => (
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                flexDir="column"
+                p="2"
+              >
+                <Box className={style.tabItemTitle}>Social media</Box>
+                <Box w="120%" h="1px" my="2.5" background="gray.200" />
+                <Box
+                  w="full"
+                  textAlign="left"
+                  color="gray.600"
+                  className={style.tabItem}
+                  href="https://twitter.com/spacebudzNFT"
+                  target="_blank"
+                  style={{ display: "flex", alignItems: "center" }}
                 >
-                  <span>About</span>
-                </Popover.Item>
-              </>
-            }
+                  <Icon path={mdiTwitter} size={0.7} />{" "}
+                  <span style={{ marginLeft: 6 }}>Twitter</span>
+                </Box>
+                <Box h="2" />
+                <Box
+                  w="full"
+                  textAlign="left"
+                  color="gray.600"
+                  className={style.tabItem}
+                  href="https://t.me/spacebudz"
+                  target="_blank"
+                  style={{ display: "flex", alignItems: "center" }}
+                >
+                  <Icon path={mdiTelegram} size={0.7} />{" "}
+                  <span style={{ marginLeft: 6 }}>Telegram</span>
+                </Box>
+                <Box h="2" />
+
+                <Box
+                  w="full"
+                  textAlign="left"
+                  color="gray.600"
+                  className={style.tabItem}
+                  href="https://discord.gg/ePJZBVwQNq"
+                  target="_blank"
+                  style={{ display: "flex", alignItems: "center" }}
+                >
+                  <Icon path={mdiDiscord} size={0.7} />{" "}
+                  <span style={{ marginLeft: 6 }}>Discord</span>
+                </Box>
+                <Box w="120%" h="1px" my="2.5" background="gray.200" />
+                <Box
+                  color="gray.600"
+                  className={style.tabItem}
+                  onClick={() => {
+                    onClose();
+                    navigate("/about");
+                  }}
+                >
+                  About
+                </Box>
+              </Box>
+            )}
           >
             More
           </Tab>
-          <Spacer x={1.5} />
+          <Box w={7} />
           <StartButton />
         </div>
       </div>
@@ -168,3 +203,47 @@ const Header = (props) => {
 };
 
 export default Header;
+
+{
+  /* <Popover.Item title>
+<span>Social Media</span>
+</Popover.Item>
+<Popover.Item>
+<Link
+  href="https://twitter.com/spacebudzNFT"
+  target="_blank"
+  style={{ display: "flex", alignItems: "center" }}
+>
+  <Icon path={mdiTwitter} size={0.7} />{" "}
+  <span style={{ marginLeft: 4 }}>Twitter</span>
+</Link>
+</Popover.Item>
+<Popover.Item>
+<Link
+  href="https://t.me/spacebudz"
+  target="_blank"
+  style={{ display: "flex", alignItems: "center" }}
+>
+  <Icon path={mdiTelegram} size={0.7} />{" "}
+  <span style={{ marginLeft: 4 }}>Telegram</span>
+</Link>
+</Popover.Item>
+<Popover.Item>
+<Link
+  href="https://discord.gg/ePJZBVwQNq"
+  target="_blank"
+  style={{ display: "flex", alignItems: "center" }}
+>
+  <Icon path={mdiDiscord} size={0.7} />{" "}
+  <span style={{ marginLeft: 4 }}>Discord</span>
+</Link>
+</Popover.Item>
+<Popover.Item line />
+<Popover.Item
+style={{ cursor: "pointer" }}
+onClick={() => navigate("/about")}
+>
+<span>About</span>
+</Popover.Item>
+</> */
+}

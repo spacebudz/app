@@ -1,11 +1,4 @@
-import {
-  Grid,
-  Link,
-  Loading,
-  Spacer,
-  Tooltip,
-  useModal,
-} from "@geist-ui/react";
+import { useDisclosure } from "@chakra-ui/hooks";
 import React from "react";
 import MiddleEllipsis from "react-middle-ellipsis";
 import { Button } from "../components/Button";
@@ -17,7 +10,10 @@ import { ShareModal } from "../components/Modal";
 
 //assets
 import Show from "../images/assets/show.svg";
-import { Info, Share2 } from "@geist-ui/react-icons";
+import { Share2 } from "@geist-ui/react-icons";
+import { Box, Text } from "@chakra-ui/layout";
+import { Link } from "@chakra-ui/react";
+import { BeatLoader } from "react-spinners";
 
 function toHex(str, hex) {
   try {
@@ -36,7 +32,7 @@ function toHex(str, hex) {
 const SpaceBud = ({ pageContext: { spacebud } }) => {
   const matches = useBreakpoint();
   const [owner, setOwner] = React.useState([]);
-  const { visible, setVisible, bindings } = useModal();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc";
 
@@ -95,14 +91,16 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
               top: 25,
               cursor: "pointer",
             }}
-            onClick={() => setVisible(true)}
+            onClick={() => onOpen()}
           >
             <Share2 size={26} />
           </div>
           {/* Modal Share */}
           <ShareModal
             bud={spacebud}
-            modal={{ visible, setVisible, bindings }}
+            isOpen={isOpen}
+            onOpen={onOpen}
+            onClose={onClose}
           />
           {/* Modal Share End */}
           <div
@@ -116,11 +114,6 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             }}
           >
             <div style={{ width: "100%", position: "relative" }}>
-              <img
-                src={spacebud.image}
-                style={{ position: "absolute", zIndex: 1 }}
-                width="100%"
-              />
               {owner.length >= 2 && (
                 <img
                   src={spacebud.image}
@@ -133,9 +126,14 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                   width="100%"
                 />
               )}
+              <img
+                src={spacebud.image}
+                style={{ position: "absolute" }}
+                width="100%"
+              />
             </div>
           </div>
-          <Spacer y={1} />
+          <Box h={5} />
           <div style={{ fontWeight: 600, fontSize: 30 }}>
             SpaceBud #{spacebud.id}
           </div>
@@ -144,7 +142,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             {spacebud.type} Astronaut
           </LinkName>
         </div>
-        <Spacer y={1} />
+        <Box h={6} />
         {owner.length >= 2 && (
           <>
             <div
@@ -156,16 +154,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
               }}
             >
               <div style={{ marginTop: -5 }}>Twin</div>
-              <Spacer x={0.3} />
-              <Tooltip
-                style={{ cursor: "pointer", maxWidth: 200 }}
-                text="This is 1 out of 2 missprinted SpaceBudz with quantity 2 and therefore a twin.
-                   There is still a chance to get rid of the twin, just contact the SpaceBudz Team in case you are the owner of it. Soon there is no way back and we are with the twins forever."
-              >
-                <Info />
-              </Tooltip>
+              <Box w={2} />
             </div>{" "}
-            <Spacer y={0.5} />
+            <Box h={3} />
           </>
         )}
         {owner.length > 0 ? (
@@ -199,9 +190,8 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                 <MiddleEllipsis>
                   <Link
                     underline
-                    color="success"
+                    color="purple.600"
                     onClick={(e) => {
-                      e.preventDefault();
                       if (owner) navigate(`/profile?address=${item.address}`);
                     }}
                   >
@@ -213,12 +203,17 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           ))
         ) : (
           <>
-            <Spacer y={1} />
-            <Loading>Owner</Loading>
+            <Box h={3} />
+            <Box display="flex">
+              <Text color="GrayText" mr="3">
+                Owner
+              </Text>{" "}
+              <BeatLoader size="5" color="#6B46C1" />
+            </Box>
           </>
         )}
 
-        <Spacer y={2.5} />
+        <Box h={12} />
         <div
           style={{
             display: "flex",
@@ -244,25 +239,23 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           </div>
           <div>
             <div style={{ fontSize: 12, opacity: 0.3 }}>Buy now price</div>
-            <Spacer y={0.1} />
             <div style={{ fontWeight: 500, opacity: 0.3 }}>100.0 ADA</div>
-            <Spacer y={0.1} />
             <div style={{ fontSize: 12, color: "#777777", opacity: 0.3 }}>
               10.8 USD
             </div>
           </div>
-          <Spacer x={1} />
+          <Box w={4} />
           <Button style={{ opacity: 0.3 }}>Buy</Button>
-          <Spacer x={0.4} />
+          <Box w={2} />
           <Button style={{ opacity: 0.3 }} bgcolor="#263238">
             Make Offer
           </Button>
         </div>
-        <Spacer y={2} />
+        <Box h={10} />
         <div style={{ fontSize: 26, color: "#777777", fontWeight: 600 }}>
           Gadgets
         </div>
-        <Spacer y={0.5} />
+        <Box h={3} />
         <div
           style={{
             width: 250,
@@ -271,27 +264,29 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             justifyContent: "center",
           }}
         >
-          <Grid.Container
-            gap={1}
+          <Box
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              flexWrap: "wrap",
             }}
           >
             {spacebud.gadgets.length > 0 ? (
               spacebud.gadgets.map((gadget, index) => (
-                <Attribute
-                  key={index}
-                  onClick={() => navigate(`/explore/?gadget=${gadget}`)}
-                >
-                  {gadget}
-                </Attribute>
+                <Box p="1">
+                  <Attribute
+                    key={index}
+                    onClick={() => navigate(`/explore/?gadget=${gadget}`)}
+                  >
+                    {gadget}
+                  </Attribute>
+                </Box>
               ))
             ) : (
               <div style={{ fontSize: 14, opacity: 0.3 }}>No Gadgets</div>
             )}
-          </Grid.Container>
+          </Box>
         </div>
       </div>
     </>
@@ -308,7 +303,7 @@ const LinkName = styled.span`
 
 const Attribute = (props) => {
   return (
-    <Grid
+    <Box
       style={{
         display: "flex",
         alignItems: "center",
@@ -333,7 +328,7 @@ const Attribute = (props) => {
           {props.children}
         </div>
       </LinkName>
-    </Grid>
+    </Box>
   );
 };
 

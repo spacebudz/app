@@ -1,11 +1,23 @@
-import { Grid, Modal, Slider, Spacer, Toggle } from "@geist-ui/react";
-import { X } from "@geist-ui/react-icons";
+import { Grid } from "@geist-ui/react";
 import React from "react";
 import { Range } from "rc-slider";
 import "rc-slider/assets/index.css";
-
-//assets
-// import Ape from "../../images/assets/ape.png";
+import {
+  Box,
+  Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Switch,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+} from "@chakra-ui/react";
 
 //css
 import "./FilterModal.css";
@@ -74,17 +86,15 @@ const COUNT_MAP = {
   },
 };
 
-let sliderMinValue = 0;
-let sliderMaxValue = 9999;
-
-const FilterModal = (props) => {
+const FilterModal = ({ isOpen, onOpen, onClose }) => {
   const [types, setTypes] = React.useState({});
   const [gadgets, setGadgets] = React.useState({});
   const [sliderGadgets, setSliderGadgets] = React.useState("Any");
   const [sliderId, setSliderId] = React.useState([0, 9999]);
 
   React.useEffect(() => {
-    if (!props.modal.visible) return;
+    console.log(isOpen);
+    if (!isOpen) return;
     const urlParams = new URLSearchParams(window.location.search);
     const typesArray = urlParams.getAll("type");
     const gadgetsArray = urlParams.getAll("gadget");
@@ -100,359 +110,375 @@ const FilterModal = (props) => {
       range.length > 0 ? [parseInt(range[0]), parseInt(range[1])] : [0, 9999]
     );
     setSliderGadgets(gadgetsCount ? gadgetsCount : "Any");
-  }, [props.modal.visible]);
+  }, [isOpen]);
 
   return (
     <Modal
-      width="1000px"
-      {...props.modal.bindings}
-      open={props.modal.visible}
-      style={{ position: "relative" }}
+      isOpen={isOpen}
+      onClose={onClose}
+      size="6xl"
+      blockScrollOnMount
+      isCentered
     >
-      <Modal.Title>Filter</Modal.Title>
-      <div
-        onClick={() => props.modal.setVisible(false)}
-        style={{ position: "absolute", right: 25, top: 25, cursor: "pointer" }}
-      >
-        <X />
-      </div>
-      <Modal.Content
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-        }}
-      >
+      <ModalOverlay />
+      <ModalContent overflow="scroll" height="80vh">
+        <ModalHeader>Filter</ModalHeader>
+        <ModalCloseButton
+          _hover={{ background: "none" }}
+          _focus={{ background: "none" }}
+          cursor="pointer"
+        />
         <div
+          onClick={() => onClose}
           style={{
-            width: "100%",
-            height: "65vh",
-            // marginTop: -30,
-            // marginBottom: -30,
-            overflowY: "scroll",
-            overflowX: "hidden",
+            position: "absolute",
+            right: 25,
+            top: 25,
+            cursor: "pointer",
           }}
-          className="filterModal"
+        ></div>
+        <ModalBody
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+          }}
         >
-          <Spacer y={0.5} />
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
-            }}
-          >
-            <div>Id Range</div>
-            <Spacer y={0.5} />
-            <div style={{ fontSize: 12 }}>
-              {sliderId[0]} - {sliderId[1]}
+          <div className="filterModal">
+            <Box h={4} />
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+              }}
+            >
+              <div>Id Range</div>
+              <Box h={3} />
+              <div style={{ fontSize: 12 }}>
+                {sliderId[0]} - {sliderId[1]}
+              </div>
+              <Box h={2} />
+              <Range
+                min={0}
+                max={9999}
+                value={[sliderId[0], sliderId[1]]}
+                onChange={(value) => setSliderId(value)}
+                style={{ width: "80%" }}
+                railStyle={{ background: "#E2E8F0", borderRadius: 30 }}
+                handleStyle={[
+                  { backgroundColor: "#6B46C1", borderColor: "#6B46C1" },
+                  { backgroundColor: "#6B46C1", borderColor: "#6B46C1" },
+                ]}
+                trackStyle={[{ backgroundColor: "#6B46C1" }]}
+                activeDotStyle={{ backgroundColor: "#6B46C1" }}
+              />
             </div>
-            <Spacer y={0.2} />
-            <Range
-              min={0}
-              max={9999}
-              value={[sliderId[0], sliderId[1]]}
-              onChange={(value) => setSliderId(value)}
-              style={{ width: "80%" }}
-              railStyle={{ background: "black", borderRadius: 30 }}
-              handleStyle={[
-                { backgroundColor: "#3A3169", borderColor: "#3A3169" },
-                { backgroundColor: "#3A3169", borderColor: "#3A3169" },
-              ]}
-              trackStyle={[{ backgroundColor: "#3A3169" }]}
-            />
-          </div>
-          <Spacer y={1.5} />
-          <div style={{ fontWeight: 500, fontSize: 22, marginLeft: 15 }}>
-            Types
-          </div>
-          <Spacer y={1} />
-          <Grid.Container gap={2}>
-            {[
-              "Ape",
-              "Dino",
-              "Cat",
-              "Bull",
-              "Robot",
-              "Frog",
-              "Dog",
-              "Elephant",
-              "Bear",
-              "Fish",
-              "Parrot",
-              "Tiger",
-              "Shark",
-              "Rhino",
-              "Arcane",
-              "Wolf",
-              "Alien",
-              "Lion",
-            ].map((type, i) => (
-              <Grid
-                key={i}
-                xs={12}
-                md={6}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Grid.Container style={{ maxWidth: 220 }}>
-                  <Grid
-                    xs={12}
-                    md={8}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <img
-                      src={`../../../FilterPreview/${type}.png`}
-                      width={60}
-                    />
-                  </Grid>
-                  <Grid
-                    xs={12}
-                    md={8}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div style={{ fontSize: 15, textAlign: "center" }}>
-                      <b>{type}</b>
-                      <br />
-                      <span style={{ fontSize: 12 }}>
-                        ({COUNT_MAP.types[type]})
-                      </span>
-                    </div>
-                  </Grid>
-                  <Grid
-                    xs={24}
-                    md={8}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Toggle
-                      checked={types && types[type]}
-                      size="large"
-                      onChange={(e) => {
-                        if (types)
-                          setTypes({ ...types, [type]: e.target.checked });
-                        else setTypes({ [type]: true });
+            <Box h={6} />
+            <div style={{ fontWeight: 500, fontSize: 22, marginLeft: 15 }}>
+              Types
+            </div>
+            <Box h={5} />
+            <Grid.Container gap={2}>
+              {[
+                "Ape",
+                "Dino",
+                "Cat",
+                "Bull",
+                "Robot",
+                "Frog",
+                "Dog",
+                "Elephant",
+                "Bear",
+                "Fish",
+                "Parrot",
+                "Tiger",
+                "Shark",
+                "Rhino",
+                "Arcane",
+                "Wolf",
+                "Alien",
+                "Lion",
+              ].map((type, i) => (
+                <Grid
+                  key={i}
+                  xs={12}
+                  md={6}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Grid.Container style={{ maxWidth: 220 }}>
+                    <Grid
+                      xs={12}
+                      md={8}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
-                    />
-                  </Grid>
-                </Grid.Container>
-              </Grid>
-            ))}
-          </Grid.Container>
-          <Spacer y={1.3} />
+                    >
+                      <img
+                        src={`../../../FilterPreview/${type}.png`}
+                        width={60}
+                      />
+                    </Grid>
+                    <Grid
+                      xs={12}
+                      md={8}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: 15, textAlign: "center" }}>
+                        <b>{type}</b>
+                        <br />
+                        <span style={{ fontSize: 12 }}>
+                          ({COUNT_MAP.types[type]})
+                        </span>
+                      </div>
+                    </Grid>
+                    <Grid
+                      xs={24}
+                      md={8}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Switch
+                        isChecked={(types && types[type]) || false}
+                        onChange={(e) => {
+                          if (types)
+                            setTypes({ ...types, [type]: e.target.checked });
+                          else setTypes({ [type]: true });
+                        }}
+                      />
+                    </Grid>
+                  </Grid.Container>
+                </Grid>
+              ))}
+            </Grid.Container>
+            <Box h={5} />
 
-          <div style={{ fontWeight: 500, fontSize: 22, marginLeft: 15 }}>
-            Gadgets
+            <div style={{ fontWeight: 500, fontSize: 22, marginLeft: 15 }}>
+              Gadgets
+            </div>
+            <Box h={3} />
+            <div
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+              }}
+            >
+              <div>Minimum Gadgets Count</div>
+              <Box h={3} />
+              <Slider
+                width="80%"
+                value={sliderGadgets == "Any" ? 0 : sliderGadgets}
+                min={0}
+                max={12}
+                step={1}
+                onChange={(val) =>
+                  val == 0 ? setSliderGadgets("Any") : setSliderGadgets(val)
+                }
+              >
+                <SliderTrack>
+                  <SliderFilledTrack background="purple.600" />
+                </SliderTrack>
+                <SliderThumb color="white" background="purple.600" boxSize={10}>
+                  {sliderGadgets}
+                </SliderThumb>
+              </Slider>
+            </div>
+            <Box h={10} />
+            <Grid.Container gap={2}>
+              {[
+                "No Gadget",
+                "Axe",
+                "Belt",
+                "Chestplate",
+                "Covered Helmet",
+                "Star Suit",
+                "Camo Suit",
+                "Watch",
+                "Wool Boots",
+                "Special Background",
+                "Amulet",
+                "VR",
+                "Ski Goggles",
+                "Eye Patch",
+                "Snorkel",
+                "X-Ray",
+                "Sword",
+                "Sun Glasses",
+                "Revolver",
+                "Jetpack",
+                "Backpack",
+                "Pistol",
+                "Umbrella",
+                "Flag",
+                "Cardano",
+                "Flowers",
+                "Harpoon",
+                "Hockey Stick",
+                "Bazooka",
+                "Anchor",
+                "Arc",
+                "Wine",
+                "Jo-Jo",
+                "Blaster",
+                "Lamp Fish",
+                "Baguette",
+                "Candle",
+                "Binoculars",
+                "SPO",
+              ].map((gadget, i) => (
+                <Grid key={i} xs={12} md={6}>
+                  <Grid.Container style={{ maxWidth: 220 }}>
+                    <Grid
+                      xs={12}
+                      md={8}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <img
+                        src={`../../../FilterPreview/${gadget}.png`}
+                        width={60}
+                      />
+                    </Grid>
+                    <Grid
+                      xs={12}
+                      md={8}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                      }}
+                    >
+                      <div style={{ fontSize: 15, textAlign: "center" }}>
+                        <b>{gadget}</b>
+                        <br />
+                        <span style={{ fontSize: 12 }}>
+                          ({COUNT_MAP.gadgets[gadget]})
+                        </span>
+                      </div>
+                    </Grid>
+                    <Grid
+                      xs={24}
+                      md={8}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Switch
+                        isChecked={(gadgets && gadgets[gadget]) || false}
+                        isDisabled={
+                          gadgets &&
+                          gadgets["No Gadget"] &&
+                          gadget != "No Gadget"
+                        }
+                        onChange={(e) => {
+                          const val = e.target.checked;
+                          if (gadgets)
+                            if (gadget == "No Gadget") {
+                              setGadgets(null);
+                              setTimeout(() =>
+                                setGadgets({
+                                  [gadget]: val,
+                                })
+                              );
+                            } else
+                              setGadgets({
+                                ...gadgets,
+                                [gadget]: val,
+                              });
+                          else setGadgets({ [gadget]: true });
+                        }}
+                      />
+                    </Grid>
+                  </Grid.Container>
+                </Grid>
+              ))}
+            </Grid.Container>
           </div>
-          <Spacer y={0.5} />
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "column",
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            rounded="2xl"
+            onClick={() => {
+              setGadgets(null);
+              setTypes(null);
+              setTimeout(() => {
+                setGadgets({});
+                setTypes({});
+                setSliderGadgets("Any");
+                setSliderId([0, 9999]);
+              });
+              window.history.pushState({}, null, `/explore`);
             }}
           >
-            <div>Minimum Gadgets Count</div>
-            <Spacer y={0.5} />
-            <Slider
-              step={1}
-              showMarkers
-              max={12}
-              min={0}
-              value={sliderGadgets}
-              onChange={(val) =>
-                val == 0 ? setSliderGadgets("Any") : setSliderGadgets(val)
+            Reset
+          </Button>
+          <Box w={2} />
+          <Button
+            rounded="2xl"
+            colorScheme="purple"
+            onClick={() => {
+              const urlParams = new URLSearchParams();
+              Object.keys(types).forEach(
+                (type) => types[type] && urlParams.append("type", type)
+              );
+              Object.keys(gadgets).forEach(
+                (gadget) =>
+                  gadgets[gadget] && urlParams.append("gadget", gadget)
+              );
+
+              let base = "/explore/?";
+
+              if (sliderId != [0, 9999].toString()) {
+                urlParams.append("range", sliderId[0]);
+                urlParams.append("range", sliderId[1]);
               }
-              style={{ width: "80%" }}
-            />
-          </div>
-          <Spacer y={2} />
-          <Grid.Container gap={2}>
-            {[
-              "No Gadget",
-              "Axe",
-              "Belt",
-              "Chestplate",
-              "Covered Helmet",
-              "Star Suit",
-              "Camo Suit",
-              "Watch",
-              "Wool Boots",
-              "Special Background",
-              "Amulet",
-              "VR",
-              "Ski Goggles",
-              "Eye Patch",
-              "Snorkel",
-              "X-Ray",
-              "Sword",
-              "Sun Glasses",
-              "Revolver",
-              "Jetpack",
-              "Backpack",
-              "Pistol",
-              "Umbrella",
-              "Flag",
-              "Cardano",
-              "Flowers",
-              "Harpoon",
-              "Hockey Stick",
-              "Bazooka",
-              "Anchor",
-              "Arc",
-              "Wine",
-              "Jo-Jo",
-              "Blaster",
-              "Lamp Fish",
-              "Baguette",
-              "Candle",
-              "Binoculars",
-              "SPO",
-            ].map((gadget, i) => (
-              <Grid key={i} xs={12} md={6}>
-                <Grid.Container style={{ maxWidth: 220 }}>
-                  <Grid
-                    xs={12}
-                    md={8}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <img
-                      src={`../../../FilterPreview/${gadget}.png`}
-                      width={60}
-                    />
-                  </Grid>
-                  <Grid
-                    xs={12}
-                    md={8}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textAlign: "center",
-                    }}
-                  >
-                    <div style={{ fontSize: 15, textAlign: "center" }}>
-                      <b>{gadget}</b>
-                      <br />
-                      <span style={{ fontSize: 12 }}>
-                        ({COUNT_MAP.gadgets[gadget]})
-                      </span>
-                    </div>
-                  </Grid>
-                  <Grid
-                    xs={24}
-                    md={8}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Toggle
-                      checked={gadgets && gadgets[gadget]}
-                      size="large"
-                      disabled={
-                        gadgets && gadgets["No Gadget"] && gadget != "No Gadget"
-                      }
-                      onChange={(e) => {
-                        if (gadgets)
-                          if (gadget == "No Gadget") {
-                            setGadgets(null);
-                            setTimeout(() =>
-                              setGadgets({
-                                [gadget]: e.target.checked,
-                              })
-                            );
-                          } else
-                            setGadgets({
-                              ...gadgets,
-                              [gadget]: e.target.checked,
-                            });
-                        else setGadgets({ [gadget]: true });
-                      }}
-                    />
-                  </Grid>
-                </Grid.Container>
-              </Grid>
-            ))}
-          </Grid.Container>
-        </div>
-      </Modal.Content>
-      <Modal.Action
-        passive
-        onClick={() => {
-          setGadgets(null);
-          setTypes(null);
-          setTimeout(() => {
-            setGadgets({});
-            setTypes({});
-            setSliderGadgets("Any");
-            setSliderId([0, 9999]);
-          });
-          window.history.pushState({}, null, `/explore`);
-        }}
-      >
-        Reset
-      </Modal.Action>
-      <Modal.Action
-        onClick={() => {
-          const urlParams = new URLSearchParams();
-          Object.keys(types).forEach(
-            (type) => types[type] && urlParams.append("type", type)
-          );
-          Object.keys(gadgets).forEach(
-            (gadget) => gadgets[gadget] && urlParams.append("gadget", gadget)
-          );
 
-          let base = "/explore/?";
+              if (sliderGadgets != "Any") {
+                urlParams.append("gadgetsCount", sliderGadgets);
+              }
 
-          if (sliderId != [0, 9999].toString()) {
-            urlParams.append("range", sliderId[0]);
-            urlParams.append("range", sliderId[1]);
-          }
+              window.history.pushState({}, null, base + urlParams);
 
-          if (sliderGadgets != "Any") {
-            urlParams.append("gadgetsCount", sliderGadgets);
-          }
-
-          window.history.pushState({}, null, base + urlParams);
-
-          setGadgets(null);
-          setTypes(null);
-          setTimeout(() => {
-            setGadgets({});
-            setTypes({});
-            setSliderGadgets("Any");
-            setSliderId([0, 9999]);
-          });
-          props.modal.setVisible(false);
-        }}
-      >
-        Apply Filter
-      </Modal.Action>
+              setGadgets(null);
+              setTypes(null);
+              setTimeout(() => {
+                setGadgets({});
+                setTypes({});
+                setSliderGadgets("Any");
+                setSliderId([0, 9999]);
+              });
+              onClose();
+            }}
+          >
+            Apply Filter
+          </Button>
+        </ModalFooter>
+      </ModalContent>
     </Modal>
   );
 };

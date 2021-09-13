@@ -1,14 +1,9 @@
 import React from "react";
-import { Spacer } from "@geist-ui/react";
-
 import Metadata from "../components/Metadata";
 
-//assets
-import { useBreakpoint } from "gatsby-plugin-breakpoints";
+import { Box } from "@chakra-ui/layout";
 
-const PrivacyPolicy = (props) => {
-  const matches = useBreakpoint();
-
+const PrivacyPolicy = () => {
   return (
     <>
       <Metadata
@@ -36,7 +31,7 @@ const PrivacyPolicy = (props) => {
           >
             Privacy Policy
           </div>
-          <Spacer y={1} />
+          <Box h={3} />
           <div>
             <p>Disclaimer:</p>
             <p>Liability for Contents</p>
@@ -98,7 +93,7 @@ const PrivacyPolicy = (props) => {
               data for several months.
             </p>
           </div>
-          <Spacer y={4} />
+          <Box h={20} />
         </div>
       </div>
     </>

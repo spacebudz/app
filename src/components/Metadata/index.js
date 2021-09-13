@@ -1,6 +1,6 @@
 import React from "react";
 import Helmet from "react-helmet";
-import logo from "../../logo.png";
+import logo from "../../images/favicons/logo.png";
 
 const Metadata = ({ title, titleTwitter, image, description }) => (
   <Helmet>

@@ -1,11 +1,8 @@
 import React from "react";
 
-import Layout from "../templates/layout";
 import Metadata from "../components/Metadata";
 
 //assets
-import BudRepresent from "../images/assets/spacebud.svg";
-import { navigate } from "gatsby";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 
 const Contact = (props) => {

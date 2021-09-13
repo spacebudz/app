@@ -1,12 +1,8 @@
 import React from "react";
-import { Button, LaunchButton } from "../components/Button";
-import { Grid, Spacer } from "@geist-ui/react";
-
-import Layout from "../templates/layout";
+import { LaunchButton } from "../components/Button";
 import Metadata from "../components/Metadata";
 
 //assets
-import Preview1 from "../images/assets/preview1.png";
 import BuySellIcon from "../images/assets/buysell.svg";
 import CollectHoldIcon from "../images/assets/collecthold.svg";
 import ShareGiftIcon from "../images/assets/sharegift.svg";
@@ -18,6 +14,7 @@ import BackgroundImage from "gatsby-background-image";
 import styled from "styled-components";
 import Icon from "@mdi/react";
 import { mdiDiscord, mdiTelegram, mdiTwitter } from "@mdi/js";
+import { Box, SimpleGrid } from "@chakra-ui/layout";
 
 const Landing = (props) => {
   const matches = useBreakpoint();
@@ -54,16 +51,14 @@ const Landing = (props) => {
                   zIndex: 1,
                 }}
               >
-                <Grid.Container style={{ width: "90%" }}>
-                  <Grid md={13}></Grid>
-                  <Grid
-                    xs={24}
-                    md={10}
+                <SimpleGrid columns={[1, null, 2]} style={{ width: "90%" }}>
+                  <Box></Box>
+                  <Box
                     style={{
+                      maxWidth: 600,
                       background: "white",
                       padding: 30,
                       borderRadius: 16,
-                      // border: "solid #311b92 10px",
                       marginBottom: !matches.md && "30px",
                       position: "relative",
                     }}
@@ -71,15 +66,15 @@ const Landing = (props) => {
                     <div>
                       <div
                         style={{
-                          fontSize: !matches.md ? 38 : 32,
-                          fontWeight: 1000,
+                          fontSize: !matches.md ? 34 : 30,
+                          fontWeight: 800,
                           color: "#311b92",
-                          // filter: "brightness(2)",
+                          lineHeight: 1.3,
                         }}
                       >
-                        Collect your favorite Astronauts!
+                        Collect your favorite astronauts!
                       </div>
-                      <Spacer y={1} />
+                      <Box h={6} />
                       <div
                         style={{
                           color: "black",
@@ -87,8 +82,8 @@ const Landing = (props) => {
                           fontSize: 14,
                         }}
                       >
-                        <Grid.Container gap={1}>
-                          <Grid xs={12}>
+                        <SimpleGrid columns={[2]} gap={3}>
+                          <Box>
                             <div
                               style={{
                                 display: "flex",
@@ -96,11 +91,11 @@ const Landing = (props) => {
                               }}
                             >
                               <img src={BuySellIcon} width={30}></img>
-                              <Spacer x={0.7} />
+                              <Box w={4} />
                               <div>Buy & Sell</div>
                             </div>
-                          </Grid>
-                          <Grid xs={12}>
+                          </Box>
+                          <Box xs={12}>
                             {" "}
                             <div
                               style={{
@@ -110,11 +105,11 @@ const Landing = (props) => {
                             >
                               <img src={CollectHoldIcon} width={30}></img>
 
-                              <Spacer x={0.7} />
+                              <Box w={4} />
                               <div>Collect & Hold</div>
                             </div>
-                          </Grid>
-                          <Grid xs={12}>
+                          </Box>
+                          <Box xs={12}>
                             {" "}
                             <div
                               style={{
@@ -124,14 +119,14 @@ const Landing = (props) => {
                             >
                               <img src={ShareGiftIcon} width={30}></img>
 
-                              <Spacer x={0.7} />
+                              <Box w={4} />
                               <div>Share & Gift</div>
                             </div>
-                          </Grid>
-                          <Grid xs={12}></Grid>
-                        </Grid.Container>
+                          </Box>
+                          <Box xs={12}></Box>
+                        </SimpleGrid>
                       </div>
-                      <Spacer y={1} />
+                      <Box h={5} />
                       <div
                         style={{
                           maxWidth: 500,
@@ -143,8 +138,8 @@ const Landing = (props) => {
                         10,000 SpaceBudz are out there. Where will your
                         SpaceBudz take you?
                       </div>
+                      <Box h={8} />
                     </div>
-                    <Spacer y={1.8} />
                     <div
                       style={{
                         position: "absolute",
@@ -154,17 +149,16 @@ const Landing = (props) => {
                       <LaunchButton
                         onClick={() => {
                           navigate("/explore");
-                          // window.scrollTo(0, 0);
                         }}
                       />
                     </div>
-                  </Grid>
-                </Grid.Container>
+                  </Box>
+                </SimpleGrid>
               </div>
             </div>
           </div>
         </Background>
-        <Spacer y={4} />
+        <Box h={20} />
         <div
           style={{
             width: "100%",
@@ -185,10 +179,10 @@ const Landing = (props) => {
             }}
           >
             <img src={BudRepresent} width="20%" style={{ minWidth: 100 }} />
-            <Spacer x={2} />
+            <Box w={10} />
             <div>
               <div style={{ fontSize: 32 }}>What is SpaceBudz?</div>
-              <Spacer y={1} />
+              <Box h={4} />
               <div
                 style={{
                   fontWeight: 350,
@@ -204,10 +198,10 @@ const Landing = (props) => {
               </div>
             </div>
           </div>
-          {/* How It Works */}
-          <Spacer y={4.5} />
+          {/* Why */}
+          <Box h={20} />
           <div style={{ fontSize: 32 }}>Why get a SpaceBud?</div>
-          <Spacer y={0.7} />
+          <Box h={3} />
           <div
             style={{
               textAlign: "center",
@@ -225,11 +219,11 @@ const Landing = (props) => {
           </div>
 
           {/* Contact */}
-          <Spacer y={4.5} />
+          <Box h={20} />
           <div style={{ fontSize: 32 }}>Still clueless?</div>
-          <Spacer y={0.5} />
+          <Box h={3} />
           <div style={{ fontWeight: "350" }}>Reach out to us on</div>
-          <Spacer y={0.7} />
+          <Box h={4} />
           <div
             style={{
               display: "flex",
@@ -244,14 +238,14 @@ const Landing = (props) => {
               path={mdiTwitter}
               size={1.2}
             />
-            <Spacer x={1} />
+            <Box w={5} />
             <Icon
               style={{ cursor: "pointer" }}
               onClick={() => window.open("https://t.me/spacebudz")}
               path={mdiTelegram}
               size={1.2}
             />
-            <Spacer x={1} />
+            <Box w={5} />
 
             <Icon
               style={{ cursor: "pointer" }}
@@ -261,7 +255,7 @@ const Landing = (props) => {
             />
           </div>
         </div>
-        <Spacer y={4} />
+        <Box h={20} />
       </div>
     </>
   );

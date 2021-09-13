@@ -8,3 +8,17 @@
 .tab:hover {
   color: #5e35b1;
 }
+
+.tabItemTitle {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.tabItem {
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tabItem:hover {
+  filter: brightness(0.5);
+}
