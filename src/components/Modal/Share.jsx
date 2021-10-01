@@ -41,13 +41,19 @@ const ShareModal = ({ isOpen, onOpen, onClose, bud }) => {
           </div>{" "}
         </ModalBody>
         <ModalFooter display="flex" justifyContent="center" mt={5} mb={4}>
-          <Tooltip label="Copied link" isOpen={hasCopied} placement="top">
-            <Button onClick={onCopy}>
+          <Tooltip
+            label="Copied link"
+            isOpen={hasCopied}
+            placement="top"
+            rounded="3xl"
+          >
+            <Button rounded="3xl" onClick={onCopy}>
               <Icon path={mdiLink} size={1} />
             </Button>
           </Tooltip>
           <Box w={3} />
           <Button
+            rounded="3xl"
             onClick={() =>
               window.open(
                 `https://twitter.com/intent/tweet?text=Check%20out%20SpaceBud%20%23${bud.id}!%0A&url=${window.location.href}`
@@ -59,6 +65,7 @@ const ShareModal = ({ isOpen, onOpen, onClose, bud }) => {
           <Box w={3} />
 
           <Button
+            rounded="3xl"
             onClick={() =>
               window.open(
                 "https://www.facebook.com/sharer/sharer.php?u=" +
@@ -72,6 +79,7 @@ const ShareModal = ({ isOpen, onOpen, onClose, bud }) => {
           <Box w={3} />
 
           <Button
+            rounded="3xl"
             onClick={() =>
               window.open(
                 `http://www.reddit.com/submit?url=${window.location.href}&title=Check%20out%20SpaceBud%20%23${bud.id}!`

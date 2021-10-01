@@ -1,19 +1,31 @@
 import { useDisclosure } from "@chakra-ui/hooks";
 import React from "react";
 import MiddleEllipsis from "react-middle-ellipsis";
-import { Button } from "../components/Button";
+// import { Button } from "../components/Button";
 import { navigate } from "gatsby";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import Metadata from "../components/Metadata";
 import styled from "styled-components";
 import { ShareModal } from "../components/Modal";
+import { Share2 } from "@geist-ui/react-icons";
+import { Box, Text } from "@chakra-ui/layout";
+import {
+  Link,
+  Tooltip,
+  Button,
+  ButtonGroup,
+  IconButton,
+  Spinner,
+} from "@chakra-ui/react";
+import { SmallCloseIcon } from "@chakra-ui/icons";
+import { BeatLoader } from "react-spinners";
+import { useStoreState } from "easy-peasy";
+import Market from "../cardano/market";
+import secrets from "../../secrets";
 
 //assets
 import Show from "../images/assets/show.svg";
-import { Share2 } from "@geist-ui/react-icons";
-import { Box, Text } from "@chakra-ui/layout";
-import { Link } from "@chakra-ui/react";
-import { BeatLoader } from "react-spinners";
+import { UnitDisplay } from "../components/UnitDisplay";
 
 function toHex(str, hex) {
   try {
@@ -33,21 +45,92 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const matches = useBreakpoint();
   const [owner, setOwner] = React.useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [isLoadingMarket, setIsLoadingMarket] = React.useState(true);
+  const [details, setDetails] = React.useState({
+    bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
+    offer: { offerUtxo: null, lovelace: null, usd: null, owner: true },
+  });
+  const [loadingButton, setLoadingButton] = React.useState({
+    cancelBid: false,
+    bid: false,
+    buy: false,
+    offer: false,
+    cancelOffer: false,
+    sell: false,
+  });
+  const connected = useStoreState((state) => state.connection.connected);
+  const market = React.useRef();
 
-  const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc";
-
-  const fetchData = async () => {
-    const token = POLICY + toHex(`SpaceBud${spacebud.id}`);
-    const addresses = await fetch(
-      `https://cardano-mainnet.blockfrost.io/api/v0/assets/${token}/addresses`,
-      { headers: { project_id: "3Ojodngr06BReeSN9lhsow0hypKf8gu5" } }
-    ).then((res) => res.json());
-    setOwner(addresses);
-  };
+  // const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
+  const POLICY = "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a";
 
   React.useEffect(() => {
-    fetchData();
+    loadMarket();
   }, []);
+  const firstUpdate = React.useRef(true);
+  React.useEffect(() => {
+    if (firstUpdate.current) {
+      firstUpdate.current = false;
+      return;
+    }
+    loadSpaceBudData();
+  }, [connected]);
+  const loadMarket = async () => {
+    market.current = new Market(
+      {
+        base: "https://cardano-testnet.blockfrost.io/api/v0",
+        projectId: secrets.PROJECT_ID_TESTNET,
+      },
+      "addr_test1qq90qrxyw5qtkex0l7mc86xy9a6xkn5t3fcwm6wq33c38t8nhh356yzp7k3qwmhe4fk0g5u6kx5ka4rz5qcq4j7mvh2sts2cfa"
+    );
+    await market.current.load();
+    loadSpaceBudData();
+  };
+
+  const loadSpaceBudData = async () => {
+    setIsLoadingMarket(true);
+    setOwner([]);
+    const token = POLICY + toHex(`SpaceBud${spacebud.id}`);
+    let addresses = await fetch(
+      `https://cardano-testnet.blockfrost.io/api/v0/assets/${token}/addresses`,
+      { headers: { project_id: secrets.PROJECT_ID_TESTNET } }
+    ).then((res) => res.json());
+    const fiatPrice = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd`
+    )
+      .then((res) => res.json())
+      .then((res) => res.cardano["usd"]);
+    addresses = [addresses[0]];
+    const bidUtxo = await market.current.getBid(spacebud.id);
+    const offerUtxo = await market.current.getOffer(spacebud.id);
+    const details = {
+      bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
+      offer: { offerUtxo: null, lovelace: null, usd: null, owner: false },
+    };
+    details.bid.bidUtxo = bidUtxo;
+    details.offer.offerUtxo = offerUtxo;
+    console.log(bidUtxo);
+    console.log(offerUtxo);
+    if (bidUtxo.tradeOwnerAddress) {
+      if (bidUtxo.tradeOwnerAddress.to_bech32() === connected)
+        details.bid.owner = true;
+      details.bid.lovelace = bidUtxo.lovelace;
+      details.bid.usd = (bidUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
+    }
+    if (addresses.find((address) => address.address == connected))
+      details.offer.owner = true;
+    if (offerUtxo) {
+      details.offer.lovelace = offerUtxo.lovelace;
+      details.offer.usd = (offerUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
+    }
+    // const bidUtxo = await market.current.getBid("5");
+    // const txHash = await market.current.bid(bidUtxo, "60000000");
+    // const txHash = await market.current.bid("5", "60000000");
+    // console.log(txHash);
+    setDetails(details);
+    setOwner(addresses);
+    setIsLoadingMarket(false);
+  };
 
   return (
     <>
@@ -204,11 +287,11 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
         ) : (
           <>
             <Box h={3} />
-            <Box display="flex">
-              <Text color="GrayText" mr="3">
+            <Box display="flex" alignItems="center">
+              <Text color="GrayText" mr="4">
                 Owner
               </Text>{" "}
-              <BeatLoader size="5" color="#6B46C1" />
+              <Spinner size="sm" color="purple" />
             </Box>
           </>
         )}
@@ -216,40 +299,223 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
         <Box h={12} />
         <div
           style={{
+            width: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              zIndex: 1,
-              fontSize: 18,
-              fontWeight: 800,
-              background: "black",
-              color: "white",
-              padding: "3px 8px",
-              borderRadius: 20,
-              transform: "rotate(-5deg)",
-            }}
-          >
-            Trading coming soon
-          </div>
-          <div>
-            <div style={{ fontSize: 12, opacity: 0.3 }}>Buy now price</div>
-            <div style={{ fontWeight: 500, opacity: 0.3 }}>100.0 ADA</div>
-            <div style={{ fontSize: 12, color: "#777777", opacity: 0.3 }}>
-              10.8 USD
-            </div>
-          </div>
-          <Box w={4} />
-          <Button style={{ opacity: 0.3 }}>Buy</Button>
-          <Box w={2} />
-          <Button style={{ opacity: 0.3 }} bgcolor="#263238">
-            Make Offer
-          </Button>
+          {isLoadingMarket ? (
+            <Box display="flex" alignItems="center">
+              <Text color="GrayText" mr="4">
+                Loading Market
+              </Text>{" "}
+              <Spinner size="sm" color="purple" />
+            </Box>
+          ) : (
+            <>
+              {details.offer.owner ? (
+                <>
+                  <Box width="150px" textAlign="right">
+                    <div style={{ fontSize: 12 }}>Sell now price</div>
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.bid.lovelace)}
+                      fontWeight="medium"
+                      quantity={details.bid.lovelace || 0}
+                      symbol="ADA"
+                      decimals={6}
+                    />
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.bid.usd)}
+                      fontSize={12}
+                      color="#777777"
+                      quantity={details.bid.usd || 0}
+                      symbol="USD"
+                      decimals={2}
+                    />
+                  </Box>
+                  <Box w={5} />
+                  {details.bid.owner ? (
+                    <Tooltip label="Cancel Bid" rounded="3xl">
+                      <Button
+                        rounded="3xl"
+                        size="md"
+                        color="white"
+                        bgColor="red.300"
+                        colorScheme="red"
+                      >
+                        Cancel
+                      </Button>
+                    </Tooltip>
+                  ) : (
+                    <Button
+                      isDisabled={!Boolean(details.bid.lovelace)}
+                      rounded="3xl"
+                      size="md"
+                      colorScheme="purple"
+                      width="min"
+                    >
+                      Sell
+                    </Button>
+                  )}
+                  <Box w={4} />
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {details.offer.lovelace ? (
+                      <Tooltip label="Cancel Offer" rounded="3xl">
+                        <Button
+                          color="white"
+                          bgColor="red.300"
+                          colorScheme="red"
+                          rounded="3xl"
+                          aria-label="Add to friends"
+                          icon={<SmallCloseIcon />}
+                        >
+                          Cancel
+                        </Button>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        rounded="3xl"
+                        colorScheme="gray"
+                      >
+                        Offer
+                      </Button>
+                    )}
+                  </Box>
+                  <Box w={5} />
+                  <Box width="150px">
+                    <div style={{ fontSize: 12 }}>Offer price</div>
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.offer.lovelace)}
+                      fontWeight="medium"
+                      quantity={details.offer.lovelace || 0}
+                      symbol="ADA"
+                      decimals={6}
+                    />
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.offer.usd)}
+                      fontSize={12}
+                      color="#777777"
+                      quantity={details.offer.usd || 0}
+                      symbol="USD"
+                      decimals={2}
+                    />
+                  </Box>{" "}
+                </>
+              ) : (
+                <>
+                  {" "}
+                  <Box width="150px" textAlign="right">
+                    <div style={{ fontSize: 12 }}>Buy now price</div>
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.offer.lovelace)}
+                      fontWeight="medium"
+                      quantity={details.offer.lovelace || 0}
+                      symbol="ADA"
+                      decimals={6}
+                    />
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.offer.usd)}
+                      fontSize={12}
+                      color="#777777"
+                      quantity={details.offer.usd || 0}
+                      symbol="USD"
+                      decimals={2}
+                    />
+                  </Box>
+                  <Box w={5} />
+                  <Tooltip label={!connected && "Connect wallet"} rounded="3xl">
+                    <Button
+                      isDisabled={!Boolean(details.offer.lovelace)}
+                      rounded="3xl"
+                      size="md"
+                      colorScheme="purple"
+                      width="min"
+                    >
+                      Buy
+                    </Button>
+                  </Tooltip>
+                  <Box w={4} />
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <ButtonGroup size="md" isAttached variant="outline">
+                      <Tooltip
+                        label={!connected && "Connect wallet"}
+                        rounded="3xl"
+                      >
+                        <Button
+                          bgcolor="#263238"
+                          rounded="3xl"
+                          colorScheme="gray"
+                          width="min"
+                        >
+                          Bid
+                        </Button>
+                      </Tooltip>
+                      {details.bid.owner && (
+                        <Tooltip label="Cancel Bid" rounded="3xl">
+                          <IconButton
+                            isDisabled={loadingButton.cancelBid}
+                            isLoading={loadingButton.cancelBid}
+                            onClick={async () => {
+                              if (!connected) return;
+                              setLoadingButton((l) => ({
+                                ...l,
+                                cancelBid: true,
+                              }));
+                              const txHash = await market.current
+                                .cancelBid(details.bid.bidUtxo)
+                                .catch((e) => {});
+                              console.log(txHash);
+                              setLoadingButton((l) => ({
+                                ...l,
+                                cancelBid: false,
+                              }));
+                            }}
+                            bgColor="red.300"
+                            variant="solid"
+                            rounded="3xl"
+                            aria-label="Add to friends"
+                            icon={<SmallCloseIcon />}
+                          />
+                        </Tooltip>
+                      )}
+                    </ButtonGroup>
+                  </Box>
+                  <Box w={5} />
+                  <Box width="150px">
+                    <div style={{ fontSize: 12 }}>Bid price</div>
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.bid.lovelace)}
+                      fontWeight="medium"
+                      quantity={details.bid.lovelace || 0}
+                      symbol="ADA"
+                      decimals={6}
+                    />
+                    <UnitDisplay
+                      showQuantity={!Boolean(details.bid.usd)}
+                      fontSize={12}
+                      color="#777777"
+                      quantity={details.bid.usd || 0}
+                      symbol="USD"
+                      decimals={2}
+                    />
+                  </Box>
+                </>
+              )}
+            </>
+          )}
         </div>
         <Box h={10} />
         <div style={{ fontSize: 26, color: "#777777", fontWeight: 600 }}>

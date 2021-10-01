@@ -16,11 +16,12 @@
   },
   "dependencies": {
     "@chakra-ui/gatsby-plugin": "^2.0.1",
+    "@chakra-ui/icons": "^1.0.15",
     "@chakra-ui/react": "^1.6.7",
     "@egjs/react-infinitegrid": "^3.2.5",
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
-    "@emurgo/cardano-serialization-lib-browser": "^7.1.0",
+    "@emurgo/cardano-serialization-lib-browser": "^9.1.0",
     "@geist-ui/react": "^2.2.0",
     "@geist-ui/react-icons": "^1.0.1",
     "@loadable/component": "^5.15.0",

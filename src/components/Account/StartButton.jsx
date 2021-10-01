@@ -1,7 +1,7 @@
 import React from "react";
 import Background from "../../images/assets/startButton.svg";
 import * as style from "./StartButton.module.css";
-import { Loading, Spacer, User, useToasts } from "@geist-ui/react";
+import { useToasts } from "@geist-ui/react";
 
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import { navigate } from "gatsby-link";
@@ -9,6 +9,9 @@ import Loader from "../../cardano/loader";
 
 // Asset
 import { useStoreActions, useStoreState } from "easy-peasy";
+import { Button, Box } from "@chakra-ui/react";
+import { Image } from "@chakra-ui/image";
+import MiddleEllipsis from "react-middle-ellipsis";
 
 const addressToBech32 = async () => {
   await Loader.load();
@@ -19,7 +22,7 @@ const addressToBech32 = async () => {
 };
 const StartButton = (props) => {
   const matches = useBreakpoint();
-  const [loading, setLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [flag, setFlag] = React.useState(false);
   const connected = useStoreState((state) => state.connection.connected);
   const setConnected = useStoreActions(
@@ -42,7 +45,6 @@ const StartButton = (props) => {
       className={style.accountButton}
       style={{
         width: 100,
-        height: 45,
         zoom: matches.md && "0.85",
         display: "flex",
         alignItems: "center",
@@ -51,30 +53,31 @@ const StartButton = (props) => {
       }}
       onClick={() => navigate(`/profile?address=${connected}`)}
     >
-      <div style={{ fontWeight: "bold" }}>Account</div>
+      <div
+        style={{
+          width: "130px",
+          whiteSpace: "nowrap",
+          fontWeight: "bold",
+          fontSize: 14,
+        }}
+      >
+        <MiddleEllipsis>
+          <span>{connected}</span>
+        </MiddleEllipsis>
+      </div>
     </div>
   ) : (
-    <div
-      className={style.startButton}
-      style={{
-        width: 100,
-        height: 45,
-        borderRadius: 25,
-        fontWeight: 500,
-        backgroundImage: `url(${Background})`,
-        backgroundSize: "cover",
-        backgroundPosition: "7px -8px",
-        backgroundColor: "#4D438C",
-        backgroundRepeat: "no-repeat",
-        border: "none",
-        textAlign: "center",
-        verticalAlign: "middle",
-        lineHeight: "45px",
-
-        zoom: matches.md && "0.85",
-      }}
+    <Button
+      isDisabled={isLoading}
+      isLoading={isLoading}
+      colorScheme="purple"
+      rounded="3xl"
+      position="relative"
+      overflow="hidden"
+      py="0.5"
+      size={matches.md ? "sm" : "md"}
       onClick={async () => {
-        setLoading(true);
+        setIsLoading(true);
         if (!window.cardano) {
           setToast({
             delay: 5000,
@@ -90,11 +93,12 @@ const StartButton = (props) => {
               },
             ],
           });
-          setLoading(false);
+          setIsLoading(false);
           return;
         }
         await window.cardano.enable();
-        if ((await window.cardano.getNetworkId()) !== 1) {
+        if ((await window.cardano.getNetworkId()) !== 0) {
+          //TODO change to mainnet!
           setToast({
             delay: 5000,
             text: (
@@ -103,16 +107,24 @@ const StartButton = (props) => {
               </span>
             ),
           });
-          setLoading(false);
+          setIsLoading(false);
           return;
         }
         const address = await addressToBech32();
         setConnected(address);
-        setLoading(false);
+        setIsLoading(false);
       }}
     >
-      {loading ? <Loading color="white" /> : "Connect"}
-    </div>
+      <Image
+        src={Background}
+        width="full"
+        height="full"
+        position="absolute"
+        right={-2}
+        top={-1}
+      />
+      <Box zIndex="1">Connect</Box>
+    </Button>
   );
 };
 

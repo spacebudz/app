@@ -74,6 +74,7 @@ const Header = () => {
             display: "flex",
             alignItems: "center",
             zIndex: 1,
+            height: !matches.md ? "65px" : "45px",
             background: "white",
             borderRadius: "40px",
             padding: !matches.md ? "10px 40px" : "5px 10px",
