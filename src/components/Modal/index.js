@@ -1,3 +1,4 @@
 import ShareModal from "./Share";
+import TradeModal from "./Trade";
 
-export { ShareModal };
+export { ShareModal, TradeModal };

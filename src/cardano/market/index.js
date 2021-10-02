@@ -704,11 +704,18 @@ class SpaceBudzMarket {
       return { ...offerUtxo[0], lovelace: lovelace.to_str() };
     }
     if (offerUtxo.length === 2 && (budId == 1903 || budId == 6413)) {
-      return offerUtxo.map((utxo) => {
-        const lovelace = getTradeDetails(utxo.datum).requestedAmount;
-        if (lovelace.compare(this.contractInfo.minPrice) == -1) return null;
-        return { ...utxo, lovelace: lovelace.to_str() };
-      });
+      const utxos = offerUtxo
+        .map((utxo) => {
+          const lovelace = getTradeDetails(utxo.datum).requestedAmount;
+          if (lovelace.compare(this.contractInfo.minPrice) == -1) return null;
+          return { ...utxo, lovelace: lovelace.to_str() };
+        })
+        .filter((utxo) => utxo != null);
+      // if both twins are offered, but one < minPrice filter it out and do not return an array
+      // if both are < minPrice return null
+      if (utxos.length <= 0) return null;
+      if (utxos.length < 2) return utxos[0];
+      return utxos;
     }
 
     return null;

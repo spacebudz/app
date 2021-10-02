@@ -6,7 +6,7 @@ import { navigate } from "gatsby";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import Metadata from "../components/Metadata";
 import styled from "styled-components";
-import { ShareModal } from "../components/Modal";
+import { ShareModal, TradeModal } from "../components/Modal";
 import { Share2 } from "@geist-ui/react-icons";
 import { Box, Text } from "@chakra-ui/layout";
 import {
@@ -32,6 +32,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const matches = useBreakpoint();
   const [owner, setOwner] = React.useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const tradeRef = React.useRef();
   const [isLoadingMarket, setIsLoadingMarket] = React.useState(true);
   const [details, setDetails] = React.useState({
     bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
@@ -115,7 +116,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             offerUtxo = offerUtxo2;
           }
         }
-      } else throw { code: 5, msg: "Something went wrong" };
+      } else throw new Error("Something went wrong");
     }
     const details = {
       bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
@@ -132,7 +133,14 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       details.bid.lovelace = bidUtxo.lovelace;
       details.bid.usd = (bidUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
-    if (addresses.find((address) => address.address == connected))
+    if (
+      addresses.find(
+        (address) =>
+          address.address ==
+          // "addr_test1wr0sggdn8cdgf3675hqqg8t6msvha60hvgnt5u698r0r93c84cwnf"
+          connected
+      )
+    )
       details.offer.owner = true;
     if (offerUtxo) {
       if (offerUtxo.tradeOwnerAddress.to_bech32() === connected)
@@ -141,7 +149,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       details.offer.usd = (offerUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
     console.log(details);
-    // const o = await market.current.offer("5", "60000000");
+    // const o = await market.current.cancelOffer(offerUtxo);
     // const txHash = await market.current.bid(bidUtxo, "70000000");
     // const txHash = await market.current.bid("5", "60000000");
     // console.log(txHash);
@@ -196,14 +204,20 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           >
             <Share2 size={26} />
           </div>
-          {/* Modal Share */}
+          {/* Modal */}
           <ShareModal
             bud={spacebud}
             isOpen={isOpen}
             onOpen={onOpen}
             onClose={onClose}
           />
-          {/* Modal Share End */}
+          <TradeModal
+            budId={spacebud.id}
+            ref={tradeRef}
+            market={market.current}
+            details={details}
+          />
+          {/* Modal End */}
           <div
             style={{
               width: !matches.md ? 410 : 350,
@@ -367,15 +381,27 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                       </Button>
                     </Tooltip>
                   ) : (
-                    <Button
-                      isDisabled={!Boolean(details.bid.lovelace)}
+                    <Tooltip
+                      label={
+                        details.offer.owner &&
+                        details.offer.lovelace &&
+                        "Cancel Offer first"
+                      }
                       rounded="3xl"
-                      size="md"
-                      colorScheme="purple"
-                      width="min"
                     >
-                      Sell
-                    </Button>
+                      <Button
+                        isDisabled={!Boolean(details.bid.lovelace)}
+                        rounded="3xl"
+                        size="md"
+                        colorScheme="purple"
+                        width="min"
+                        bgcolor="#263238"
+                        rounded="3xl"
+                        width="min"
+                      >
+                        Sell
+                      </Button>
+                    </Tooltip>
                   )}
                   <Box w={4} />
                   <Box
@@ -402,6 +428,13 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                         variant="outline"
                         rounded="3xl"
                         colorScheme="gray"
+                        onClick={() => {
+                          if (!connected) return;
+                          tradeRef.current.openModal({
+                            minPrice: "60000000",
+                            type: "OFFER",
+                          });
+                        }}
                       >
                         Offer
                       </Button>
@@ -449,9 +482,35 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                     />
                   </Box>
                   <Box w={5} />
-                  <Tooltip label={!connected && "Connect wallet"} rounded="3xl">
+                  <Tooltip
+                    label={
+                      (!connected && "Connect wallet") ||
+                      (details.bid.owner &&
+                        details.bid.lovelace &&
+                        "Cancel Bid first")
+                    }
+                    rounded="3xl"
+                  >
                     <Button
-                      isDisabled={!Boolean(details.offer.lovelace)}
+                      isDisabled={
+                        !Boolean(details.offer.lovelace) || loadingButton.buy
+                      }
+                      isLoading={loadingButton.buy}
+                      onClick={async () => {
+                        if (!connected || details.bid.owner) return;
+                        setLoadingButton((l) => ({
+                          ...l,
+                          buy: true,
+                        }));
+                        const txHash = await market.current
+                          .buy(details.offer.offerUtxo)
+                          .catch((e) => {});
+                        console.log(txHash);
+                        setLoadingButton((l) => ({
+                          ...l,
+                          buy: false,
+                        }));
+                      }}
                       rounded="3xl"
                       size="md"
                       colorScheme="purple"
@@ -473,6 +532,16 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                         rounded="3xl"
                       >
                         <Button
+                          onClick={() => {
+                            if (!connected) return;
+                            tradeRef.current.openModal({
+                              minPrice: (
+                                window.BigInt(details.bid.bidUtxo.lovelace) +
+                                window.BigInt("10000")
+                              ).toString(),
+                              type: "BID",
+                            });
+                          }}
                           bgcolor="#263238"
                           rounded="3xl"
                           colorScheme="gray"
@@ -535,7 +604,15 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             </>
           )}
         </div>
-        <Box h={10} />
+        {!isLoadingMarket && (
+          <>
+            <Box h={3} />
+            <Box fontSize={12} color="GrayText">
+              Service Fee ~2.5%
+            </Box>{" "}
+          </>
+        )}
+        <Box h={8} />
         <div style={{ fontSize: 26, color: "#777777", fontWeight: 600 }}>
           Gadgets
         </div>
