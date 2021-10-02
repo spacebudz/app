@@ -18,7 +18,6 @@ import {
   Spinner,
 } from "@chakra-ui/react";
 import { SmallCloseIcon } from "@chakra-ui/icons";
-import { BeatLoader } from "react-spinners";
 import { useStoreState } from "easy-peasy";
 import Market from "../cardano/market";
 import secrets from "../../secrets";
@@ -27,19 +26,7 @@ import secrets from "../../secrets";
 import Show from "../images/assets/show.svg";
 import { UnitDisplay } from "../components/UnitDisplay";
 
-function toHex(str, hex) {
-  try {
-    hex = unescape(encodeURIComponent(str))
-      .split("")
-      .map(function (v) {
-        return v.charCodeAt(0).toString(16);
-      })
-      .join("");
-  } catch (e) {
-    hex = str;
-  }
-  return hex;
-}
+export const toHex = (bytes) => Buffer.from(bytes).toString("hex");
 
 const SpaceBud = ({ pageContext: { spacebud } }) => {
   const matches = useBreakpoint();
@@ -102,7 +89,34 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       .then((res) => res.cardano["usd"]);
     addresses = [addresses[0]];
     const bidUtxo = await market.current.getBid(spacebud.id);
-    const offerUtxo = await market.current.getOffer(spacebud.id);
+    let offerUtxo = await market.current.getOffer(spacebud.id);
+    // offerUtxo = [offerUtxo, { ...offerUtxo, lovelace: "40000000" }];
+
+    // check if twin
+    if (Array.isArray(offerUtxo)) {
+      if (
+        offerUtxo.length == 2
+        // (spacebud.id == 1903 || spacebud.id == 6413)
+      ) {
+        const ownerUtxo = offerUtxo.find(
+          (utxo) => utxo.tradeOwnerAddress.to_bech32() == connected
+        );
+        if (ownerUtxo) {
+          offerUtxo = ownerUtxo;
+        } else {
+          const offerUtxo1 = offerUtxo[0];
+          const offerUtxo2 = offerUtxo[1];
+          if (
+            window.BigInt(offerUtxo1.lovelace) <
+            window.BigInt(offerUtxo2.lovelace)
+          ) {
+            offerUtxo = offerUtxo1;
+          } else {
+            offerUtxo = offerUtxo2;
+          }
+        }
+      } else throw { code: 5, msg: "Something went wrong" };
+    }
     const details = {
       bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
       offer: { offerUtxo: null, lovelace: null, usd: null, owner: false },
@@ -111,7 +125,8 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     details.offer.offerUtxo = offerUtxo;
     console.log(bidUtxo);
     console.log(offerUtxo);
-    if (bidUtxo.tradeOwnerAddress) {
+    // ignore if state is StartBid
+    if (toHex(bidUtxo.datum.to_bytes()) !== "d866820080") {
       if (bidUtxo.tradeOwnerAddress.to_bech32() === connected)
         details.bid.owner = true;
       details.bid.lovelace = bidUtxo.lovelace;
@@ -120,11 +135,14 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     if (addresses.find((address) => address.address == connected))
       details.offer.owner = true;
     if (offerUtxo) {
+      if (offerUtxo.tradeOwnerAddress.to_bech32() === connected)
+        details.offer.owner = true;
       details.offer.lovelace = offerUtxo.lovelace;
       details.offer.usd = (offerUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
-    // const bidUtxo = await market.current.getBid("5");
-    // const txHash = await market.current.bid(bidUtxo, "60000000");
+    console.log(details);
+    // const o = await market.current.offer("5", "60000000");
+    // const txHash = await market.current.bid(bidUtxo, "70000000");
     // const txHash = await market.current.bid("5", "60000000");
     // console.log(txHash);
     setDetails(details);

@@ -672,7 +672,7 @@ class SpaceBudzMarket {
         fee: Loader.Cardano.BigNum.from_str("2000"), // 0.5%
       },
       extraFee: Loader.Cardano.BigNum.from_str("5000"), // 0.2%
-      minPrice: Loader.Cardano.BigNum.from_str("50000000"),
+      minPrice: Loader.Cardano.BigNum.from_str("60000000"),
       bidStep: Loader.Cardano.BigNum.from_str("10000"),
     };
     this.extraFeeRecipient = Loader.Cardano.Address.from_bech32(
@@ -698,23 +698,16 @@ class SpaceBudzMarket {
       this.contractInfo.prefixSpaceBud,
       budId.toString()
     );
-    if (
-      offerUtxo.length !== 1 ||
-      offerUtxo.length !== 2 ||
-      (offerUtxo.length === 2 && (budId != 1903 || budId != 6413))
-    )
-      return null;
     if (offerUtxo.length === 1) {
-      const lovelace = getTradeDetails(
-        offerUtxo[0].datum
-      ).requestedAmount.to_str();
-
-      return { ...offerUtxo[0], lovelace };
+      const lovelace = getTradeDetails(offerUtxo[0].datum).requestedAmount;
+      if (lovelace.compare(this.contractInfo.minPrice) == -1) return null;
+      return { ...offerUtxo[0], lovelace: lovelace.to_str() };
     }
     if (offerUtxo.length === 2 && (budId == 1903 || budId == 6413)) {
       return offerUtxo.map((utxo) => {
-        const lovelace = getTradeDetails(utxo.datum).requestedAmount.to_str();
-        return { ...utxo, lovelace };
+        const lovelace = getTradeDetails(utxo.datum).requestedAmount;
+        if (lovelace.compare(this.contractInfo.minPrice) == -1) return null;
+        return { ...utxo, lovelace: lovelace.to_str() };
       });
     }
 

@@ -53,18 +53,7 @@ const StartButton = (props) => {
       }}
       onClick={() => navigate(`/profile?address=${connected}`)}
     >
-      <div
-        style={{
-          width: "130px",
-          whiteSpace: "nowrap",
-          fontWeight: "bold",
-          fontSize: 14,
-        }}
-      >
-        <MiddleEllipsis>
-          <span>{connected}</span>
-        </MiddleEllipsis>
-      </div>
+      <Ellipsis connected={connected} />
     </div>
   ) : (
     <Button
@@ -125,6 +114,32 @@ const StartButton = (props) => {
       />
       <Box zIndex="1">Connect</Box>
     </Button>
+  );
+};
+
+const Ellipsis = ({ connected }) => {
+  const [change, setChange] = React.useState(false);
+
+  React.useEffect(() => {
+    setChange(true);
+    setTimeout(() => setChange(false));
+  }, [connected]);
+
+  return (
+    !change && (
+      <div
+        style={{
+          width: "130px",
+          whiteSpace: "nowrap",
+          fontWeight: "bold",
+          fontSize: 14,
+        }}
+      >
+        <MiddleEllipsis>
+          <span>{connected}</span>
+        </MiddleEllipsis>
+      </div>
+    )
   );
 };
 
