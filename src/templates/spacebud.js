@@ -115,8 +115,8 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     // check if twin
     if (Array.isArray(offerUtxo)) {
       if (
-        offerUtxo.length == 2
-        // (spacebud.id == 1903 || spacebud.id == 6413)
+        offerUtxo.length == 2 &&
+        (spacebud.id == 1903 || spacebud.id == 6413)
       ) {
         const ownerUtxo = offerUtxo.find(
           (utxo) => utxo.tradeOwnerAddress.to_bech32() == connected
@@ -250,7 +250,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             }}
           >
             <div style={{ width: "100%", position: "relative" }}>
-              {owner.length >= 2 && (
+              {(spacebud.id == 1903 || spacebud.id == 6413) && (
                 <img
                   src={spacebud.image}
                   style={{
@@ -279,23 +279,22 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           </LinkName>
         </div>
         <Box h={6} />
-        {owner.length >= 2 ||
-          (owner.length > 0 && owner[0].quantity > 1 && (
-            <>
-              <div
-                style={{
-                  fontWeight: 600,
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <div style={{ marginTop: -5 }}>Twin</div>
-                <Box w={2} />
-              </div>{" "}
-              <Box h={3} />
-            </>
-          ))}
+        {(spacebud.id == 1903 || spacebud.id == 6413) && (
+          <>
+            <div
+              style={{
+                fontWeight: 600,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ marginTop: -5 }}>Twins</div>
+              <Box w={2} />
+            </div>{" "}
+            <Box h={3} />
+          </>
+        )}
         {owner.length > 0 ? (
           owner.map((item, i) => (
             <div
@@ -422,8 +421,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                   ) : (
                     <Tooltip
                       label={
-                        details.offer.owner &&
-                        details.offer.lovelace &&
+                        details.offer.offerUtxo &&
+                        connected ==
+                          details.offer.offerUtxo.tradeOwnerAddress.to_bech32() &&
                         "Cancel Offer first"
                       }
                       rounded="3xl"
@@ -443,7 +443,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                         onClick={async () => {
                           if (
                             !connected ||
-                            (details.offer.owner && details.offer.lovelace)
+                            (details.offer.offerUtxo &&
+                              connected ==
+                                details.offer.offerUtxo.tradeOwnerAddress.to_bech32())
                           )
                             return;
                           setLoadingButton((l) => ({
@@ -471,7 +473,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    {details.offer.lovelace ? (
+                    {details.offer.lovelace &&
+                    details.offer.offerUtxo &&
+                    connected ==
+                      details.offer.offerUtxo.tradeOwnerAddress.to_bech32() ? (
                       <Tooltip label="Cancel Offer" rounded="3xl">
                         <Button
                           isDisabled={loadingButton.cancelOffer}
