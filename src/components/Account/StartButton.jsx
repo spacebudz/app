@@ -1,7 +1,6 @@
 import React from "react";
 import Background from "../../images/assets/startButton.svg";
 import * as style from "./StartButton.module.css";
-import { useToasts } from "@geist-ui/react";
 
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import { navigate } from "gatsby-link";
@@ -9,9 +8,10 @@ import Loader from "../../cardano/loader";
 
 // Asset
 import { useStoreActions, useStoreState } from "easy-peasy";
-import { Button, Box } from "@chakra-ui/react";
+import { Button, Box, useToast } from "@chakra-ui/react";
 import { Image } from "@chakra-ui/image";
 import MiddleEllipsis from "react-middle-ellipsis";
+import { ChevronRightIcon, InfoIcon } from "@chakra-ui/icons";
 
 const addressToBech32 = async () => {
   await Loader.load();
@@ -28,13 +28,12 @@ const StartButton = (props) => {
   const setConnected = useStoreActions(
     (actions) => actions.connection.setConnected
   );
-  const [, setToast] = useToasts();
+  const toast = useToast();
 
   React.useEffect(() => {
     if (connected && !flag)
       window.cardano.onAccountChange(async () => {
         const address = await addressToBech32();
-        console.log(address);
         setConnected(address);
         setFlag(true);
       });
@@ -67,40 +66,15 @@ const StartButton = (props) => {
       size={matches.md ? "sm" : "md"}
       onClick={async () => {
         setIsLoading(true);
-        if (!window.cardano) {
-          setToast({
-            delay: 5000,
-            text: (
-              <span style={{ fontWeight: "bolder" }}>
-                Get Nami Wallet first
-              </span>
-            ),
-            actions: [
-              {
-                name: "Get",
-                handler: () => window.open("https://namiwallet.io"),
-              },
-            ],
-          });
+        if (!(await checkStatus(toast, connected))) {
           setIsLoading(false);
           return;
         }
-        await window.cardano.enable();
-        if ((await window.cardano.getNetworkId()) !== 0) {
-          //TODO change to mainnet!
-          setToast({
-            delay: 5000,
-            text: (
-              <span style={{ fontWeight: "bolder" }}>
-                Wrong network, please switch to mainnet
-              </span>
-            ),
-          });
-          setIsLoading(false);
-          return;
+        if (await window.cardano.enable()) {
+          const address = await addressToBech32();
+          setConnected(address);
         }
-        const address = await addressToBech32();
-        setConnected(address);
+
         setIsLoading(false);
       }}
     >
@@ -144,3 +118,71 @@ const Ellipsis = ({ connected }) => {
 };
 
 export default StartButton;
+
+const checkStatus = async (toast, connected) => {
+  return (
+    NoNami(toast) &&
+    (await window.cardano.enable()) &&
+    (await WrongNetworkToast(toast))
+  );
+};
+
+const NoNami = (toast) => {
+  if (window.cardano) return true;
+  toast({
+    position: "bottom-right",
+    render: () => (
+      <Box
+        background="purple.400"
+        color="white"
+        px={6}
+        py={3}
+        rounded="3xl"
+        display="flex"
+        alignItems="center"
+      >
+        <InfoIcon />
+        <Box ml="3" fontWeight="medium">
+          Nami not installed
+        </Box>
+        <Button
+          rounded="3xl"
+          colorScheme="whiteAlpha"
+          onClick={() => window.open("https://namiwallet.io")}
+          ml="4"
+          size="xs"
+          rightIcon={<ChevronRightIcon />}
+        >
+          Get it
+        </Button>
+      </Box>
+    ),
+    duration: 9000,
+  });
+  return false;
+};
+
+const WrongNetworkToast = async (toast) => {
+  if ((await window.cardano.getNetworkId()) === 0) return true; //change to mainnet!!
+  toast({
+    position: "bottom-right",
+    duration: 5000,
+    render: () => (
+      <Box
+        background="purple.400"
+        color="white"
+        px={6}
+        py={3}
+        rounded="3xl"
+        display="flex"
+        alignItems="center"
+      >
+        <InfoIcon />
+        <Box ml="3" fontWeight="medium">
+          Wrong network
+        </Box>
+      </Box>
+    ),
+  });
+  return false;
+};

@@ -6,7 +6,14 @@ import { navigate } from "gatsby";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import Metadata from "../components/Metadata";
 import styled from "styled-components";
-import { ShareModal, TradeModal } from "../components/Modal";
+import {
+  ShareModal,
+  TradeModal,
+  SuccessTransactionToast,
+  PendingTransactionToast,
+  FailedTransactionToast,
+  tradeErrorHandler,
+} from "../components/Modal";
 import { Share2 } from "@geist-ui/react-icons";
 import { Box, Text } from "@chakra-ui/layout";
 import {
@@ -16,6 +23,7 @@ import {
   ButtonGroup,
   IconButton,
   Spinner,
+  useToast,
 } from "@chakra-ui/react";
 import { SmallCloseIcon } from "@chakra-ui/icons";
 import { useStoreState } from "easy-peasy";
@@ -28,8 +36,11 @@ import { UnitDisplay } from "../components/UnitDisplay";
 
 export const toHex = (bytes) => Buffer.from(bytes).toString("hex");
 
+const isBrowser = () => typeof window !== "undefined";
+
 const SpaceBud = ({ pageContext: { spacebud } }) => {
   const matches = useBreakpoint();
+  const toast = useToast();
   const [owner, setOwner] = React.useState([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const tradeRef = React.useRef();
@@ -50,7 +61,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const market = React.useRef();
 
   // const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
-  const POLICY = "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a";
+  const POLICY = "7bf38e0a0f91e855c0b6a8c45f8bff19b9577d5ec26f696a8bde4872";
 
   React.useEffect(() => {
     loadMarket();
@@ -63,6 +74,16 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     }
     loadSpaceBudData();
   }, [connected]);
+
+  const checkTransaction = async (txHash) => {
+    if (!txHash) return;
+    PendingTransactionToast(toast);
+    await market.current.awaitConfirmation(txHash);
+    toast.closeAll();
+    SuccessTransactionToast(toast, txHash);
+    loadSpaceBudData();
+  };
+
   const loadMarket = async () => {
     market.current = new Market(
       {
@@ -88,11 +109,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     )
       .then((res) => res.json())
       .then((res) => res.cardano["usd"]);
-    addresses = [addresses[0]];
     const bidUtxo = await market.current.getBid(spacebud.id);
     let offerUtxo = await market.current.getOffer(spacebud.id);
     // offerUtxo = [offerUtxo, { ...offerUtxo, lovelace: "40000000" }];
-
     // check if twin
     if (Array.isArray(offerUtxo)) {
       if (
@@ -108,8 +127,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           const offerUtxo1 = offerUtxo[0];
           const offerUtxo2 = offerUtxo[1];
           if (
+            isBrowser() &&
             window.BigInt(offerUtxo1.lovelace) <
-            window.BigInt(offerUtxo2.lovelace)
+              window.BigInt(offerUtxo2.lovelace)
           ) {
             offerUtxo = offerUtxo1;
           } else {
@@ -216,6 +236,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             ref={tradeRef}
             market={market.current}
             details={details}
+            onConfirm={checkTransaction}
           />
           {/* Modal End */}
           <div
@@ -258,22 +279,23 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           </LinkName>
         </div>
         <Box h={6} />
-        {owner.length >= 2 && (
-          <>
-            <div
-              style={{
-                fontWeight: 600,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <div style={{ marginTop: -5 }}>Twin</div>
-              <Box w={2} />
-            </div>{" "}
-            <Box h={3} />
-          </>
-        )}
+        {owner.length >= 2 ||
+          (owner.length > 0 && owner[0].quantity > 1 && (
+            <>
+              <div
+                style={{
+                  fontWeight: 600,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ marginTop: -5 }}>Twin</div>
+                <Box w={2} />
+              </div>{" "}
+              <Box h={3} />
+            </>
+          ))}
         {owner.length > 0 ? (
           owner.map((item, i) => (
             <div
@@ -371,6 +393,23 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                   {details.bid.owner ? (
                     <Tooltip label="Cancel Bid" rounded="3xl">
                       <Button
+                        isDisabled={loadingButton.cancelBid}
+                        isLoading={loadingButton.cancelBid}
+                        onClick={async () => {
+                          if (!connected) return;
+                          setLoadingButton((l) => ({
+                            ...l,
+                            cancelBid: true,
+                          }));
+                          const txHash = await market.current
+                            .cancelBid(details.bid.bidUtxo)
+                            .catch((e) => tradeErrorHandler(e, toast));
+                          setLoadingButton((l) => ({
+                            ...l,
+                            cancelBid: false,
+                          }));
+                          checkTransaction(txHash);
+                        }}
                         rounded="3xl"
                         size="md"
                         color="white"
@@ -390,7 +429,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                       rounded="3xl"
                     >
                       <Button
-                        isDisabled={!Boolean(details.bid.lovelace)}
+                        isDisabled={
+                          !Boolean(details.bid.lovelace) || loadingButton.sell
+                        }
+                        isLoading={loadingButton.sell}
                         rounded="3xl"
                         size="md"
                         colorScheme="purple"
@@ -398,6 +440,25 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                         bgcolor="#263238"
                         rounded="3xl"
                         width="min"
+                        onClick={async () => {
+                          if (
+                            !connected ||
+                            (details.offer.owner && details.offer.lovelace)
+                          )
+                            return;
+                          setLoadingButton((l) => ({
+                            ...l,
+                            sell: true,
+                          }));
+                          const txHash = await market.current
+                            .sell(details.bid.bidUtxo)
+                            .catch((e) => tradeErrorHandler(e, toast));
+                          setLoadingButton((l) => ({
+                            ...l,
+                            sell: false,
+                          }));
+                          checkTransaction(txHash);
+                        }}
                       >
                         Sell
                       </Button>
@@ -413,6 +474,23 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                     {details.offer.lovelace ? (
                       <Tooltip label="Cancel Offer" rounded="3xl">
                         <Button
+                          isDisabled={loadingButton.cancelOffer}
+                          isLoading={loadingButton.cancelOffer}
+                          onClick={async () => {
+                            if (!connected) return;
+                            setLoadingButton((l) => ({
+                              ...l,
+                              cancelOffer: true,
+                            }));
+                            const txHash = await market.current
+                              .cancelOffer(details.offer.offerUtxo)
+                              .catch((e) => tradeErrorHandler(e, toast));
+                            setLoadingButton((l) => ({
+                              ...l,
+                              cancelOffer: false,
+                            }));
+                            checkTransaction(txHash);
+                          }}
                           color="white"
                           bgColor="red.300"
                           colorScheme="red"
@@ -504,12 +582,12 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                         }));
                         const txHash = await market.current
                           .buy(details.offer.offerUtxo)
-                          .catch((e) => {});
-                        console.log(txHash);
+                          .catch((e) => tradeErrorHandler(e, toast));
                         setLoadingButton((l) => ({
                           ...l,
                           buy: false,
                         }));
+                        checkTransaction(txHash);
                       }}
                       rounded="3xl"
                       size="md"
@@ -535,10 +613,13 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                           onClick={() => {
                             if (!connected) return;
                             tradeRef.current.openModal({
-                              minPrice: (
-                                window.BigInt(details.bid.bidUtxo.lovelace) +
-                                window.BigInt("10000")
-                              ).toString(),
+                              minPrice: details.bid.lovelace
+                                ? (
+                                    isBrowser() &&
+                                    window.BigInt(details.bid.lovelace) +
+                                      window.BigInt("10000")
+                                  ).toString()
+                                : "60000000",
                               type: "BID",
                             });
                           }}
@@ -563,12 +644,12 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                               }));
                               const txHash = await market.current
                                 .cancelBid(details.bid.bidUtxo)
-                                .catch((e) => {});
-                              console.log(txHash);
+                                .catch((e) => tradeErrorHandler(e, toast));
                               setLoadingButton((l) => ({
                                 ...l,
                                 cancelBid: false,
                               }));
+                              checkTransaction(txHash);
                             }}
                             bgColor="red.300"
                             variant="solid"

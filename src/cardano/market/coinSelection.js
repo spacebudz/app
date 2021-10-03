@@ -4,7 +4,7 @@ import {
   Value,
 } from "./custom_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib";
 import Loader from "./loader";
-const BigInt = window.BigInt;
+const BigInt = typeof window !== "undefined" && window.BigInt;
 
 /**
  * BerryPool implementation of the __Random-Improve__ coin selection algorithm.

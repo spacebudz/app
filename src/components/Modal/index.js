@@ -1,4 +1,16 @@
 import ShareModal from "./Share";
-import TradeModal from "./Trade";
+import TradeModal, {
+  FailedTransactionToast,
+  SuccessTransactionToast,
+  PendingTransactionToast,
+  tradeErrorHandler,
+} from "./Trade";
 
-export { ShareModal, TradeModal };
+export {
+  ShareModal,
+  TradeModal,
+  FailedTransactionToast,
+  SuccessTransactionToast,
+  PendingTransactionToast,
+  tradeErrorHandler,
+};

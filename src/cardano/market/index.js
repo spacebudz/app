@@ -30,7 +30,7 @@ const CONTRACT = () => {
 
 const CONTRACT_ADDRESS = () =>
   Loader.Cardano.Address.from_bech32(
-    "addr_test1wrl7xctcf777vcrw0hshgheqfam4qpe7s8ngl2ergvu9a6s4ydpcg"
+    "addr_test1wp36jrmwzxe6ur59czyrapkjrauhwj0day5ptem86l6kt2qkeerxl"
   );
 
 // Datums
@@ -153,8 +153,8 @@ const BID_HIGHER = (index) => {
     Loader.Cardano.BigNum.from_str(index),
     redeemerData,
     Loader.Cardano.ExUnits.new(
-      Loader.Cardano.BigNum.from_str("5000000"),
-      Loader.Cardano.BigNum.from_str("1500000000")
+      Loader.Cardano.BigNum.from_str("7000000"),
+      Loader.Cardano.BigNum.from_str("3000000000")
     )
   );
   return redeemer;
@@ -172,7 +172,7 @@ const CANCEL = (index) => {
     redeemerData,
     Loader.Cardano.ExUnits.new(
       Loader.Cardano.BigNum.from_str("5000000"),
-      Loader.Cardano.BigNum.from_str("1500000000")
+      Loader.Cardano.BigNum.from_str("2000000000")
     )
   );
   return redeemer;
@@ -653,8 +653,8 @@ class SpaceBudzMarket {
 
     this.contractInfo = {
       policySpaceBudz:
-        "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a",
-      policyBid: "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a",
+        "7bf38e0a0f91e855c0b6a8c45f8bff19b9577d5ec26f696a8bde4872",
+      policyBid: "7bf38e0a0f91e855c0b6a8c45f8bff19b9577d5ec26f696a8bde4872",
       prefixSpaceBud: "SpaceBud",
       prefixSpaceBudBid: "SpaceBudBid",
       owner1: {
@@ -1189,6 +1189,24 @@ class SpaceBudzMarket {
       action: CANCEL,
     });
     return txHash;
+  }
+
+  /**
+   *
+   * @param {string} txHash Transaction Id
+   * @returns
+   */
+  async awaitConfirmation(txHash) {
+    return new Promise((res, rej) => {
+      const confirmation = setInterval(async () => {
+        const isConfirmed = await this.blockfrostRequest(`/txs/${txHash}`);
+        if (isConfirmed && !isConfirmed.error) {
+          clearInterval(confirmation);
+          res(txHash);
+          return;
+        }
+      }, 5000);
+    });
   }
 }
 
