@@ -25,7 +25,7 @@ import {
   Spinner,
   useToast,
 } from "@chakra-ui/react";
-import { SmallCloseIcon } from "@chakra-ui/icons";
+import { SmallCloseIcon, RepeatIcon } from "@chakra-ui/icons";
 import { useStoreState } from "easy-peasy";
 import Market from "../cardano/market";
 import secrets from "../../secrets";
@@ -88,7 +88,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     market.current = new Market(
       {
         base: "https://cardano-testnet.blockfrost.io/api/v0",
-        projectId: secrets.PROJECT_ID_TESTNET,
+        projectId: secrets.PROJECT_ID,
       },
       "addr_test1qq90qrxyw5qtkex0l7mc86xy9a6xkn5t3fcwm6wq33c38t8nhh356yzp7k3qwmhe4fk0g5u6kx5ka4rz5qcq4j7mvh2sts2cfa"
     );
@@ -102,7 +102,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     const token = POLICY + toHex(`SpaceBud${spacebud.id}`);
     let addresses = await fetch(
       `https://cardano-testnet.blockfrost.io/api/v0/assets/${token}/addresses`,
-      { headers: { project_id: secrets.PROJECT_ID_TESTNET } }
+      { headers: { project_id: secrets.PROJECT_ID } }
     ).then((res) => res.json());
     const fiatPrice = await fetch(
       `https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd`
@@ -153,14 +153,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       details.bid.lovelace = bidUtxo.lovelace;
       details.bid.usd = (bidUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
-    if (
-      addresses.find(
-        (address) =>
-          address.address ==
-          // "addr_test1wr0sggdn8cdgf3675hqqg8t6msvha60hvgnt5u698r0r93c84cwnf"
-          connected
-      )
-    )
+    if (addresses.find((address) => address.address == connected))
       details.offer.owner = true;
     if (offerUtxo) {
       if (offerUtxo.tradeOwnerAddress.to_bech32() === connected)
@@ -168,11 +161,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       details.offer.lovelace = offerUtxo.lovelace;
       details.offer.usd = (offerUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
-    console.log(details);
-    // const o = await market.current.cancelOffer(offerUtxo);
-    // const txHash = await market.current.bid(bidUtxo, "70000000");
-    // const txHash = await market.current.bid("5", "60000000");
-    // console.log(txHash);
+
     setDetails(details);
     setOwner(addresses);
     setIsLoadingMarket(false);
@@ -246,7 +235,6 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
               borderRadius: "50%",
               marginTop: -15,
               marginBottom: -50,
-              // backgroundColor: "white",
             }}
           >
             <div style={{ width: "100%", position: "relative" }}>
@@ -368,6 +356,12 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             </Box>
           ) : (
             <>
+              <Box position="absolute">
+                <Box position="absolute" top="-66px" left={-40}>
+                  {" "}
+                  <RepeatIcon cursor="pointer" onClick={loadSpaceBudData} />
+                </Box>
+              </Box>
               {details.offer.owner ? (
                 <>
                   <Box width="150px" textAlign="right">

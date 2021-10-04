@@ -33,7 +33,7 @@ const toUnit = (amount, decimals = 6) => {
 };
 
 export const tradeErrorHandler = (e, toast) => {
-  console.log(e.message);
+  console.log(e);
   if (e.message) {
     if (e.message.includes("budget was overspent"))
       FailedTransactionToast(toast, "Execution units too low.");
@@ -43,6 +43,8 @@ export const tradeErrorHandler = (e, toast) => {
       FailedTransactionToast(toast, "Insufficent balance");
     else if (e.message.includes("INPUT_LIMIT_EXCEEDED"))
       FailedTransactionToast(toast, "Too many UTxOs. Refactor wallet.");
+    else if (e.message.includes("MAX_SIZE_REACHED"))
+      FailedTransactionToast(toast, "Size too large");
   } else if (e.info) {
     FailedTransactionToast(toast, e.info);
   } else {

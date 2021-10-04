@@ -1,13 +1,13 @@
 import React from "react";
 import InfiniteGrid from "../components/InfiniteGrid";
 import Metadata from "../components/Metadata";
-import { ExternalLink } from "@geist-ui/react-icons";
 import { useStoreState } from "easy-peasy";
 import { FloatingButton } from "../components/Button";
 import { Box } from "@chakra-ui/layout";
 import { BeatLoader } from "react-spinners";
 import Icon from "@mdi/react";
 import { mdiOpenInNew } from "@mdi/js";
+import secrets from "../../secrets";
 
 const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc";
 
@@ -27,7 +27,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
     setTokens(null);
     const amount = await fetch(
       `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${address}`,
-      { headers: { project_id: "3Ojodngr06BReeSN9lhsow0hypKf8gu5" } }
+      { headers: { project_id: secrets.PROJECT_ID } }
     )
       .then((res) => res.json())
       .then((res) => res.amount);

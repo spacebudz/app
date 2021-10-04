@@ -419,9 +419,8 @@ class SpaceBudzMarket {
         Loader.Cardano.PlutusList.from_bytes(datums.to_bytes())
       );
       txBuilder.set_plutus_scripts(CONTRACT());
-      const collateral = (await window.cardano.getCollateralInputs()).map(
-        (utxo) =>
-          Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
+      const collateral = (await window.cardano.getCollateral()).map((utxo) =>
+        Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
       );
       this.setCollateral(txBuilder, collateral);
 
@@ -515,6 +514,10 @@ class SpaceBudzMarket {
       ),
       aux_data
     );
+    const size = tx.to_bytes().length * 2;
+    console.log(size);
+    if (size > this.protocolParameters.maxTxSize)
+      throw new Error("MAX_SIZE_REACHED");
     let txVkeyWitnesses = await window.cardano.signTx(
       toHex(tx.to_bytes()),
       true
@@ -528,6 +531,9 @@ class SpaceBudzMarket {
       transactionWitnessSet,
       tx.auxiliary_data()
     );
+
+    console.log("Full Tx Size", signedTx.to_bytes().length);
+
     const txHash = await window.cardano.submitTx(toHex(signedTx.to_bytes()));
     return txHash;
   }

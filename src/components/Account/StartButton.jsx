@@ -39,6 +39,21 @@ const StartButton = (props) => {
       });
   }, [connected]);
 
+  const checkConnection = async () => {
+    if (window.cardano && (await window.cardano.isEnabled())) {
+      const session = localStorage.getItem("session");
+      if (Date.now() - parseInt(session) < 6000000) {
+        //1h
+        const address = await addressToBech32();
+        setConnected(address);
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    checkConnection();
+  }, []);
+
   return connected ? (
     <div
       className={style.accountButton}
@@ -73,19 +88,13 @@ const StartButton = (props) => {
         if (await window.cardano.enable()) {
           const address = await addressToBech32();
           setConnected(address);
+          localStorage.setItem("session", Date.now().toString());
         }
 
         setIsLoading(false);
       }}
     >
-      <Image
-        src={Background}
-        width="full"
-        height="full"
-        position="absolute"
-        right={-2}
-        top={-1}
-      />
+      <Image src={Background} width="full" height="full" position="absolute" />
       <Box zIndex="1">Connect</Box>
     </Button>
   );
