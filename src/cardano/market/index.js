@@ -223,8 +223,8 @@ class SpaceBudzMarket {
     // );
     // const txHash = txs[0].tx_hash;
     // const txUtxos = await this.blockfrostRequest(`/txs/${txHash}/utxos`);
-    const addressUtxos = await this.blockfrostRequest(
-      `/addresses/${CONTRACT_ADDRESS().to_bech32()}/utxos`
+    const utxos = await this.blockfrostRequest(
+      `/addresses/${CONTRACT_ADDRESS().to_bech32()}/utxos/${asset}`
     );
     // try {
     //   utxo = txUtxos.outputs.find(
@@ -235,9 +235,9 @@ class SpaceBudzMarket {
     // } catch (e) {
     //   throw new Error("Utxo not found");
     // }
-    const utxos = addressUtxos.filter((output) =>
-      output.amount.find((amount) => amount.unit == asset)
-    );
+    // const utxos = addressUtxos.filter((output) =>
+    //   output.amount.find((amount) => amount.unit == asset)
+    // );
 
     return await Promise.all(
       utxos.map(async (utxo) => {
