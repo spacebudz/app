@@ -47,12 +47,7 @@ import           Codec.Serialise hiding (encode)
 import qualified Plutus.V1.Ledger.Api as Plutus
 
 -- Contract
-
 -- Total Fee: 2.5%
-
--- Owner1 Fee: 1.95%
--- Owner2 Fee: 0.5%
--- Hosting Provider Fee: 0.05%
 
 data ContractInfo = ContractInfo
     { policySpaceBudz :: !CurrencySymbol
@@ -92,7 +87,7 @@ data TradeDetails = TradeDetails
 
 instance Eq TradeDetails where
     {-# INLINABLE (==) #-}
-    -- tradeOwner is not compared, since tradeOwner changes with each trade/higher bid
+    -- tradeOwner is not compared, since tradeOwner can changes with each trade/higher bid
     a == b = (budId  a == budId  b) &&
              (requestedAmount a == requestedAmount b)
 
@@ -122,7 +117,7 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
             Bid details == scriptOutputDatum && -- expected correct script output datum
             Ada.fromValue (scriptInputValue) + Ada.lovelaceOf (bidStep contractInfo) <= Ada.fromValue scriptOutputValue && -- expected correct bid amount
             containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
-            Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expected previous bidder refund
+            case (txInfo `txSignedBy` tradeOwner details) of True -> True; False -> Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expected previous bidder refund
         Sell -> 
             scriptOutputDatum == StartBid && -- expected correct script output datum
             containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
@@ -456,7 +451,7 @@ bid = endpoint @"bid" @TradeParams $ \(TradeParams{..}) -> do
                 let utxoMap = Map.fromList [(oref,o)]
                     tx = collectFromScript utxoMap BidHigher <> 
                         mustPayToTheScript bidDatum (Ada.lovelaceValueOf (amount) <> Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1) <>
-                        mustPayToPubKey (tradeOwner details) (Ada.toValue (Ada.fromValue value))
+                        case (tradeOwner details == pkh) of True -> mempty; False -> mustPayToPubKey (tradeOwner details) (Ada.toValue (Ada.fromValue value))
                 void $ submitTxConstraintsSpending tradeInstance utxos tx
         _ -> traceError "expected only one output"
 

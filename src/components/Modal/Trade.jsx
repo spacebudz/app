@@ -103,11 +103,16 @@ const TradeModal = React.forwardRef(
               />
               <Input
                 value={ada}
-                onChange={(e) => setAda(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (!v.match("[0-9]+([.,][0-9]+)?") && v) return;
+                  console.log(v);
+                  console.log(toUnit(v));
+                  setAda(v);
+                }}
                 rounded="3xl"
                 focusBorderColor="purple.500"
                 placeholder={type == "BID" ? "Bid amount" : "Offer amount"}
-                type="number"
               />
             </InputGroup>
             <Box h={3} />

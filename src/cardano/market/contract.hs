@@ -47,12 +47,7 @@ import           Codec.Serialise hiding (encode)
 import qualified Plutus.V1.Ledger.Api as Plutus
 
 -- Contract
-
 -- Total Fee: 2.5%
-
--- Owner1 Fee: 1.95%
--- Owner2 Fee: 0.5%
--- Hosting Provider Fee: 0.05%
 
 data ContractInfo = ContractInfo
     { policySpaceBudz :: !CurrencySymbol
@@ -71,14 +66,14 @@ toFraction p = toInteger $ floor (1 / (p / 1000))
 
 
 contractInfo = ContractInfo 
-    { policySpaceBudz = "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a"
-    , policyBid = "11e6cd0f89920242317a6cba919d7637008d119ff46a8c29de6f014a"
+    { policySpaceBudz = "66"
+    , policyBid = "66"
     , prefixSpaceBud = "SpaceBud"
     , prefixSpaceBudBid = "SpaceBudBid"
-    , owner1 = ("2bd88ae9736d59bbd5714f0ded14648f8cffc9f5e8e85cea3bfb033f", 555, 500, 400) -- 1.8% 2% 2.5%
-    , owner2 = ("9fb0a5cbecf77d8a8688749337f2f12538b7d3f90b8891c242d22867", 2000) -- 0.5%
+    , owner1 = (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 3), 555, 500, 400) -- 1.8% 2% 2.5%
+    , owner2 = (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 4), 2000) -- 0.5%
     , extraRecipient = 5000 -- 0.2%
-    , minPrice = 50000000
+    , minPrice = 60000000
     , bidStep = 10000
     }
 
@@ -92,7 +87,7 @@ data TradeDetails = TradeDetails
 
 instance Eq TradeDetails where
     {-# INLINABLE (==) #-}
-    -- tradeOwner is not compared, since tradeOwner changes with each trade/higher bid
+    -- tradeOwner is not compared, since tradeOwner can changes with each trade/higher bid
     a == b = (budId  a == budId  b) &&
              (requestedAmount a == requestedAmount b)
 
@@ -122,7 +117,7 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
             Bid details == scriptOutputDatum && -- expected correct script output datum
             Ada.fromValue (scriptInputValue) + Ada.lovelaceOf (bidStep contractInfo) <= Ada.fromValue scriptOutputValue && -- expected correct bid amount
             containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
-            Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expected previous bidder refund
+            case (txInfo `txSignedBy` tradeOwner details) of True -> True; False -> Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expected previous bidder refund
         Sell -> 
             scriptOutputDatum == StartBid && -- expected correct script output datum
             containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
@@ -131,8 +126,7 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
         Cancel -> 
             txInfo `txSignedBy` tradeOwner details && -- expected correct owner
             scriptOutputDatum == StartBid && -- expected correct script output datum
-            containsPolicyBidNFT scriptOutputValue (budId details) && -- expected correct bidPolicy NFT
-            Ada.fromValue (valuePaidTo txInfo (tradeOwner details)) >= Ada.fromValue scriptInputValue -- expect correct refund
+            containsPolicyBidNFT scriptOutputValue (budId details) -- expected correct bidPolicy NFT
 
     Offer details -> case tradeAction of
         Buy ->
@@ -140,8 +134,7 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
             requestedAmount details >= minPrice contractInfo && -- expected at least minPrice buy
             correctSplit (requestedAmount details) (tradeOwner details) -- expected ada to be split correctly
         Cancel -> 
-            txInfo `txSignedBy` tradeOwner details && -- expected correct owner
-            containsSpaceBudNFT (valuePaidTo txInfo (tradeOwner details)) (budId details) -- expect correct refund
+            txInfo `txSignedBy` tradeOwner details -- expected correct owner
 
     where
         txInfo :: TxInfo
@@ -195,18 +188,9 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
         containsSpaceBudNFT :: Value -> BuiltinByteString -> Bool
         containsSpaceBudNFT v tn = valueOf v (policySpaceBudz contractInfo) (TokenName ((prefixSpaceBud contractInfo) <> tn)) >= 1
 
-
         scriptInputValue :: Value
-        scriptInputValue =
-            let
-                isScriptInput i = case txOutAddress (txInInfoResolved i) of
-                    Address (ScriptCredential _) _ -> True
-                    _ -> False
-                xs = [i | i <- txInfoInputs txInfo, isScriptInput i]
-            in
-                case xs of
-                    [i] -> txOutValue (txInInfoResolved i)
-            
+        scriptInputValue = case findOwnInput context of
+            Just i -> txOutValue (txInInfoResolved i)
 
         scriptOutputValue :: Value
         scriptOutputDatum :: TradeDatum
@@ -289,6 +273,9 @@ PlutusTx.makeLift ''TradeAction
 
 -- Off-Chain
 
+
+-- helper functions
+
 containsSpaceBudNFT :: Value -> BuiltinByteString -> Bool
 containsSpaceBudNFT v tn = valueOf v (policySpaceBudz contractInfo) (TokenName ((prefixSpaceBud contractInfo) <> tn)) >= 1
 
@@ -306,6 +293,9 @@ policyBidRemaining v tn = convert (P.filter (\(cs',tn',am) -> (policyBid contrac
     where convert [] = mempty
           convert ((cs,tn,am):t) = Value.singleton cs tn am <> convert t
 
+lovelacePercentage :: Integer -> Integer -> Integer
+lovelacePercentage am p = (am * 10) `Haskell.div` p
+
 data TradeParams = TradeParams
     { id :: !BuiltinByteString
     , amount :: !Integer
@@ -318,17 +308,124 @@ type TradeSchema = Endpoint "offer" TradeParams
         .\/ Endpoint "init" ()
         .\/ Endpoint "bid" TradeParams
         .\/ Endpoint "sell" TradeParams
+        .\/ Endpoint "cancelBidAndBuy" TradeParams
+        .\/ Endpoint "cancelOfferAndSell" TradeParams
 
 trade :: AsContractError e => Contract () TradeSchema e ()
-trade = selectList [init, offer, buy, cancelOffer, bid, sell, cancelBid] >> trade
+trade = selectList [init, offer, buy, cancelOffer, bid, sell, cancelBid, cancelBidAndBuy, cancelOfferAndSell] >> trade
 
 endpoints :: AsContractError e => Contract () TradeSchema e ()
 endpoints = trade
 
+-- init API endpoint is only used in the simulation for getting bid NFTs into circulation
 init :: AsContractError e => Promise () TradeSchema e ()
 init = endpoint @"init" @() $ \() -> do
     let tx = mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName "SpaceBudBid0") 1 <> Value.singleton (policyBid contractInfo) (TokenName "SpaceBudBid1") 1 <> Value.singleton (policyBid contractInfo) (TokenName "SpaceBudBid2") 1) 
     void $ submitTxConstraints tradeInstance tx
+
+cancelBidAndBuy :: AsContractError e => Promise () TradeSchema e ()
+cancelBidAndBuy = endpoint @"cancelBidAndBuy" @TradeParams $ \(TradeParams{..}) -> do
+    utxos <- utxoAt tradeAddress
+    pkh <- pubKeyHash <$> Plutus.Contract.ownPubKey
+    let bidUtxo = [ (oref, o, getTradeDatum o, txOutValue $ txOutTxOut o) | (oref, o) <- Map.toList utxos, case getTradeDatum o of (Bid details) -> id == budId details && containsPolicyBidNFT (txOutValue $ txOutTxOut o) id; _ -> False]
+    case bidUtxo of
+        [(bidoref, bido, Bid biddetails, bidvalue)] -> do
+            let offerUtxo = [ (oref, o, getTradeDatum o, txOutValue $ txOutTxOut o) | (oref, o) <- Map.toList utxos, case getTradeDatum o of (Offer details) -> id == budId details && containsSpaceBudNFT (txOutValue $ txOutTxOut o) id; _ -> False]
+            case offerUtxo of
+                [(offeroref, offero, Offer offerdetails, offervalue)] -> do
+                    let (owner1PubKeyHash, owner1Fee1, owner1Fee2, owner1Fee3) = owner1 contractInfo
+                        (owner2PubKeyHash, owner2Fee1) = owner2 contractInfo
+                        lovelaceAmount = requestedAmount offerdetails
+                    if lovelaceAmount > 800000000 then do
+                        let (amount1, amount2, amount3) = (lovelacePercentage lovelaceAmount (owner1Fee1),lovelacePercentage lovelaceAmount (owner2Fee1),lovelacePercentage lovelaceAmount (extraRecipient contractInfo))
+                        let bidUtxoMap = Map.fromList [(bidoref,bido)]
+                        let offerUtxoMap = Map.fromList [(offeroref,offero)]
+                        let tx = collectFromScript bidUtxoMap Cancel <> 
+                                collectFromScript offerUtxoMap Buy <> 
+                                mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                                mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                                mustPayToPubKey (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 3)) (Ada.lovelaceValueOf amount3) <> -- arbitary address
+                                mustPayToPubKey (tradeOwner offerdetails) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2 - amount3)) <>
+                                mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                                mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                        void $ submitTxConstraintsSpending tradeInstance utxos tx
+                    else if lovelaceAmount > 400000000 then do
+                        let (amount1, amount2) = (lovelacePercentage lovelaceAmount (owner1Fee2),lovelacePercentage lovelaceAmount (owner2Fee1))
+                        let bidUtxoMap = Map.fromList [(bidoref,bido)]
+                        let offerUtxoMap = Map.fromList [(offeroref,offero)]
+                        let tx = collectFromScript bidUtxoMap Cancel <> 
+                                collectFromScript offerUtxoMap Buy <> 
+                                mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                                mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                                mustPayToPubKey (tradeOwner offerdetails) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2)) <>
+                                mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                                mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                        void $ submitTxConstraintsSpending tradeInstance utxos tx
+                    else do
+                        let amount1 = lovelacePercentage lovelaceAmount (owner1Fee3)
+                        let bidUtxoMap = Map.fromList [(bidoref,bido)]
+                        let offerUtxoMap = Map.fromList [(offeroref,offero)]
+                        let tx = collectFromScript bidUtxoMap Cancel <> 
+                                collectFromScript offerUtxoMap Buy <> 
+                                mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                                mustPayToPubKey (tradeOwner offerdetails) (Ada.lovelaceValueOf (lovelaceAmount - amount1)) <>
+                                mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                                mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                        void $ submitTxConstraintsSpending tradeInstance utxos tx
+                _ -> traceError "expected only one output"
+        _ -> traceError "expected only one output"
+
+cancelOfferAndSell :: AsContractError e => Promise () TradeSchema e ()
+cancelOfferAndSell = endpoint @"cancelOfferAndSell" @TradeParams $ \(TradeParams{..}) -> do
+    utxos <- utxoAt tradeAddress
+    pkh <- pubKeyHash <$> Plutus.Contract.ownPubKey
+    let offerUtxo = [ (oref, o, getTradeDatum o, txOutValue $ txOutTxOut o) | (oref, o) <- Map.toList utxos, case getTradeDatum o of (Offer details) -> id == budId details && containsSpaceBudNFT (txOutValue $ txOutTxOut o) id; _ -> False]
+    case offerUtxo of
+        [(offeroref, offero, Offer offerdetails, offervalue)] -> do
+            let bidUtxo = [ (oref, o, getTradeDatum o, txOutValue $ txOutTxOut o) | (oref, o) <- Map.toList utxos, case getTradeDatum o of (Bid details) -> id == budId details && containsPolicyBidNFT (txOutValue $ txOutTxOut o) id; _ -> False]
+            case bidUtxo of
+                [(bidoref, bido, Bid biddetails, bidvalue)] -> do
+                    let (owner1PubKeyHash, owner1Fee1, owner1Fee2, owner1Fee3) = owner1 contractInfo
+                        (owner2PubKeyHash, owner2Fee1) = owner2 contractInfo
+                        lovelaceAmount = getLovelace $ Ada.fromValue bidvalue
+                    if lovelaceAmount > 800000000 then do
+                        let (amount1, amount2, amount3) = (lovelacePercentage lovelaceAmount (owner1Fee1),lovelacePercentage lovelaceAmount (owner2Fee1),lovelacePercentage lovelaceAmount (extraRecipient contractInfo))
+                            bidUtxoMap = Map.fromList [(bidoref,bido)]
+                            offerUtxoMap = Map.fromList [(offeroref,offero)]
+                            tx = collectFromScript bidUtxoMap Sell <> 
+                                collectFromScript offerUtxoMap Cancel <>
+                                mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                                mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                                mustPayToPubKey (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 3)) (Ada.lovelaceValueOf amount3) <> -- arbitary address
+                                mustPayToPubKey (pkh) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2 - amount3)) <>
+                                mustPayToPubKey (tradeOwner biddetails) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                                mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                        void $ submitTxConstraintsSpending tradeInstance utxos tx
+                    else if lovelaceAmount > 400000000 then do
+                        let (amount1, amount2) = (lovelacePercentage lovelaceAmount (owner1Fee2),lovelacePercentage lovelaceAmount (owner2Fee1))
+                            bidUtxoMap = Map.fromList [(bidoref,bido)]
+                            offerUtxoMap = Map.fromList [(offeroref,offero)]
+                            tx = collectFromScript bidUtxoMap Sell <> 
+                                collectFromScript offerUtxoMap Cancel <>
+                                mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                                mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                                mustPayToPubKey (pkh) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2)) <>
+                                mustPayToPubKey (tradeOwner biddetails) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                                mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                        void $ submitTxConstraintsSpending tradeInstance utxos tx
+                    else do
+                        let amount1 = lovelacePercentage lovelaceAmount (owner1Fee3)
+                            bidUtxoMap = Map.fromList [(bidoref,bido)]
+                            offerUtxoMap = Map.fromList [(offeroref,offero)]
+                            tx = collectFromScript bidUtxoMap Sell <> 
+                                collectFromScript offerUtxoMap Cancel <>
+                                mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                                mustPayToPubKey (pkh) (Ada.lovelaceValueOf (lovelaceAmount - amount1)) <>
+                                mustPayToPubKey (tradeOwner biddetails) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                                mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                        void $ submitTxConstraintsSpending tradeInstance utxos tx
+                _ -> traceError "expected only one output"
+        _ -> traceError "expected only one output"
 
 bid :: AsContractError e => Promise () TradeSchema e ()
 bid = endpoint @"bid" @TradeParams $ \(TradeParams{..}) -> do
@@ -354,7 +451,7 @@ bid = endpoint @"bid" @TradeParams $ \(TradeParams{..}) -> do
                 let utxoMap = Map.fromList [(oref,o)]
                     tx = collectFromScript utxoMap BidHigher <> 
                         mustPayToTheScript bidDatum (Ada.lovelaceValueOf (amount) <> Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1) <>
-                        mustPayToPubKey (tradeOwner details) (Ada.toValue (Ada.fromValue value))
+                        case (tradeOwner details == pkh) of True -> mempty; False -> mustPayToPubKey (tradeOwner details) (Ada.toValue (Ada.fromValue value))
                 void $ submitTxConstraintsSpending tradeInstance utxos tx
         _ -> traceError "expected only one output"
 
@@ -367,24 +464,48 @@ sell = endpoint @"sell" @TradeParams $ \(TradeParams{..}) -> do
     case bidUtxo of
         [(oref, o, Bid details, value)] -> do
             let (owner1PubKeyHash, owner1Fee1, owner1Fee2, owner1Fee3) = owner1 contractInfo
-            let lovelace = getLovelace $ Ada.fromValue value
-            let (traderAmount, ownerAmount) = let fee = (lovelace * 10) `Haskell.div` owner1Fee3 in (lovelace - fee, fee)
-            let utxoMap = Map.fromList [(oref,o)]
-            let tx = collectFromScript utxoMap Sell <> 
-                    mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf ownerAmount) <>
-                    mustPayToPubKey (pkh) (Ada.lovelaceValueOf traderAmount) <>
-                    mustPayToPubKey (tradeOwner details) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
-                    mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
-            void $ submitTxConstraintsSpending tradeInstance utxos tx
+                (owner2PubKeyHash, owner2Fee1) = owner2 contractInfo
+                lovelaceAmount = getLovelace $ Ada.fromValue value
+            if lovelaceAmount > 800000000 then do
+                let (amount1, amount2, amount3) = (lovelacePercentage lovelaceAmount (owner1Fee1),lovelacePercentage lovelaceAmount (owner2Fee1),lovelacePercentage lovelaceAmount (extraRecipient contractInfo))
+                    utxoMap = Map.fromList [(oref,o)]
+                    tx = collectFromScript utxoMap Sell <> 
+                        mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                        mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                        mustPayToPubKey (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 3)) (Ada.lovelaceValueOf amount3) <> -- arbitary address
+                        mustPayToPubKey (pkh) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2 - amount3)) <>
+                        mustPayToPubKey (tradeOwner details) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                        mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                void $ submitTxConstraintsSpending tradeInstance utxos tx
+            else if lovelaceAmount > 400000000 then do
+                let (amount1, amount2) = (lovelacePercentage lovelaceAmount (owner1Fee2),lovelacePercentage lovelaceAmount (owner2Fee1))
+                    utxoMap = Map.fromList [(oref,o)]
+                    tx = collectFromScript utxoMap Sell <> 
+                        mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                        mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                        mustPayToPubKey (pkh) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2)) <>
+                        mustPayToPubKey (tradeOwner details) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                        mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                void $ submitTxConstraintsSpending tradeInstance utxos tx
+            else do
+                let amount1 = lovelacePercentage lovelaceAmount (owner1Fee3)
+                    utxoMap = Map.fromList [(oref,o)]
+                    tx = collectFromScript utxoMap Sell <> 
+                        mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                        mustPayToPubKey (pkh) (Ada.lovelaceValueOf (lovelaceAmount - amount1)) <>
+                        mustPayToPubKey (tradeOwner details) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1) <>
+                        mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName ("SpaceBudBid" <> id)) 1)
+                void $ submitTxConstraintsSpending tradeInstance utxos tx
         _ -> traceError "expected only one output"
 
 
 offer :: AsContractError e => Promise () TradeSchema e ()
 offer = endpoint @"offer" @TradeParams $ \(TradeParams{..}) -> do
-    pkh <- pubKeyHash <$> Plutus.Contract.ownPubKey
-    let tradeDatum = Offer TradeDetails {budId = id, requestedAmount = amount, tradeOwner = pkh}
-        tx = mustPayToTheScript tradeDatum (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1)
-    void $ submitTxConstraints tradeInstance tx
+    if amount < minPrice contractInfo then traceError "amount too small" else do
+        pkh <- pubKeyHash <$> Plutus.Contract.ownPubKey
+        let tradeDatum = Offer TradeDetails {budId = id, requestedAmount = amount, tradeOwner = pkh}
+            tx = mustPayToTheScript tradeDatum (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1)
+        void $ submitTxConstraints tradeInstance tx
 
 
 buy :: AsContractError e => Promise () TradeSchema e ()
@@ -395,13 +516,35 @@ buy = endpoint @"buy" @TradeParams $ \(TradeParams{..}) -> do
     case offerUtxo of
         [(oref, o, Offer details, value)] -> do
             let (owner1PubKeyHash, owner1Fee1, owner1Fee2, owner1Fee3) = owner1 contractInfo
-            let (traderAmount, ownerAmount) = let fee = (requestedAmount details * 10) `Haskell.div` owner1Fee3 in (requestedAmount details - fee, fee)
-            let utxoMap = Map.fromList [(oref,o)]
-            let tx = collectFromScript utxoMap Buy <> 
-                    mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf ownerAmount) <>
-                    mustPayToPubKey (tradeOwner details) (Ada.lovelaceValueOf traderAmount) <>
-                    mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1)
-            void $ submitTxConstraintsSpending tradeInstance utxos tx
+                (owner2PubKeyHash, owner2Fee1) = owner2 contractInfo
+                lovelaceAmount = requestedAmount details
+            if lovelaceAmount > 800000000 then do
+                let (amount1, amount2, amount3) = (lovelacePercentage lovelaceAmount (owner1Fee1),lovelacePercentage lovelaceAmount (owner2Fee1),lovelacePercentage lovelaceAmount (extraRecipient contractInfo))
+                let utxoMap = Map.fromList [(oref,o)]
+                let tx = collectFromScript utxoMap Buy <> 
+                        mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                        mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                        mustPayToPubKey (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 3)) (Ada.lovelaceValueOf amount3) <> -- arbitary address
+                        mustPayToPubKey (tradeOwner details) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2 - amount3)) <>
+                        mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1)
+                void $ submitTxConstraintsSpending tradeInstance utxos tx
+            else if lovelaceAmount > 400000000 then do
+                let (amount1, amount2) = (lovelacePercentage lovelaceAmount (owner1Fee2),lovelacePercentage lovelaceAmount (owner2Fee1))
+                let utxoMap = Map.fromList [(oref,o)]
+                let tx = collectFromScript utxoMap Buy <> 
+                        mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                        mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                        mustPayToPubKey (tradeOwner details) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2)) <>
+                        mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1)
+                void $ submitTxConstraintsSpending tradeInstance utxos tx
+            else do
+                let amount1 = lovelacePercentage lovelaceAmount (owner1Fee3)
+                let utxoMap = Map.fromList [(oref,o)]
+                let tx = collectFromScript utxoMap Buy <> 
+                        mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                        mustPayToPubKey (tradeOwner details) (Ada.lovelaceValueOf (lovelaceAmount - amount1)) <>
+                        mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud" <> id)) 1)
+                void $ submitTxConstraintsSpending tradeInstance utxos tx
         _ -> traceError "expected only one output"
 
 
@@ -444,22 +587,17 @@ getTradeDatum o = case txOutDatum (txOutTxOut o) of
 
 
 
-
-
 mkSchemaDefinitions ''TradeSchema
 spacebud0 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud0" :| [])
 spacebud1 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud1" :| [])
 spacebud2 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud2" :| [])
-spacebud3 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud3" :| [])
 
 spacebudBid0 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBudBid0" :| [])
 spacebudBid1 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBudBid1" :| [])
 spacebudBid2 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBudBid2" :| [])
-spacebudBid3 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBudBid3" :| [])
 
 
-
-mkKnownCurrencies ['spacebud0,'spacebud1, 'spacebud2, 'spacebud3, 'spacebudBid0,'spacebudBid1,'spacebudBid2,'spacebudBid3]
+mkKnownCurrencies ['spacebud0,'spacebud1, 'spacebud2, 'spacebudBid0,'spacebudBid1,'spacebudBid2]
 
 -- Serialization
 

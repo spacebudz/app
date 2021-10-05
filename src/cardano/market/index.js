@@ -30,7 +30,7 @@ const CONTRACT = () => {
 
 const CONTRACT_ADDRESS = () =>
   Loader.Cardano.Address.from_bech32(
-    "addr_test1wp36jrmwzxe6ur59czyrapkjrauhwj0day5ptem86l6kt2qkeerxl"
+    "addr_test1wp9uznrplv74jj9lh9fge5qswvdjc4yqfls9k6c2478catgjlxf8f"
   );
 
 // Datums
@@ -395,7 +395,12 @@ class SpaceBudzMarket {
     action,
   }) {
     const transactionWitnessSet = Loader.Cardano.TransactionWitnessSet.new();
-    let { input, change } = CoinSelection.randomImprove(utxos, outputs, 10);
+    let { input, change } = CoinSelection.randomImprove(
+      utxos,
+      outputs,
+      8,
+      scriptUtxo ? [scriptUtxo] : []
+    );
     input.forEach((utxo) => {
       txBuilder.add_input(
         utxo.output().address(),
@@ -550,24 +555,38 @@ class SpaceBudzMarket {
         lovelacePercentage(lovelaceAmount, this.contractInfo.owner2.fee),
         lovelacePercentage(lovelaceAmount, this.contractInfo.extraFee),
       ];
-      outputs.add(
-        this.createOutput(
-          this.contractInfo.owner1.address,
-          Loader.Cardano.Value.new(amount1)
-        )
-      );
+      if (
+        this.extraFeeRecipient.to_bech32() ==
+        this.contractInfo.owner1.address.to_bech32() // if owner is same as fee recipient, no reason to split up utxo extra
+      ) {
+        outputs.add(
+          this.createOutput(
+            this.contractInfo.owner1.address,
+            Loader.Cardano.Value.new(amount1.checked_add(amount3))
+          )
+        );
+      } else {
+        outputs.add(
+          this.createOutput(
+            this.contractInfo.owner1.address,
+            Loader.Cardano.Value.new(amount1)
+          )
+        );
+        outputs.add(
+          this.createOutput(
+            this.extraFeeRecipient,
+            Loader.Cardano.Value.new(amount3)
+          )
+        );
+      }
+
       outputs.add(
         this.createOutput(
           this.contractInfo.owner2.address,
           Loader.Cardano.Value.new(amount2)
         )
       );
-      outputs.add(
-        this.createOutput(
-          this.extraFeeRecipient,
-          Loader.Cardano.Value.new(amount3)
-        )
-      );
+
       outputs.add(
         this.createOutput(
           address,
@@ -659,8 +678,8 @@ class SpaceBudzMarket {
 
     this.contractInfo = {
       policySpaceBudz:
-        "7bf38e0a0f91e855c0b6a8c45f8bff19b9577d5ec26f696a8bde4872",
-      policyBid: "7bf38e0a0f91e855c0b6a8c45f8bff19b9577d5ec26f696a8bde4872",
+        "fe263c946464aa892b39e2bf802d71f081a6ff6cac269b63876bfbd0",
+      policyBid: "fe263c946464aa892b39e2bf802d71f081a6ff6cac269b63876bfbd0",
       prefixSpaceBud: "SpaceBud",
       prefixSpaceBudBid: "SpaceBudBid",
       owner1: {
@@ -752,21 +771,15 @@ class SpaceBudzMarket {
     const { txBuilder, datums, metadata, outputs } = await this.initTx();
     const budId = bidUtxo.budId;
 
-    //TODO change back to BaseAddress
     const walletAddress = Loader.Cardano.BaseAddress.from_address(
       Loader.Cardano.Address.from_bytes(
         fromHex((await window.cardano.getUsedAddresses())[0])
       )
     );
-    // const walletAddress = Loader.Cardano.EnterpriseAddress.from_address(
-    //   Loader.Cardano.Address.from_bytes(
-    //     fromHex((await window.cardano.getUsedAddresses())[0])
-    //   )
-    // );
+
     const utxos = (await window.cardano.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
-    utxos.push(bidUtxo.utxo); //include script utxo in general utxo set
     datums.add(bidUtxo.datum);
 
     const bidDatum = BID({
@@ -868,13 +881,24 @@ class SpaceBudzMarket {
         )
       );
       datums.add(bidDatum);
-      outputs.add(
-        this.createOutput(
-          bidUtxo.tradeOwnerAddress,
-          Loader.Cardano.Value.new(value.coin())
-        )
-      );
+      if (
+        bidUtxo.tradeOwnerAddress.to_bech32() !=
+        walletAddress.to_address().to_bech32()
+      )
+        // check if bidder is owner of utxo. if so, not necessary to pay back to you own address
+        outputs.add(
+          this.createOutput(
+            bidUtxo.tradeOwnerAddress,
+            Loader.Cardano.Value.new(value.coin())
+          )
+        );
+      else {
+        const requiredSigners = Loader.Cardano.Ed25519KeyHashes.new();
+        requiredSigners.add(walletAddress.payment_cred().to_keyhash());
+        txBuilder.set_required_signers(requiredSigners);
+      }
     }
+
     const txHash = await this.finalizeTx({
       txBuilder,
       changeAddress: walletAddress,
@@ -897,21 +921,15 @@ class SpaceBudzMarket {
     const { txBuilder, datums, metadata, outputs } = await this.initTx();
     const budId = bidUtxo.budId;
 
-    //TODO change back to BaseAddress
     const walletAddress = Loader.Cardano.BaseAddress.from_address(
       Loader.Cardano.Address.from_bytes(
         fromHex((await window.cardano.getUsedAddresses())[0])
       )
     );
-    // const walletAddress = Loader.Cardano.EnterpriseAddress.from_address(
-    //   Loader.Cardano.Address.from_bytes(
-    //     fromHex((await window.cardano.getUsedAddresses())[0])
-    //   )
-    // );
+
     const utxos = (await window.cardano.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
-    utxos.push(bidUtxo.utxo); //include script utxo in general utxo set
     datums.add(bidUtxo.datum);
 
     const datumType = bidUtxo.datum.as_constr_plutus_data().tag().as_i32();
@@ -983,17 +1001,12 @@ class SpaceBudzMarket {
       ) == -1
     )
       throw new Error("Amount too small");
-    //TODO change back to BaseAddress
     const walletAddress = Loader.Cardano.BaseAddress.from_address(
       Loader.Cardano.Address.from_bytes(
         fromHex((await window.cardano.getUsedAddresses())[0])
       )
     );
-    // const walletAddress = Loader.Cardano.EnterpriseAddress.from_address(
-    //   Loader.Cardano.Address.from_bytes(
-    //     fromHex((await window.cardano.getUsedAddresses())[0])
-    //   )
-    // );
+
     const utxos = (await window.cardano.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
@@ -1040,21 +1053,15 @@ class SpaceBudzMarket {
    */
   async buy(offerUtxo) {
     const { txBuilder, datums, outputs } = await this.initTx();
-    //TODO change back to BaseAddress
     const walletAddress = Loader.Cardano.BaseAddress.from_address(
       Loader.Cardano.Address.from_bytes(
         fromHex((await window.cardano.getUsedAddresses())[0])
       )
     );
-    // const walletAddress = Loader.Cardano.EnterpriseAddress.from_address(
-    //   Loader.Cardano.Address.from_bytes(
-    //     fromHex((await window.cardano.getUsedAddresses())[0])
-    //   )
-    // );
+
     const utxos = (await window.cardano.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
-    utxos.push(offerUtxo.utxo); //include script utxo in general utxo set
     datums.add(offerUtxo.datum);
 
     const datumType = offerUtxo.datum.as_constr_plutus_data().tag().as_i32();
@@ -1090,28 +1097,21 @@ class SpaceBudzMarket {
   async cancelOffer(offerUtxo) {
     const { txBuilder, datums, outputs } = await this.initTx();
 
-    //TODO change back to BaseAddress
     const walletAddress = Loader.Cardano.BaseAddress.from_address(
       Loader.Cardano.Address.from_bytes(
         fromHex((await window.cardano.getUsedAddresses())[0])
       )
     );
-    // const walletAddress = Loader.Cardano.EnterpriseAddress.from_address(
-    //   Loader.Cardano.Address.from_bytes(
-    //     fromHex((await window.cardano.getUsedAddresses())[0])
-    //   )
-    // );
+
     const utxos = (await window.cardano.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
-    utxos.push(offerUtxo.utxo); //include script utxo in general utxo set
     datums.add(offerUtxo.datum);
 
     const datumType = offerUtxo.datum.as_constr_plutus_data().tag().as_i32();
     const value = offerUtxo.utxo.output().amount();
     if (datumType !== DATUM_TYPE.Offer)
       throw new Error("Datum needs to be Offer");
-    outputs.add(this.createOutput(offerUtxo.tradeOwnerAddress, value));
     const requiredSigners = Loader.Cardano.Ed25519KeyHashes.new();
     requiredSigners.add(getTradeDetails(offerUtxo.datum).tradeOwner);
     txBuilder.set_required_signers(requiredSigners);
@@ -1135,21 +1135,15 @@ class SpaceBudzMarket {
   async cancelBid(bidUtxo) {
     const { txBuilder, datums, metadata, outputs } = await this.initTx();
     const budId = bidUtxo.budId;
-    //TODO change back to BaseAddress
     const walletAddress = Loader.Cardano.BaseAddress.from_address(
       Loader.Cardano.Address.from_bytes(
         fromHex((await window.cardano.getUsedAddresses())[0])
       )
     );
-    // const walletAddress = Loader.Cardano.EnterpriseAddress.from_address(
-    //   Loader.Cardano.Address.from_bytes(
-    //     fromHex((await window.cardano.getUsedAddresses())[0])
-    //   )
-    // );
+
     const utxos = (await window.cardano.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
-    utxos.push(bidUtxo.utxo); //include script utxo in general utxo set
     datums.add(bidUtxo.datum);
 
     const datumType = bidUtxo.datum.as_constr_plutus_data().tag().as_i32();
@@ -1174,12 +1168,6 @@ class SpaceBudzMarket {
       )
     );
     datums.add(START_BID());
-    outputs.add(
-      this.createOutput(
-        bidUtxo.tradeOwnerAddress,
-        Loader.Cardano.Value.new(value.coin())
-      )
-    );
     const requiredSigners = Loader.Cardano.Ed25519KeyHashes.new();
     requiredSigners.add(getTradeDetails(bidUtxo.datum).tradeOwner);
     txBuilder.set_required_signers(requiredSigners);
