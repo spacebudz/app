@@ -81,7 +81,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     await market.current.awaitConfirmation(txHash);
     toast.closeAll();
     SuccessTransactionToast(toast, txHash);
-    await new Promise((res, rej) => setTimeout(() => res(), 800));
+    await new Promise((res, rej) => setTimeout(() => res(), 1000));
     loadSpaceBudData();
   };
 
