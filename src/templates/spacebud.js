@@ -112,7 +112,6 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       .then((res) => res.cardano["usd"]);
     const bidUtxo = await market.current.getBid(spacebud.id);
     let offerUtxo = await market.current.getOffer(spacebud.id);
-    // offerUtxo = [offerUtxo, { ...offerUtxo, lovelace: "40000000" }];
     // check if twin
     if (Array.isArray(offerUtxo)) {
       if (
