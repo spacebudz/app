@@ -508,7 +508,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                         onClick={() => {
                           if (!connected) return;
                           tradeRef.current.openModal({
-                            minPrice: "60000000",
+                            minPrice: "70000000",
                             type: "OFFER",
                           });
                         }}
@@ -618,7 +618,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                                     window.BigInt(details.bid.lovelace) +
                                       window.BigInt("10000")
                                   ).toString()
-                                : "60000000",
+                                : "70000000",
                               type: "BID",
                             });
                           }}

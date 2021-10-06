@@ -548,10 +548,10 @@ class SpaceBudzMarket {
    */
   splitAmount(lovelaceAmount, address, outputs) {
     if (
-      lovelaceAmount.compare(Loader.Cardano.BigNum.from_str("800000000")) == 1
+      lovelaceAmount.compare(Loader.Cardano.BigNum.from_str("400000000")) == 1
     ) {
       const [amount1, amount2, amount3] = [
-        lovelacePercentage(lovelaceAmount, this.contractInfo.owner1.fee1),
+        lovelacePercentage(lovelaceAmount, this.contractInfo.owner1.fee2),
         lovelacePercentage(lovelaceAmount, this.contractInfo.owner2.fee),
         lovelacePercentage(lovelaceAmount, this.contractInfo.extraFee),
       ];
@@ -598,37 +598,10 @@ class SpaceBudzMarket {
           )
         )
       );
-    } else if (
-      lovelaceAmount.compare(Loader.Cardano.BigNum.from_str("400000000")) == 1
-    ) {
-      const [amount1, amount2] = [
-        lovelacePercentage(lovelaceAmount, this.contractInfo.owner1.fee2),
-        lovelacePercentage(lovelaceAmount, this.contractInfo.owner2.fee),
-      ];
-      outputs.add(
-        this.createOutput(
-          this.contractInfo.owner1.address,
-          Loader.Cardano.Value.new(amount1)
-        )
-      );
-      outputs.add(
-        this.createOutput(
-          this.contractInfo.owner2.address,
-          Loader.Cardano.Value.new(amount2)
-        )
-      );
-      outputs.add(
-        this.createOutput(
-          address,
-          Loader.Cardano.Value.new(
-            lovelaceAmount.checked_sub(amount1).checked_sub(amount2)
-          )
-        )
-      );
     } else {
       const amount1 = lovelacePercentage(
         lovelaceAmount,
-        this.contractInfo.owner1.fee3
+        this.contractInfo.owner1.fee1
       );
       outputs.add(
         this.createOutput(
@@ -686,18 +659,17 @@ class SpaceBudzMarket {
         address: Loader.Cardano.Address.from_bech32(
           "addr_test1qq4a3zhfwdk4nw74w98smmg5vj8cel7f7h5wsh8280asx0m5m8rexkuvsx8csg0xjq06dsa7f4yvdphq85yhnm9t7ghsul68rf"
         ),
-        fee1: Loader.Cardano.BigNum.from_str("555"), // 1.8%
-        fee2: Loader.Cardano.BigNum.from_str("500"), // 2%
-        fee3: Loader.Cardano.BigNum.from_str("400"), // 2.5%
+        fee1: Loader.Cardano.BigNum.from_str("416"), // 2.4%
+        fee2: Loader.Cardano.BigNum.from_str("625"), // 1.6%
       },
       owner2: {
         address: Loader.Cardano.Address.from_bech32(
           "addr_test1qz0mpfwtanmhmz5x3p6fxdlj7yjn3d7nly9c3ywzgtfzsecag8n36pyz02k6xvn89tzs72lx0wjqxej9tzdgvxuw99nsq72v7n"
         ),
-        fee: Loader.Cardano.BigNum.from_str("2000"), // 0.5%
+        fee: Loader.Cardano.BigNum.from_str("2500"), // 0.4%
       },
-      extraFee: Loader.Cardano.BigNum.from_str("5000"), // 0.2%
-      minPrice: Loader.Cardano.BigNum.from_str("60000000"),
+      extraFee: Loader.Cardano.BigNum.from_str("2500"), // 0.4%
+      minPrice: Loader.Cardano.BigNum.from_str("70000000"),
       bidStep: Loader.Cardano.BigNum.from_str("10000"),
     };
     this.extraFeeRecipient = Loader.Cardano.Address.from_bech32(
