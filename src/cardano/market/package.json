@@ -1,13 +1,13 @@
 {
   "name": "spacebudz-marketplace",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
+  "description": "SpaceBudz-Market",
+  "author": "Alessandro",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "node-fetch": "^3.0.0"
