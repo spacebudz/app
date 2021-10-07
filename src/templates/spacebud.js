@@ -75,9 +75,21 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     loadSpaceBudData();
   }, [connected]);
 
-  const checkTransaction = async (txHash) => {
+  const checkTransaction = async (txHash, { type, amount } = {}) => {
     if (!txHash) return;
     PendingTransactionToast(toast);
+    if (type) {
+      fetch("http://api.spacebudzbot.com:5000/test", {
+        method: "POST",
+        headers: {
+          Authentication: "Bearer " + secrets.TWITTER_BOT_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: spacebud.id.toString(), type, ada: amount }),
+      })
+        .then(console.log)
+        .catch(console.log);
+    }
     await market.current.awaitConfirmation(txHash);
     toast.closeAll();
     SuccessTransactionToast(toast, txHash);
@@ -453,7 +465,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                             ...l,
                             sell: false,
                           }));
-                          checkTransaction(txHash);
+                          checkTransaction(txHash, {
+                            type: "sold",
+                            amount: details.bid.lovelace,
+                          });
                         }}
                       >
                         Sell
@@ -586,7 +601,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                           ...l,
                           buy: false,
                         }));
-                        checkTransaction(txHash);
+                        checkTransaction(txHash, {
+                          type: "bought",
+                          amount: details.offer.lovelace,
+                        });
                       }}
                       rounded="3xl"
                       size="md"

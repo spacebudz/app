@@ -1,39 +1,32 @@
 <p align="center">
   <a href="https://spacebudz.io">
-    <img alt="Gatsby" src="./src/images/assets/logo.png" width="60" />
+    <img alt="Gatsby" src="./src/images/assets/spacebudz.png" width="60" />
   </a>
 </p>
 <h1 align="center">
   SpaceBudz
 </h1>
 
-## 🚀 Quick start
+SpaceBudz is an NFT collection on Cardano consisting of 10,000 unique little astronauts. We make use of Cardano's multi asset ledger for the NFTs and Plutus validators for the market place.
+This repository contains the full market place implementation including the frontend interface.
+Our official website: [spacebudz.io](https://spacebudz.io)
 
-1.  **Start developing.**
+### Validity
 
-    Navigate into your new site’s directory and start it up.
+To make sure you have a real SpaceBud the Policy ID must match the following:
+**`d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc`**
+You can find the according policy script in `minting_policy.json`
 
-    ```shell
-    cd spacebudz/
-    npm start
-    ```
+The contract address for the official SpaceBudz market place:
+**`addr_test1qzfauplclmk6fxuncn8adqt7hnahhlz2pvvzxlqpj6eqtk35g6en4e2aya53ewldpqxl2xpzvtps0ndtvtf6fzpl880srm02gc`**
 
-2.  **Open the code and start customizing!**
+### Metadata
 
-    Your site is now running at http://localhost:8000!
+We follow [CIP-25](https://github.com/cardano-foundation/CIPs/blob/master/CIP-0025/CIP-0025.md), the NFT metadata standard on Cardano, which was created by SpaceBudz.
 
-    Edit `src/pages/index.js` to see your site update in real-time!
+Images are stored on IPFS and Arweave and you find the image link to a SpaceBud inside the metadata.
 
-3.  **Learn more**
+### Market place
 
-    - [Documentation](https://www.gatsbyjs.com/docs/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter)
-
-    - [Tutorials](https://www.gatsbyjs.com/tutorial/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter)
-
-    - [Guides](https://www.gatsbyjs.com/tutorial/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter)
-
-    - [API Reference](https://www.gatsbyjs.com/docs/api-reference/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter)
-
-    - [Plugin Library](https://www.gatsbyjs.com/plugins?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter)
-
-    - [Cheat Sheet](https://www.gatsbyjs.com/docs/cheat-sheet/?utm_source=starter&utm_medium=readme&utm_campaign=minimal-starter)
+We have a seperated module inside this repository for the market place with the full source.
+Check it out [here](./src/cardano/market/).

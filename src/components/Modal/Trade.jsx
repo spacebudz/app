@@ -148,7 +148,10 @@ const TradeModal = React.forwardRef(
                 }
                 setIsLoading(false);
                 if (!txHash) return;
-                onConfirm(txHash);
+                onConfirm(txHash, {
+                  type: type == "BID" ? "bid" : "list",
+                  amount: toUnit(ada),
+                });
                 onClose();
               }}
             >
