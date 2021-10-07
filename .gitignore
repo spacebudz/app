@@ -7,3 +7,4 @@ static/
 firebase.json
 package-lock.json
 secrets.js
+.DS_Store
