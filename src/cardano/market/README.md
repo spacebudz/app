@@ -8,7 +8,7 @@
 </h1>
 
 This module contains the full logic of the SpaceBudz market place.
-The `contract.hs` file contains the validator and the off-chain code written in Haskell. For the actual market place on the website the off-chain code was rewritten in JavaScript in combination with a customized version of the [serialization-lib](https://github.com/Emurgo/cardano-serialization-lib). This customized version you can find under `./custom_modules` (for browser and NodeJs).
+The `contract.hs` file contains the validator and the off-chain code written in Haskell. For the actual market place on the website the off-chain code was rewritten in JavaScript (`./index.js`) in combination with a customized version of the [serialization-lib](https://github.com/Emurgo/cardano-serialization-lib). This customized version you can find under `./custom_modules` (for browser and NodeJs).
 
 ### 🚀 Quick start
 
