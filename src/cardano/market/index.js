@@ -30,7 +30,7 @@ const CONTRACT = () => {
 
 const CONTRACT_ADDRESS = () =>
   Loader.Cardano.Address.from_bech32(
-    "addr_test1wp9uznrplv74jj9lh9fge5qswvdjc4yqfls9k6c2478catgjlxf8f"
+    "addr_test1wrn2ldp2yyjwmlgnq04pd9zyw8r2yunuc0f3emx2h32x3qsfxd7ty"
   );
 
 // Datums
@@ -217,27 +217,10 @@ class SpaceBudzMarket {
    */
   async getUtxo(policy, prefix, budId) {
     const asset = policy + fromAscii(prefix + budId);
-    //TODO fix blockfrost
-    // const txs = await this.blockfrostRequest(
-    //   `/assets/${asset}/transactions?count=1&order=desc`
-    // );
-    // const txHash = txs[0].tx_hash;
-    // const txUtxos = await this.blockfrostRequest(`/txs/${txHash}/utxos`);
+
     const utxos = await this.blockfrostRequest(
       `/addresses/${CONTRACT_ADDRESS().to_bech32()}/utxos/${asset}`
     );
-    // try {
-    //   utxo = txUtxos.outputs.find(
-    //     (output) =>
-    //       output.amount.find((amount) => amount.unit == asset) &&
-    //       output.address == CONTRACT_ADDRESS().to_bech32()
-    //   );
-    // } catch (e) {
-    //   throw new Error("Utxo not found");
-    // }
-    // const utxos = addressUtxos.filter((output) =>
-    //   output.amount.find((amount) => amount.unit == asset)
-    // );
 
     return await Promise.all(
       utxos.map(async (utxo) => {
@@ -548,7 +531,9 @@ class SpaceBudzMarket {
    */
   splitAmount(lovelaceAmount, address, outputs) {
     if (
-      lovelaceAmount.compare(Loader.Cardano.BigNum.from_str("400000000")) == 1
+      lovelaceAmount.compare(Loader.Cardano.BigNum.from_str("400000000")) ==
+        1 ||
+      lovelaceAmount.compare(Loader.Cardano.BigNum.from_str("400000000")) == 0
     ) {
       const [amount1, amount2, amount3] = [
         lovelacePercentage(lovelaceAmount, this.contractInfo.owner1.fee2),
@@ -651,8 +636,8 @@ class SpaceBudzMarket {
 
     this.contractInfo = {
       policySpaceBudz:
-        "fe263c946464aa892b39e2bf802d71f081a6ff6cac269b63876bfbd0",
-      policyBid: "fe263c946464aa892b39e2bf802d71f081a6ff6cac269b63876bfbd0",
+        "28bdf6cff58641ed6ac44d710ac1de35f34ecabea75e5512bfac984c",
+      policyBid: "fc3dac8f6344d7e744bc80e88764e8f637113bb5c20977509d72c277",
       prefixSpaceBud: "SpaceBud",
       prefixSpaceBudBid: "SpaceBudBid",
       owner1: {

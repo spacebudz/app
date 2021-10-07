@@ -61,7 +61,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const market = React.useRef();
 
   // const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
-  const POLICY = "fe263c946464aa892b39e2bf802d71f081a6ff6cac269b63876bfbd0";
+  const POLICY = "28bdf6cff58641ed6ac44d710ac1de35f34ecabea75e5512bfac984c";
 
   React.useEffect(() => {
     loadMarket();
@@ -91,7 +91,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
         base: "https://cardano-testnet.blockfrost.io/api/v0",
         projectId: secrets.PROJECT_ID,
       },
-      "addr_test1qq4a3zhfwdk4nw74w98smmg5vj8cel7f7h5wsh8280asx0m5m8rexkuvsx8csg0xjq06dsa7f4yvdphq85yhnm9t7ghsul68rf"
+      "addr_test1qq90qrxyw5qtkex0l7mc86xy9a6xkn5t3fcwm6wq33c38t8nhh356yzp7k3qwmhe4fk0g5u6kx5ka4rz5qcq4j7mvh2sts2cfa"
     );
     await market.current.load();
     loadSpaceBudData();

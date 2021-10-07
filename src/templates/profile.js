@@ -23,6 +23,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
   const [tokens, setTokens] = React.useState(null);
   const connected = useStoreState((state) => state.connection.connected);
   const didMount = React.useRef(false);
+  const isFirstConnect = React.useRef(true);
   const fetchAddressBudz = async (address) => {
     setTokens(null);
     const amount = await fetch(
@@ -50,8 +51,9 @@ const Profile = ({ pageContext: { spacebudz } }) => {
   };
   React.useEffect(() => {
     if (didMount.current) {
-      if (connected)
+      if (connected && !isFirstConnect.current)
         window.history.pushState({}, null, `/profile?address=${connected}`);
+      else isFirstConnect.current = false;
     } else didMount.current = true;
     window.scrollTo(0, 0);
     update();

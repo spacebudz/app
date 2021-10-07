@@ -145,8 +145,9 @@ const Header = () => {
                   textAlign="left"
                   color="gray.600"
                   className={style.tabItem}
-                  href="https://twitter.com/spacebudzNFT"
-                  target="_blank"
+                  onClick={() =>
+                    window.open("https://twitter.com/spacebudzNFT")
+                  }
                   style={{ display: "flex", alignItems: "center" }}
                 >
                   <Icon path={mdiTwitter} size={0.7} />{" "}
@@ -158,8 +159,7 @@ const Header = () => {
                   textAlign="left"
                   color="gray.600"
                   className={style.tabItem}
-                  href="https://t.me/spacebudz"
-                  target="_blank"
+                  onClick={() => window.open("https://t.me/spacebudz")}
                   style={{ display: "flex", alignItems: "center" }}
                 >
                   <Icon path={mdiTelegram} size={0.7} />{" "}
@@ -172,8 +172,7 @@ const Header = () => {
                   textAlign="left"
                   color="gray.600"
                   className={style.tabItem}
-                  href="https://discord.gg/ePJZBVwQNq"
-                  target="_blank"
+                  onClick={() => window.open("https://discord.gg/ePJZBVwQNq")}
                   style={{ display: "flex", alignItems: "center" }}
                 >
                   <Icon path={mdiDiscord} size={0.7} />{" "}
