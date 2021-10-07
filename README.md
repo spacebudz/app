@@ -30,4 +30,5 @@ Images are stored on IPFS and Arweave and you find the image link to a SpaceBud 
 ### Market place
 
 We have a seperated module inside this repository for the market place with the full source.
+
 Check it out [here](./src/cardano/market/).
