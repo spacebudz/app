@@ -16,7 +16,7 @@ Our official website: [spacebudz.io](https://spacebudz.io)
 To make sure you have a real SpaceBud the Policy ID must match the following:
 **`d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc`**
 
-You can find the according policy script in `minting_policy.json`
+You can find the according policy script in `./minting_policy.json`
 
 The contract address for the official SpaceBudz market place:
 **`addr_test1qzfauplclmk6fxuncn8adqt7hnahhlz2pvvzxlqpj6eqtk35g6en4e2aya53ewldpqxl2xpzvtps0ndtvtf6fzpl880srm02gc`**
@@ -29,6 +29,8 @@ Images are stored on IPFS and Arweave and you find the image link to a SpaceBud 
 
 ### Market place
 
-We have a seperated module inside this repository for the market place with the full source.
+The market place can be run by members of the community. They can host the market place with their own custom interface. 0.4% can be earned per trade.
+
+We have a seperate module inside this repository for the market place with the full source code.
 
 Check it out [here](./src/cardano/market/).
