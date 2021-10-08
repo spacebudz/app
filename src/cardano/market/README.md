@@ -85,5 +85,5 @@ if (Buffer.from(bidUtxo.datum.to_bytes()).toString("hex")) !== "d866820080")
 The states a script UTxO can go into, where the datum is the actual state and the transitions the redeemers. `StartBid` and `Offer` are valid initial states a UTxO can hold:
 
 <p align="center">
-    <img alt="Gatsby" src="./assets/state_machine.svg" width="100%" />
+    <img alt="Gatsby" src="./assets/state_machine.svg" width="95%" />
 </p>
