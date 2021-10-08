@@ -66,7 +66,7 @@ if (Buffer.from(bidUtxo.datum.to_bytes()).toString("hex")) !== "d866820080")
 
 - bid(bidUtxo : TradeUtxo, bidAmount) : Transaction Id // bidAmount in lovelace
 
-- offer(budId: number, requestedAmount : string) // requestedAmount in lovelace
+- offer(budId: number, requestedAmount : string) : Transaction Id // requestedAmount in lovelace
 
 - buy(offerUtxo : TradeUtxo) : Transaction Id
 
