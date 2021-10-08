@@ -672,7 +672,7 @@ class SpaceBudzMarket {
   /**
    *
    * @param {number} budId
-   * @returns {TradeUtxo | TradeUtxo[]} Array if both twins are offered
+   * @returns {TradeUtxo | TradeUtxo[] | undefined} Array if both twins are offered
    */
   async getOffer(budId) {
     const offerUtxo = await this.getUtxo(
