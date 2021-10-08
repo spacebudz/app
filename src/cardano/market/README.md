@@ -42,6 +42,7 @@ const init = async () => {
   const bidUtxo = await market.getBid(0);
   const txHash = await market.bid(bidUtxo, "80000000"); // 80 ADA
 };
+init();
 ```
 
 **Note**
@@ -60,6 +61,8 @@ if (Buffer.from(bidUtxo.datum.to_bytes()).toString("hex")) !== "d866820080")
 // if true then it's a start bid otherwise an active bid
 
 - getOffer(budId : number) : TradeUtxo | TradeUtxo[] | undefined
+// getOffer returns undefined if the SpaceBud is not listed
+// it can return an array of two offerUtxos because of the twins (1903, 6413)
 
 - bid(bidUtxo : TradeUtxo, bidAmount) : Transaction Id // bidAmount in lovelace
 
