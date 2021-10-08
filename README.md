@@ -29,7 +29,7 @@ Images are stored on IPFS and Arweave and you find the image link to a SpaceBud 
 
 ### Market place
 
-The market place can be run by members of the community. They can host the market place with their own custom interface. 0.4% can be earned per trade.
+The market place can be run by members of the community. They can host the market place with their own custom interface and earn 0.4% per trade.
 
 We have a seperate module inside this repository for the market place with the full source code.
 
