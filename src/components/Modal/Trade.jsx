@@ -150,7 +150,7 @@ const TradeModal = React.forwardRef(
                 if (!txHash) return;
                 onConfirm(txHash, {
                   type: type == "BID" ? "bid" : "list",
-                  amount: toUnit(ada),
+                  lovelace: toUnit(ada),
                 });
                 onClose();
               }}

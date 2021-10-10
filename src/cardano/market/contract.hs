@@ -66,12 +66,12 @@ toFraction p = toInteger $ floor (1 / (p / 1000))
 
 
 contractInfo = ContractInfo 
-    { policySpaceBudz = "66"
-    , policyBid = "66"
+    { policySpaceBudz = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"
+    , policyBid = "6bec713b08a2d7c64baa3596d200b41b560850919d72e634944f2d52"
     , prefixSpaceBud = "SpaceBud"
     , prefixSpaceBudBid = "SpaceBudBid"
-    , owner1 = (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 3), 416, 625) -- 2.4% 1.6%
-    , owner2 = (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 4), 2500) -- 0.4%
+    , owner1 = ("826d9fafe1b3acf15bd250de69c04e3fc92c4493785939e069932e89", 416, 625) -- 2.4% 1.6%
+    , owner2 = ("88269f8b051a739300fe743a7b315026f4614ce1216a4bb45d7fd0f5", 2500) -- 0.4%
     , extraRecipient = 2500 -- 0.4%
     , minPrice = 70000000
     , bidStep = 10000
@@ -539,6 +539,7 @@ getTradeDatum o = case txOutDatum (txOutTxOut o) of
 
 
 
+-- These are just some dummy policy IDs. They do no match the ones used in the actual contract. These functions are only necessary for the simulator.
 mkSchemaDefinitions ''TradeSchema
 spacebud0 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud0" :| [])
 spacebud1 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud1" :| [])

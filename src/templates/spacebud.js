@@ -60,8 +60,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const connected = useStoreState((state) => state.connection.connected);
   const market = React.useRef();
 
-  // const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
-  const POLICY = "28bdf6cff58641ed6ac44d710ac1de35f34ecabea75e5512bfac984c";
+  const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
 
   React.useEffect(() => {
     loadMarket();
@@ -75,17 +74,17 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     loadSpaceBudData();
   }, [connected]);
 
-  const checkTransaction = async (txHash, { type, amount } = {}) => {
+  const checkTransaction = async (txHash, { type, lovelace } = {}) => {
     if (!txHash) return;
     PendingTransactionToast(toast);
     if (type) {
-      fetch("http://api.spacebudzbot.com:5000/test", {
+      fetch("https://api.spacebudzbot.com/test", {
         method: "POST",
         headers: {
-          Authentication: "Bearer " + secrets.TWITTER_BOT_TOKEN,
+          Authorization: "Bearer " + secrets.TWITTER_BOT_TOKEN,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: spacebud.id.toString(), type, ada: amount }),
+        body: JSON.stringify({ id: spacebud.id.toString(), type, lovelace }),
       })
         .then(console.log)
         .catch(console.log);
@@ -100,10 +99,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const loadMarket = async () => {
     market.current = new Market(
       {
-        base: "https://cardano-testnet.blockfrost.io/api/v0",
+        base: "https://cardano-mainnet.blockfrost.io/api/v0",
         projectId: secrets.PROJECT_ID,
       },
-      "addr_test1qq90qrxyw5qtkex0l7mc86xy9a6xkn5t3fcwm6wq33c38t8nhh356yzp7k3qwmhe4fk0g5u6kx5ka4rz5qcq4j7mvh2sts2cfa"
+      "addr1qxpxm8a0uxe6eu2m6fgdu6wqfclujtzyjdu9jw0qdxfjaz02h5ngjz7fftac5twlxj6jha4meenh6476m5xdwmeyh4hq0zeknx"
     );
     await market.current.load();
     loadSpaceBudData();
@@ -114,7 +113,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     setOwner([]);
     const token = POLICY + toHex(`SpaceBud${spacebud.id}`);
     let addresses = await fetch(
-      `https://cardano-testnet.blockfrost.io/api/v0/assets/${token}/addresses`,
+      `https://cardano-mainnet.blockfrost.io/api/v0/assets/${token}/addresses`,
       { headers: { project_id: secrets.PROJECT_ID } }
     ).then((res) => res.json());
     const fiatPrice = await fetch(
@@ -467,7 +466,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                           }));
                           checkTransaction(txHash, {
                             type: "sold",
-                            amount: details.bid.lovelace,
+                            lovelace: details.bid.lovelace,
                           });
                         }}
                       >
@@ -603,7 +602,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                         }));
                         checkTransaction(txHash, {
                           type: "bought",
-                          amount: details.offer.lovelace,
+                          lovelace: details.offer.lovelace,
                         });
                       }}
                       rounded="3xl"

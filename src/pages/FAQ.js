@@ -157,10 +157,10 @@ const FAQ = (props) => {
                   3rd party or middleman involved.
                   <br /> The contract address:{" "}
                   <Link
-                    href="https://cardanoscan.io/tokenPolicy/d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"
+                    href="https://cardanoscan.io/address/addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed"
                     target="_blank"
                   >
-                    d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc
+                    addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed
                   </Link>
                   <br />
                   <br />
@@ -233,7 +233,7 @@ const FAQ = (props) => {
                   Make sure you have enough funds to cover your trade. Try to
                   refactor your wallet and minimize the UTxO and token count.
                   <br /> If the error has the additional info "Trade in use",
-                  just wait until you see market for a specific SpaceBud has
+                  just wait until you see the market for a specific SpaceBud has
                   updated.
                   <br />
                   <br /> If all of this doesn't help, please reach out to use on

@@ -13,7 +13,7 @@ The `contract.hs` file contains the validator and the off-chain code written in 
 The SpaceBudz market place can be run by community members. **0.4%** of the traded amount goes to a community member, if trades happens through his market instance.
 
 The contract address:
-**`addr_test1qr0yva2r7l8wjyfcpptewfu6gk88gqsvxzlqkvjuatdpr5s6qsq5jaanynnf5848nqwan9g5qru5mn86xpyh4utp3s9srg9vz7`**
+**`addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed`**
 
 ### 🚀 Quick start
 
@@ -21,7 +21,8 @@ The contract address:
 
 ```
 git clone https://github.com/Berry-Pool/spacebudz
-cp spacebudz/src/cardano/market .
+cp -r spacebudz/src/cardano/market .
+cd market
 npm install
 ```
 
@@ -32,7 +33,7 @@ import Market from "./index.js";
 
 const market = new Market(
   {
-    base: "https://cardano-testnet.blockfrost.io/api/v0",
+    base: "https://cardano-mainnet.blockfrost.io/api/v0",
     projectId: "<BLOCKFROST_ID>",
   },
   "<YOUR ADDRESS>"
@@ -82,7 +83,7 @@ if (Buffer.from(bidUtxo.datum.to_bytes()).toString("hex")) !== "d866820080")
 
 ### State machine
 
-The states a script UTxO can go into, where the datum is the actual state and the transitions the redeemers. `StartBid` and `Offer` are valid initial states a UTxO can hold:
+The states a script UTxO can go into, where the datum is the actual state and the transition the redeemer. `StartBid` and `Offer` are valid initial states a UTxO can hold:
 
 <p align="center">
     <img alt="Gatsby" src="./assets/state_machine.svg" width="93%" />

@@ -30,7 +30,7 @@ const CONTRACT = () => {
 
 const CONTRACT_ADDRESS = () =>
   Loader.Cardano.Address.from_bech32(
-    "addr_test1wrn2ldp2yyjwmlgnq04pd9zyw8r2yunuc0f3emx2h32x3qsfxd7ty"
+    "addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed"
   );
 
 // Datums
@@ -636,20 +636,20 @@ class SpaceBudzMarket {
 
     this.contractInfo = {
       policySpaceBudz:
-        "28bdf6cff58641ed6ac44d710ac1de35f34ecabea75e5512bfac984c",
-      policyBid: "fc3dac8f6344d7e744bc80e88764e8f637113bb5c20977509d72c277",
+        "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc",
+      policyBid: "6bec713b08a2d7c64baa3596d200b41b560850919d72e634944f2d52",
       prefixSpaceBud: "SpaceBud",
       prefixSpaceBudBid: "SpaceBudBid",
       owner1: {
         address: Loader.Cardano.Address.from_bech32(
-          "addr_test1qq4a3zhfwdk4nw74w98smmg5vj8cel7f7h5wsh8280asx0m5m8rexkuvsx8csg0xjq06dsa7f4yvdphq85yhnm9t7ghsul68rf"
+          "addr1qxpxm8a0uxe6eu2m6fgdu6wqfclujtzyjdu9jw0qdxfjaz02h5ngjz7fftac5twlxj6jha4meenh6476m5xdwmeyh4hq0zeknx"
         ),
         fee1: Loader.Cardano.BigNum.from_str("416"), // 2.4%
         fee2: Loader.Cardano.BigNum.from_str("625"), // 1.6%
       },
       owner2: {
         address: Loader.Cardano.Address.from_bech32(
-          "addr_test1qz0mpfwtanmhmz5x3p6fxdlj7yjn3d7nly9c3ywzgtfzsecag8n36pyz02k6xvn89tzs72lx0wjqxej9tzdgvxuw99nsq72v7n"
+          "addr1qxyzd8utq5d88ycqle6r57e32qn0gc2vuysk5ja5t4lapavecd72l0wcsvv6t3vgj097k6a5jr4lz5pppkkf6tp83s2q9sv7dv"
         ),
         fee: Loader.Cardano.BigNum.from_str("2500"), // 0.4%
       },
