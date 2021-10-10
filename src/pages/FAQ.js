@@ -167,7 +167,7 @@ const FAQ = (props) => {
                   The full source code you can find{" "}
                   <Link
                     color="purple.500"
-                    href="https://cardanoscan.io/transaction/c8671bf7fe1cd75c8a387822b84c8e4f5fe61043c60618dc9ad68d6ebcd12c7f?tab=metadata"
+                    href="https://github.com/Berry-Pool/spacebudz"
                     target="_blank"
                   >
                     here
