@@ -210,7 +210,7 @@ const FAQ = (props) => {
                   providers. Find out more about it{" "}
                   <Link
                     color="purple.500"
-                    href="https://cardanoscan.io/transaction/c8671bf7fe1cd75c8a387822b84c8e4f5fe61043c60618dc9ad68d6ebcd12c7f?tab=metadata"
+                    href="https://github.com/Berry-Pool/spacebudz/tree/main/src/cardano/market"
                     target="_blank"
                   >
                     here
