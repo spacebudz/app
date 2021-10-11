@@ -42,7 +42,7 @@ const About = () => {
             potential of Cardano.
             <br /> I'm Alessandro, operator of Berry Pool and creator of Nami
             Wallet. And I'm Zieg, NFT-enthusiast since claiming my first
-            CrypoPunk in 2017!
+            CryptoPunk in 2017!
           </div>
           <Box h={3} />
           <img src={TeamImage} />
