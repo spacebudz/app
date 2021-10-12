@@ -78,7 +78,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     if (!txHash) return;
     PendingTransactionToast(toast);
     if (type) {
-      fetch("https://api.spacebudzbot.com/test", {
+      fetch("https://api.spacebudzbot.com/tweet", {
         method: "POST",
         headers: {
           Authorization: "Bearer " + secrets.TWITTER_BOT_TOKEN,
