@@ -64,7 +64,7 @@ const FAQ = (props) => {
                   >
                     Nami
                   </Link>{" "}
-                  is the only wallet that support smart contract functionality
+                  is the only wallet that supports smart contract functionality
                   at the moment. More wallets may be supported in the future.
                 </Text>
               </AccordionPanel>
