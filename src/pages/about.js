@@ -73,7 +73,7 @@ const About = () => {
               Find out more about the Policy ID{" "}
               <Link
                 style={{ textDecoration: "underline" }}
-                href="https://github.com/alessandrokonrad/spacebudz"
+                href="https://github.com/Berry-Pool/spacebudz"
                 target="_blank"
                 underline
               >
