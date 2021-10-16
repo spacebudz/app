@@ -7,6 +7,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import styled, { keyframes } from "styled-components";
 import { BeatLoader } from "react-spinners";
 import { Box } from "@chakra-ui/layout";
+import { UnitDisplay } from "../UnitDisplay";
 
 var converterEngine = function (input) {
   // fn BLOB => Binary => Base64 ?
@@ -45,7 +46,7 @@ const CustomLazyImage = styled(LazyLoadImage)`
   animation: ${fade} 0.4s;
 `;
 
-const Item = ({ bud, im }) => {
+const Item = ({ bud, im, type }) => {
   const [image, setImage] = React.useState(null);
   React.useEffect(() => {
     // getImageBase64(im, (data) => setImage("data:image/png;base64," + data));
@@ -69,10 +70,16 @@ const Item = ({ bud, im }) => {
               padding: "4px 16px",
               border: "solid 2px #777777",
               borderRadius: 20,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <span style={{ color: "#777777" }}>Buy</span>{" "}
-            <span>{bud.price && bud.price + " ₳"}</span>
+            <span style={{ color: "#777777", marginRight: 4 }}>{type}</span>{" "}
+            <span>
+              {" "}
+              <UnitDisplay quantity={bud.price} decimals={6} symbol="₳" />
+            </span>
           </div>
           {!image ? (
             <div></div>
@@ -105,6 +112,8 @@ class InfiniteGrid extends React.Component {
     const items = [];
     const start = this.start || 0;
 
+    console.log(this.props.array);
+
     for (let i = 0; i < num; ++i) {
       const bud = this.props.array[start + i];
       items.push(
@@ -113,6 +122,7 @@ class InfiniteGrid extends React.Component {
           groupKey={groupKey}
           key={start + i}
           bud={this.props.array[start + i]}
+          type={this.props.type}
         />
       );
     }

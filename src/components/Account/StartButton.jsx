@@ -85,7 +85,7 @@ const StartButton = (props) => {
           setIsLoading(false);
           return;
         }
-        if (await window.cardano.enable()) {
+        if (await window.cardano.enable().catch((e) => {})) {
           const address = await addressToBech32();
           setConnected(address);
           localStorage.setItem("session", Date.now().toString());
@@ -131,7 +131,7 @@ export default StartButton;
 const checkStatus = async (toast, connected) => {
   return (
     NoNami(toast) &&
-    (await window.cardano.enable()) &&
+    (await window.cardano.enable().catch((e) => {})) &&
     (await WrongNetworkToast(toast))
   );
 };

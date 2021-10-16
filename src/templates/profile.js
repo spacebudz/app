@@ -3,7 +3,7 @@ import InfiniteGrid from "../components/InfiniteGrid";
 import Metadata from "../components/Metadata";
 import { useStoreState } from "easy-peasy";
 import { FloatingButton } from "../components/Button";
-import { Box } from "@chakra-ui/layout";
+import { Box, SimpleGrid } from "@chakra-ui/layout";
 import { BeatLoader } from "react-spinners";
 import Icon from "@mdi/react";
 import { mdiOpenInNew } from "@mdi/js";
@@ -117,34 +117,93 @@ const Profile = ({ pageContext: { spacebudz } }) => {
           </div>
           {/* <Spacer y={2} /> */}
           <Box h={10} />
-          <div style={{ width: "100%", display: "flex", alignItems: "center" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexDirection: "column",
-                width: 180,
-                height: 80,
-                backgroundColor: "#4a148c",
-                borderRadius: 15,
-                color: "white",
-              }}
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <SimpleGrid
+              width="90%"
+              maxWidth={800}
+              columns={[1, null, 3]}
+              gap={8}
             >
               <div
                 style={{
-                  marginTop: 10,
-                  marginBottom: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "column",
+                  height: 80,
+                  backgroundColor: "#4a148c",
+                  borderRadius: 15,
+                  color: "white",
                 }}
               >
-                Total Owned
+                <div
+                  style={{
+                    marginTop: 10,
+                    marginBottom: 4,
+                  }}
+                >
+                  Total Owned
+                </div>
+                <div style={{ fontWeight: "bold", fontSize: 18 }}>
+                  {tokens ? tokens.length : "..."}
+                </div>
               </div>
-              <div style={{ fontWeight: "bold", fontSize: 18 }}>
-                {tokens ? tokens.length : "..."}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "column",
+                  height: 80,
+                  backgroundColor: "#4a148c",
+                  borderRadius: 15,
+                  color: "white",
+                }}
+              >
+                <div
+                  style={{
+                    marginTop: 10,
+                    marginBottom: 4,
+                  }}
+                >
+                  Open Bids
+                </div>
+                <div style={{ fontWeight: "bold", fontSize: 18 }}>
+                  {tokens ? tokens.length : "..."}
+                </div>
               </div>
-            </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "column",
+                  height: 80,
+                  backgroundColor: "#4a148c",
+                  borderRadius: 15,
+                  color: "white",
+                }}
+              >
+                <div
+                  style={{
+                    marginTop: 10,
+                    marginBottom: 4,
+                  }}
+                >
+                  Open Offers
+                </div>
+                <div style={{ fontWeight: "bold", fontSize: 18 }}>
+                  {tokens ? tokens.length : "..."}
+                </div>
+              </div>
+            </SimpleGrid>
           </div>
           {/* <Spacer y={3} /> */}
-          <Box h={14} />
+          <Box h={10} />
           <div style={{ marginBottom: 100 }}>
             {!tokens ? (
               <Box
@@ -156,7 +215,35 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                 <BeatLoader size="5" color="#6B46C1" />
               </Box>
             ) : (
-              <InfiniteGrid array={tokens} spacebudz={spacebudz} />
+              <Box
+                width="full"
+                display="flex"
+                alignItems="center"
+                flexDirection="column"
+              >
+                <Box h="1px" w="95%" background="gray.200" my={10} />
+
+                <Box width="full" fontWeight="bold" fontSize="x-large" mb={4}>
+                  Open Bids
+                </Box>
+                <Box width="full">
+                  <InfiniteGrid array={[]} spacebudz={spacebudz} />
+                </Box>
+                <Box h="1px" w="95%" background="gray.200" my={10} />
+                <Box width="full" fontWeight="bold" fontSize="x-large" mb={4}>
+                  Open Offers
+                </Box>
+                <Box width="full">
+                  <InfiniteGrid array={[]} spacebudz={spacebudz} />
+                </Box>
+                <Box h="1px" w="95%" background="gray.200" my={10} />
+                <Box width="full" fontWeight="bold" fontSize="x-large" mb={4}>
+                  Owned
+                </Box>
+                <Box width="full">
+                  <InfiniteGrid array={tokens} spacebudz={spacebudz} />
+                </Box>
+              </Box>
             )}
           </div>
         </div>

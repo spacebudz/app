@@ -348,7 +348,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           </>
         )}
 
-        <Box h={12} />
+        <Box h={8} />
         <div
           style={{
             width: "100%",
@@ -366,339 +366,369 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
               <Spinner size="sm" color="purple" />
             </Box>
           ) : (
-            <>
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              flexDirection="column"
+            >
+              <Box textAlign="center">
+                <div
+                  style={{ fontSize: 12, fontWeight: "bold", marginBottom: 4 }}
+                >
+                  Last Sale
+                </div>
+                <UnitDisplay
+                  showQuantity={!Boolean(details.offer.lovelace)}
+                  fontWeight="medium"
+                  quantity={details.offer.lovelace || 0}
+                  symbol="ADA"
+                  decimals={6}
+                />
+                <UnitDisplay
+                  showQuantity={!Boolean(details.offer.usd)}
+                  fontSize={12}
+                  color="#777777"
+                  quantity={details.offer.usd || 0}
+                  symbol="USD"
+                  decimals={2}
+                />
+              </Box>
+              <Box h={6} />
               <Box position="absolute">
-                <Box position="absolute" top="-66px" left={-40}>
+                <Box position="absolute" top="-30px" left={-40}>
                   {" "}
                   <RepeatIcon cursor="pointer" onClick={loadSpaceBudData} />
                 </Box>
               </Box>
-              {details.offer.owner ? (
-                <>
-                  <Box width="150px" textAlign="right">
-                    <div style={{ fontSize: 12 }}>Sell now price</div>
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.bid.lovelace)}
-                      fontWeight="medium"
-                      quantity={details.bid.lovelace || 0}
-                      symbol="ADA"
-                      decimals={6}
-                    />
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.bid.usd)}
-                      fontSize={12}
-                      color="#777777"
-                      quantity={details.bid.usd || 0}
-                      symbol="USD"
-                      decimals={2}
-                    />
-                  </Box>
-                  <Box w={5} />
-                  {details.bid.owner ? (
-                    <Tooltip label="Cancel Bid" rounded="3xl">
-                      <Button
-                        isDisabled={loadingButton.cancelBid}
-                        isLoading={loadingButton.cancelBid}
-                        onClick={async () => {
-                          if (!connected) return;
-                          setLoadingButton((l) => ({
-                            ...l,
-                            cancelBid: true,
-                          }));
-                          const txHash = await market.current
-                            .cancelBid(details.bid.bidUtxo)
-                            .catch((e) => tradeErrorHandler(e, toast));
-                          setLoadingButton((l) => ({
-                            ...l,
-                            cancelBid: false,
-                          }));
-                          checkTransaction(txHash);
-                        }}
-                        rounded="3xl"
-                        size="md"
-                        color="white"
-                        bgColor="red.300"
-                        colorScheme="red"
-                      >
-                        Cancel
-                      </Button>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip
-                      label={
-                        details.offer.offerUtxo &&
-                        connected ==
-                          details.offer.offerUtxo.tradeOwnerAddress.to_bech32() &&
-                        "Cancel Offer first"
-                      }
-                      rounded="3xl"
-                    >
-                      <Button
-                        isDisabled={
-                          !Boolean(details.bid.lovelace) || loadingButton.sell
-                        }
-                        isLoading={loadingButton.sell}
-                        rounded="3xl"
-                        size="md"
-                        colorScheme="purple"
-                        width="min"
-                        bgcolor="#263238"
-                        rounded="3xl"
-                        width="min"
-                        onClick={async () => {
-                          if (
-                            !connected ||
-                            (details.offer.offerUtxo &&
-                              connected ==
-                                details.offer.offerUtxo.tradeOwnerAddress.to_bech32())
-                          )
-                            return;
-                          setLoadingButton((l) => ({
-                            ...l,
-                            sell: true,
-                          }));
-                          const txHash = await market.current
-                            .sell(details.bid.bidUtxo)
-                            .catch((e) => tradeErrorHandler(e, toast));
-                          setLoadingButton((l) => ({
-                            ...l,
-                            sell: false,
-                          }));
-                          checkTransaction(txHash, {
-                            type: "sold",
-                            lovelace: details.bid.lovelace,
-                          });
-                        }}
-                      >
-                        Sell
-                      </Button>
-                    </Tooltip>
-                  )}
-                  <Box w={4} />
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    {details.offer.lovelace &&
-                    details.offer.offerUtxo &&
-                    connected ==
-                      details.offer.offerUtxo.tradeOwnerAddress.to_bech32() ? (
-                      <Tooltip label="Cancel Offer" rounded="3xl">
+              <Box display="flex" alignItems="center">
+                {details.offer.owner ? (
+                  <>
+                    <Box width="150px" textAlign="right">
+                      <div style={{ fontSize: 12 }}>Sell now price</div>
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.bid.lovelace)}
+                        fontWeight="medium"
+                        quantity={details.bid.lovelace || 0}
+                        symbol="ADA"
+                        decimals={6}
+                      />
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.bid.usd)}
+                        fontSize={12}
+                        color="#777777"
+                        quantity={details.bid.usd || 0}
+                        symbol="USD"
+                        decimals={2}
+                      />
+                    </Box>
+                    <Box w={5} />
+                    {details.bid.owner ? (
+                      <Tooltip label="Cancel Bid" rounded="3xl">
                         <Button
-                          isDisabled={loadingButton.cancelOffer}
-                          isLoading={loadingButton.cancelOffer}
+                          isDisabled={loadingButton.cancelBid}
+                          isLoading={loadingButton.cancelBid}
                           onClick={async () => {
                             if (!connected) return;
                             setLoadingButton((l) => ({
                               ...l,
-                              cancelOffer: true,
+                              cancelBid: true,
                             }));
                             const txHash = await market.current
-                              .cancelOffer(details.offer.offerUtxo)
+                              .cancelBid(details.bid.bidUtxo)
                               .catch((e) => tradeErrorHandler(e, toast));
                             setLoadingButton((l) => ({
                               ...l,
-                              cancelOffer: false,
+                              cancelBid: false,
                             }));
                             checkTransaction(txHash);
                           }}
+                          rounded="3xl"
+                          size="md"
                           color="white"
                           bgColor="red.300"
                           colorScheme="red"
-                          rounded="3xl"
-                          aria-label="Add to friends"
-                          icon={<SmallCloseIcon />}
                         >
                           Cancel
                         </Button>
                       </Tooltip>
                     ) : (
-                      <Button
-                        variant="outline"
-                        rounded="3xl"
-                        colorScheme="gray"
-                        onClick={() => {
-                          if (!connected) return;
-                          tradeRef.current.openModal({
-                            minPrice: "70000000",
-                            type: "OFFER",
-                          });
-                        }}
-                      >
-                        Offer
-                      </Button>
-                    )}
-                  </Box>
-                  <Box w={5} />
-                  <Box width="150px">
-                    <div style={{ fontSize: 12 }}>Offer price</div>
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.offer.lovelace)}
-                      fontWeight="medium"
-                      quantity={details.offer.lovelace || 0}
-                      symbol="ADA"
-                      decimals={6}
-                    />
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.offer.usd)}
-                      fontSize={12}
-                      color="#777777"
-                      quantity={details.offer.usd || 0}
-                      symbol="USD"
-                      decimals={2}
-                    />
-                  </Box>{" "}
-                </>
-              ) : (
-                <>
-                  {" "}
-                  <Box width="150px" textAlign="right">
-                    <div style={{ fontSize: 12 }}>Buy now price</div>
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.offer.lovelace)}
-                      fontWeight="medium"
-                      quantity={details.offer.lovelace || 0}
-                      symbol="ADA"
-                      decimals={6}
-                    />
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.offer.usd)}
-                      fontSize={12}
-                      color="#777777"
-                      quantity={details.offer.usd || 0}
-                      symbol="USD"
-                      decimals={2}
-                    />
-                  </Box>
-                  <Box w={5} />
-                  <Tooltip
-                    label={
-                      (!connected && "Connect wallet") ||
-                      (details.bid.owner &&
-                        details.bid.lovelace &&
-                        "Cancel Bid first")
-                    }
-                    rounded="3xl"
-                  >
-                    <Button
-                      isDisabled={
-                        !Boolean(details.offer.lovelace) || loadingButton.buy
-                      }
-                      isLoading={loadingButton.buy}
-                      onClick={async () => {
-                        if (!connected || details.bid.owner) return;
-                        setLoadingButton((l) => ({
-                          ...l,
-                          buy: true,
-                        }));
-                        const txHash = await market.current
-                          .buy(details.offer.offerUtxo)
-                          .catch((e) => tradeErrorHandler(e, toast));
-                        setLoadingButton((l) => ({
-                          ...l,
-                          buy: false,
-                        }));
-                        checkTransaction(txHash, {
-                          type: "bought",
-                          lovelace: details.offer.lovelace,
-                        });
-                      }}
-                      rounded="3xl"
-                      size="md"
-                      colorScheme="purple"
-                      width="min"
-                    >
-                      Buy
-                    </Button>
-                  </Tooltip>
-                  <Box w={4} />
-                  <Box
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <ButtonGroup size="md" isAttached variant="outline">
                       <Tooltip
-                        label={!connected && "Connect wallet"}
+                        label={
+                          details.offer.offerUtxo &&
+                          connected ==
+                            details.offer.offerUtxo.tradeOwnerAddress.to_bech32() &&
+                          "Cancel Offer first"
+                        }
                         rounded="3xl"
                       >
                         <Button
-                          onClick={() => {
-                            if (!connected) return;
-                            tradeRef.current.openModal({
-                              minPrice: details.bid.lovelace
-                                ? (
-                                    isBrowser() &&
-                                    window.BigInt(details.bid.lovelace) +
-                                      window.BigInt("10000")
-                                  ).toString()
-                                : "70000000",
-                              type: "BID",
-                            });
-                          }}
+                          isDisabled={
+                            !Boolean(details.bid.lovelace) || loadingButton.sell
+                          }
+                          isLoading={loadingButton.sell}
+                          rounded="3xl"
+                          size="md"
+                          colorScheme="purple"
+                          width="min"
                           bgcolor="#263238"
                           rounded="3xl"
-                          colorScheme="gray"
                           width="min"
+                          onClick={async () => {
+                            if (
+                              !connected ||
+                              (details.offer.offerUtxo &&
+                                connected ==
+                                  details.offer.offerUtxo.tradeOwnerAddress.to_bech32())
+                            )
+                              return;
+                            setLoadingButton((l) => ({
+                              ...l,
+                              sell: true,
+                            }));
+                            const txHash = await market.current
+                              .sell(details.bid.bidUtxo)
+                              .catch((e) => tradeErrorHandler(e, toast));
+                            setLoadingButton((l) => ({
+                              ...l,
+                              sell: false,
+                            }));
+                            checkTransaction(txHash, {
+                              type: "sold",
+                              lovelace: details.bid.lovelace,
+                            });
+                          }}
                         >
-                          Bid
+                          Sell
                         </Button>
                       </Tooltip>
-                      {details.bid.owner && (
-                        <Tooltip label="Cancel Bid" rounded="3xl">
-                          <IconButton
-                            isDisabled={loadingButton.cancelBid}
-                            isLoading={loadingButton.cancelBid}
+                    )}
+                    <Box w={4} />
+                    <Box
+                      display="flex"
+                      flexDirection="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      {details.offer.lovelace &&
+                      details.offer.offerUtxo &&
+                      connected ==
+                        details.offer.offerUtxo.tradeOwnerAddress.to_bech32() ? (
+                        <Tooltip label="Cancel Offer" rounded="3xl">
+                          <Button
+                            isDisabled={loadingButton.cancelOffer}
+                            isLoading={loadingButton.cancelOffer}
                             onClick={async () => {
                               if (!connected) return;
                               setLoadingButton((l) => ({
                                 ...l,
-                                cancelBid: true,
+                                cancelOffer: true,
                               }));
                               const txHash = await market.current
-                                .cancelBid(details.bid.bidUtxo)
+                                .cancelOffer(details.offer.offerUtxo)
                                 .catch((e) => tradeErrorHandler(e, toast));
                               setLoadingButton((l) => ({
                                 ...l,
-                                cancelBid: false,
+                                cancelOffer: false,
                               }));
                               checkTransaction(txHash);
                             }}
+                            color="white"
                             bgColor="red.300"
-                            variant="solid"
+                            colorScheme="red"
                             rounded="3xl"
                             aria-label="Add to friends"
                             icon={<SmallCloseIcon />}
-                          />
+                          >
+                            Cancel
+                          </Button>
                         </Tooltip>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          rounded="3xl"
+                          colorScheme="gray"
+                          onClick={() => {
+                            if (!connected) return;
+                            tradeRef.current.openModal({
+                              minPrice: "70000000",
+                              type: "OFFER",
+                            });
+                          }}
+                        >
+                          Offer
+                        </Button>
                       )}
-                    </ButtonGroup>
-                  </Box>
-                  <Box w={5} />
-                  <Box width="150px">
-                    <div style={{ fontSize: 12 }}>Bid price</div>
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.bid.lovelace)}
-                      fontWeight="medium"
-                      quantity={details.bid.lovelace || 0}
-                      symbol="ADA"
-                      decimals={6}
-                    />
-                    <UnitDisplay
-                      showQuantity={!Boolean(details.bid.usd)}
-                      fontSize={12}
-                      color="#777777"
-                      quantity={details.bid.usd || 0}
-                      symbol="USD"
-                      decimals={2}
-                    />
-                  </Box>
-                </>
-              )}
-            </>
+                    </Box>
+                    <Box w={5} />
+                    <Box width="150px">
+                      <div style={{ fontSize: 12 }}>Offer price</div>
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.offer.lovelace)}
+                        fontWeight="medium"
+                        quantity={details.offer.lovelace || 0}
+                        symbol="ADA"
+                        decimals={6}
+                      />
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.offer.usd)}
+                        fontSize={12}
+                        color="#777777"
+                        quantity={details.offer.usd || 0}
+                        symbol="USD"
+                        decimals={2}
+                      />
+                    </Box>{" "}
+                  </>
+                ) : (
+                  <>
+                    {" "}
+                    <Box width="150px" textAlign="right">
+                      <div style={{ fontSize: 12 }}>Buy now price</div>
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.offer.lovelace)}
+                        fontWeight="medium"
+                        quantity={details.offer.lovelace || 0}
+                        symbol="ADA"
+                        decimals={6}
+                      />
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.offer.usd)}
+                        fontSize={12}
+                        color="#777777"
+                        quantity={details.offer.usd || 0}
+                        symbol="USD"
+                        decimals={2}
+                      />
+                    </Box>
+                    <Box w={5} />
+                    <Tooltip
+                      label={
+                        (!connected && "Connect wallet") ||
+                        (details.bid.owner &&
+                          details.bid.lovelace &&
+                          "Cancel Bid first")
+                      }
+                      rounded="3xl"
+                    >
+                      <Button
+                        isDisabled={
+                          !Boolean(details.offer.lovelace) || loadingButton.buy
+                        }
+                        isLoading={loadingButton.buy}
+                        onClick={async () => {
+                          if (!connected || details.bid.owner) return;
+                          setLoadingButton((l) => ({
+                            ...l,
+                            buy: true,
+                          }));
+                          const txHash = await market.current
+                            .buy(details.offer.offerUtxo)
+                            .catch((e) => tradeErrorHandler(e, toast));
+                          setLoadingButton((l) => ({
+                            ...l,
+                            buy: false,
+                          }));
+                          checkTransaction(txHash, {
+                            type: "bought",
+                            lovelace: details.offer.lovelace,
+                          });
+                        }}
+                        rounded="3xl"
+                        size="md"
+                        colorScheme="purple"
+                        width="min"
+                      >
+                        Buy
+                      </Button>
+                    </Tooltip>
+                    <Box w={4} />
+                    <Box
+                      display="flex"
+                      flexDirection="column"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <ButtonGroup size="md" isAttached variant="outline">
+                        <Tooltip
+                          label={!connected && "Connect wallet"}
+                          rounded="3xl"
+                        >
+                          <Button
+                            onClick={() => {
+                              if (!connected) return;
+                              tradeRef.current.openModal({
+                                minPrice: details.bid.lovelace
+                                  ? (
+                                      isBrowser() &&
+                                      window.BigInt(details.bid.lovelace) +
+                                        window.BigInt("10000")
+                                    ).toString()
+                                  : "70000000",
+                                type: "BID",
+                              });
+                            }}
+                            bgcolor="#263238"
+                            rounded="3xl"
+                            colorScheme="gray"
+                            width="min"
+                          >
+                            Bid
+                          </Button>
+                        </Tooltip>
+                        {details.bid.owner && (
+                          <Tooltip label="Cancel Bid" rounded="3xl">
+                            <IconButton
+                              isDisabled={loadingButton.cancelBid}
+                              isLoading={loadingButton.cancelBid}
+                              onClick={async () => {
+                                if (!connected) return;
+                                setLoadingButton((l) => ({
+                                  ...l,
+                                  cancelBid: true,
+                                }));
+                                const txHash = await market.current
+                                  .cancelBid(details.bid.bidUtxo)
+                                  .catch((e) => tradeErrorHandler(e, toast));
+                                setLoadingButton((l) => ({
+                                  ...l,
+                                  cancelBid: false,
+                                }));
+                                checkTransaction(txHash);
+                              }}
+                              bgColor="red.300"
+                              variant="solid"
+                              rounded="3xl"
+                              aria-label="Add to friends"
+                              icon={<SmallCloseIcon />}
+                            />
+                          </Tooltip>
+                        )}
+                      </ButtonGroup>
+                    </Box>
+                    <Box w={5} />
+                    <Box width="150px">
+                      <div style={{ fontSize: 12 }}>Bid price</div>
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.bid.lovelace)}
+                        fontWeight="medium"
+                        quantity={details.bid.lovelace || 0}
+                        symbol="ADA"
+                        decimals={6}
+                      />
+                      <UnitDisplay
+                        showQuantity={!Boolean(details.bid.usd)}
+                        fontSize={12}
+                        color="#777777"
+                        quantity={details.bid.usd || 0}
+                        symbol="USD"
+                        decimals={2}
+                      />
+                    </Box>
+                  </>
+                )}
+              </Box>
+            </Box>
           )}
         </div>
         {!isLoadingMarket && (

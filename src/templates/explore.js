@@ -331,7 +331,13 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                 <BeatLoader size="5" color="#6B46C1" />
               </Box>
             ) : (
-              array && <InfiniteGrid array={array} spacebudz={spacebudz} />
+              array && (
+                <InfiniteGrid
+                  array={array}
+                  spacebudz={spacebudz}
+                  type={"Buy"}
+                />
+              )
             )}
           </div>
         </div>

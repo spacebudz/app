@@ -236,7 +236,7 @@ const FAQ = (props) => {
                   just wait until you see the market for a specific SpaceBud has
                   updated.
                   <br />
-                  <br /> If all of this doesn't help, please reach out to use on
+                  <br /> If all of this doesn't help, please reach out to us on
                   Telegram or Discord.
                 </Text>
               </AccordionPanel>
