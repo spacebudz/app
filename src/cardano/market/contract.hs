@@ -14,6 +14,7 @@
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE BangPatterns               #-}
 
 
 import Playground.Contract
@@ -183,9 +184,25 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
         containsSpaceBudNFT :: Value -> BuiltinByteString -> Bool
         containsSpaceBudNFT v tn = valueOf v (policySpaceBudz contractInfo) (TokenName ((prefixSpaceBud contractInfo) <> tn)) >= 1
 
+        -- eager evaluation to check correct script inputs for all branches!!     
         scriptInputValue :: Value
-        scriptInputValue = case findOwnInput context of
-            Just i -> txOutValue (txInInfoResolved i)
+        !scriptInputValue =
+            let
+                isScriptInput i = case (txOutDatumHash . txInInfoResolved) i of
+                    Nothing -> False
+                    Just _  -> True
+                xs = [ txOutValue (txInInfoResolved i)  | i <- txInfoInputs txInfo, isScriptInput i]
+            in
+                case xs of
+                    [v] -> v -- normally just one script input is allowed
+                    [v1, v2] -> case tradeDatum of
+                    -- allow 2 script inputs if it's a combination of cancelling bid and buying OR cancelling offer and selling (same SpaceBud only)
+                        (Bid details) ->  case (containsPolicyBidNFT v1 (budId details), containsPolicyBidNFT v2 (budId details), containsSpaceBudNFT v1 (budId details), containsSpaceBudNFT v2 (budId details)) of
+                            (True, False, False, True) -> v1 -- expected script input 1 to contain bid token and script input 2 SpaceBud 
+                            (False, True, True, False) -> v2 -- expected script input 2 to contain bid token and script input 1 SpaceBud 
+                        (Offer details) ->  case (containsPolicyBidNFT v1 (budId details), containsPolicyBidNFT v2 (budId details), containsSpaceBudNFT v1 (budId details), containsSpaceBudNFT v2 (budId details)) of
+                            (True, False, False, True) -> v2 -- expected script input 1 to contain bid token and script input 2 SpaceBud 
+                            (False, True, True, False) -> v1 -- expected script input 2 to contain bid token and script input 1 SpaceBud 
 
         scriptOutputValue :: Value
         scriptOutputDatum :: TradeDatum
@@ -305,9 +322,10 @@ type TradeSchema = Endpoint "offer" TradeParams
         .\/ Endpoint "sell" TradeParams
         .\/ Endpoint "cancelBidAndBuy" TradeParams
         .\/ Endpoint "cancelOfferAndSell" TradeParams
+        .\/ Endpoint "troll" TradeParams
 
 trade :: AsContractError e => Contract () TradeSchema e ()
-trade = selectList [init, offer, buy, cancelOffer, bid, sell, cancelBid, cancelBidAndBuy, cancelOfferAndSell] >> trade
+trade = selectList [init, offer, buy, cancelOffer, bid, sell, cancelBid, cancelBidAndBuy, cancelOfferAndSell, troll] >> trade
 
 endpoints :: AsContractError e => Contract () TradeSchema e ()
 endpoints = trade
@@ -317,6 +335,33 @@ init :: AsContractError e => Promise () TradeSchema e ()
 init = endpoint @"init" @() $ \() -> do
     let tx = mustPayToTheScript StartBid (Value.singleton (policyBid contractInfo) (TokenName "SpaceBudBid0") 1 <> Value.singleton (policyBid contractInfo) (TokenName "SpaceBudBid1") 1 <> Value.singleton (policyBid contractInfo) (TokenName "SpaceBudBid2") 1) 
     void $ submitTxConstraints tradeInstance tx
+
+
+-- this endpoint is just for the simulator to check if a bad actor could buy two SpaceBudz in a single transaction
+troll :: AsContractError e => Promise () TradeSchema e ()
+troll = endpoint @"troll" @TradeParams $ \(TradeParams{..}) -> do
+    utxos <- utxoAt tradeAddress
+    pkh <- pubKeyHash <$> Plutus.Contract.ownPubKey
+    let offerUtxo0 = [ (oref, o, getTradeDatum o, txOutValue $ txOutTxOut o) | (oref, o) <- Map.toList utxos, case getTradeDatum o of (Offer details) -> "0" == budId details && containsSpaceBudNFT (txOutValue $ txOutTxOut o) "0"; _ -> False]
+    let offerUtxo1 = [ (oref, o, getTradeDatum o, txOutValue $ txOutTxOut o) | (oref, o) <- Map.toList utxos, case getTradeDatum o of (Offer details) -> "1" == budId details && containsSpaceBudNFT (txOutValue $ txOutTxOut o) "1"; _ -> False]
+    let offerUtxo0Map = let [(offeroref, offero, Offer offerdetails, offervalue)] = offerUtxo0 in  Map.fromList [(offeroref,offero)]
+    let offerUtxo1Map = let [(offeroref, offero, Offer offerdetails, offervalue)] = offerUtxo1 in  Map.fromList [(offeroref,offero)]
+    let [(offeroref, offero, Offer offerdetails, offervalue)] = offerUtxo0
+    let (owner1PubKeyHash, owner1Fee1, owner1Fee2) = owner1 contractInfo
+        (owner2PubKeyHash, owner2Fee1) = owner2 contractInfo
+        lovelaceAmount = 500000000
+    let (amount1, amount2, amount3) = (lovelacePercentage lovelaceAmount (owner1Fee2),lovelacePercentage lovelaceAmount (owner2Fee1),lovelacePercentage lovelaceAmount (extraRecipient contractInfo))
+    
+    let tx = collectFromScript offerUtxo0Map Buy <> 
+                collectFromScript offerUtxo1Map Buy <> 
+                mustPayToPubKey (owner1PubKeyHash) (Ada.lovelaceValueOf amount1) <>
+                mustPayToPubKey (owner2PubKeyHash) (Ada.lovelaceValueOf amount2) <>
+                mustPayToPubKey (pubKeyHash $ Emulator.walletPubKey (Emulator.Wallet 3)) (Ada.lovelaceValueOf amount3) <> -- arbitary address
+                mustPayToPubKey (tradeOwner offerdetails) (Ada.lovelaceValueOf (lovelaceAmount - amount1 - amount2 - amount3)) <>
+                mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud0")) 1) <>
+                mustPayToPubKey (pkh) (Value.singleton (policySpaceBudz contractInfo) (TokenName ("SpaceBud1")) 1)
+    void $ submitTxConstraintsSpending tradeInstance utxos tx
+
 
 cancelBidAndBuy :: AsContractError e => Promise () TradeSchema e ()
 cancelBidAndBuy = endpoint @"cancelBidAndBuy" @TradeParams $ \(TradeParams{..}) -> do
@@ -539,7 +584,6 @@ getTradeDatum o = case txOutDatum (txOutTxOut o) of
 
 
 
--- These are just some dummy policy IDs. They do no match the ones used in the actual contract. These functions are only necessary for the simulator.
 mkSchemaDefinitions ''TradeSchema
 spacebud0 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud0" :| [])
 spacebud1 = KnownCurrency (ValidatorHash "f") "Token" (TokenName "SpaceBud1" :| [])
