@@ -12,6 +12,7 @@ import { mdiFilterOutline } from "@mdi/js";
 import Icon from "@mdi/react";
 import { BeatLoader } from "react-spinners";
 import { useDisclosure } from "@chakra-ui/hooks";
+import { Checkbox } from "@chakra-ui/checkbox";
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -27,15 +28,15 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
   const [array, setArray] = React.useState([]);
   const [filters, setFilters] = React.useState({
     order_id: null,
+    order_price: null,
     // search: null,
-    // forSale: false,
+    on_sale: false,
   });
   const [param, setParam] = React.useState("");
   const [loading, setLoading] = React.useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const setColor = (up = true) => {
-    const order = filters.order_id;
+  const setColor = (order, up = true) => {
     if (order == null) return "#b5b5b5";
     if (order == "ASC" && up) return "black";
     if (order == "ASC" && !up) return "#b5b5b5";
@@ -58,6 +59,8 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
     const order_id = urlParams.get("order_id");
+    const order_price = urlParams.get("order_price");
+    const on_sale = urlParams.get("on_sale");
     const types = urlParams.getAll("type");
     const gadgets = urlParams.getAll("gadget");
     const range = urlParams.getAll("range");
@@ -68,7 +71,9 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
       gadgets +
       range +
       gadgetsCount +
-      order_id
+      order_id +
+      order_price +
+      on_sale
     ).toString();
     if (searchString == recentSearch.current) return;
     recentSearch.current = searchString;
@@ -80,7 +85,9 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
       gadgets.length > 0 ||
       range.length > 0 ||
       gadgetsCount ||
-      order_id
+      order_id ||
+      order_price ||
+      on_sale
     ) {
       if (id || id == 0) setParam(id);
       await sleep();
@@ -91,6 +98,8 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
       f.range = range;
       f.gadgetsCount = gadgetsCount;
       f.order_id = order_id;
+      f.order_price = order_price;
+      f.on_sale = on_sale;
       const filtered = await setFilter(fullList.current, f);
       setArray(null);
       setTimeout(() => setArray(filtered));
@@ -209,7 +218,8 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                   >
                     {array &&
                       array.length < fullList.current.length &&
-                      !filters.id && (
+                      !filters.id &&
+                      numberOfAppliedFilter() != 0 && (
                         <Box
                           position="absolute"
                           w="7"
@@ -233,7 +243,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                     rounded="2xl"
                     onClick={() => {
                       window.history.pushState({}, null, `/explore/`);
-                      setFilters({ order_id: null });
+                      setFilters({ order_id: null, order_price: null });
                     }}
                   >
                     Reset
@@ -256,7 +266,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
               <SimpleGrid
                 columns={[1, null, 3]}
                 gap={3}
-                style={{ width: "100%", maxWidth: 600 }}
+                style={{ width: "100%", maxWidth: 700 }}
               >
                 <Box textAlign="center">
                   <div>
@@ -288,7 +298,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                       const urlParams = new URLSearchParams(
                         window.location.search
                       );
-                      console.log(!urlParams);
+                      urlParams.delete("order_price");
                       let base = "/explore/";
                       if (f.order_id) {
                         urlParams.set("order_id", f.order_id);
@@ -309,12 +319,102 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                   >
                     <div style={{ display: "flex", flexDirection: "column" }}>
                       {" "}
-                      <ChevronUp size={18} color={setColor()} />
+                      <ChevronUp size={18} color={setColor(filters.order_id)} />
                       <div style={{ marginBottom: -10 }} />
-                      <ChevronDown size={18} color={setColor(false)} />
+                      <ChevronDown
+                        size={18}
+                        color={setColor(filters.order_id, false)}
+                      />
                     </div>
                     <div style={{ width: 3 }} />
                     <b style={{ color: "#777777", fontSize: 16 }}>ID #</b>
+                  </div>
+                  {/* Order by price */}
+                  <Box w={3} />
+                  <div
+                    onClick={() => {
+                      const f = filters;
+                      f.order_price = filters.order_price
+                        ? filters.order_price == "ASC"
+                          ? "DESC"
+                          : null
+                        : "ASC";
+                      const urlParams = new URLSearchParams(
+                        window.location.search
+                      );
+                      urlParams.delete("order_id");
+                      let base = "/explore/";
+                      if (f.order_price) {
+                        urlParams.set("order_price", f.order_price);
+                        base += "?" + urlParams;
+                      } else {
+                        urlParams.delete("order_price");
+                        base += "?" + urlParams;
+                      }
+
+                      window.history.pushState({}, null, base);
+                    }}
+                    style={{
+                      textAlign: "center",
+                      display: "flex",
+                      cursor: "pointer",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      {" "}
+                      <ChevronUp
+                        size={18}
+                        color={setColor(filters.order_price)}
+                      />
+                      <div style={{ marginBottom: -10 }} />
+                      <ChevronDown
+                        size={18}
+                        color={setColor(filters.order_price, false)}
+                      />
+                    </div>
+                    <div style={{ width: 3 }} />
+                    <b style={{ color: "#777777", fontSize: 16 }}>Price</b>
+                  </div>
+                  {/* Filter on sale */}
+                  <Box w={3} />
+                  <div
+                    style={{
+                      textAlign: "center",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      {" "}
+                      <Checkbox
+                        isChecked={filters.on_sale}
+                        onChange={() => {
+                          const f = filters;
+                          f.on_sale = !filters.on_sale;
+                          const urlParams = new URLSearchParams(
+                            window.location.search
+                          );
+                          let base = "/explore/";
+                          if (f.on_sale) {
+                            urlParams.set("on_sale", f.on_sale);
+                            base += "?" + urlParams;
+                          } else {
+                            urlParams.delete("on_sale");
+                            base += "?" + urlParams;
+                          }
+
+                          window.history.pushState({}, null, base);
+                        }}
+                        css={`
+                          > span:first-of-type {
+                            box-shadow: unset;
+                          }
+                        `}
+                      />
+                    </div>
+                    <div style={{ width: 5 }} />
+                    <b style={{ color: "#777777", fontSize: 16 }}>On Sale</b>
                   </div>
                 </div>
               </SimpleGrid>

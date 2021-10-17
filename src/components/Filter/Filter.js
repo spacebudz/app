@@ -45,6 +45,14 @@ export const setFilter = async (array, filters) => {
       filters.order_id == "ASC" ? a.id - b.id : b.id - a.id
     );
   }
+  if (filters.order_price) {
+    console.log("JOOOooooooo");
+    filtered = sortArray(filtered, filters.order_price);
+  }
+
+  if (filters.on_sale) {
+    filtered = filtered.filter((bud) => bud.price);
+  }
 
   return filtered;
 };
@@ -62,9 +70,9 @@ const sortArray = (array, price) => {
       return 0;
     }
     // nulls sort after anything else
-    else if (a.price === null) {
+    else if (!a.price) {
       return 1;
-    } else if (b.price === null) {
+    } else if (!b.price) {
       return -1;
     }
     // otherwise, if we're ascending, lowest sorts first

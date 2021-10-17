@@ -14,9 +14,23 @@ const Switch = {
   },
 };
 
+const Checkbox = {
+  baseStyle: {
+    track: {
+      _focus: {
+        boxShadow: "none",
+      },
+    },
+  },
+  defaultProps: {
+    colorScheme: "purple",
+  },
+};
+
 const theme = {
   components: {
     Switch,
+    Checkbox,
   },
 };
 
