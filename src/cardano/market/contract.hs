@@ -80,12 +80,6 @@ contractInfo = ContractInfo
 
 -- Data and Redeemers
 
-data TradeDetails = TradeDetails
-    { tradeOwner :: !PubKeyHash
-    , budId :: !BuiltinByteString
-    , requestedAmount :: !Integer
-    } deriving (Generic, ToJSON, FromJSON)
-
 instance Eq TradeDetails where
     {-# INLINABLE (==) #-}
     -- tradeOwner is not compared, since tradeOwner can changes with each trade/higher bid
@@ -95,14 +89,21 @@ instance Eq TradeDetails where
 data TradeDatum = StartBid | Bid TradeDetails | Offer TradeDetails 
     deriving (Generic, ToJSON, FromJSON)
 
+-- only compare necessary types in order to save storage!!
 instance Eq TradeDatum where
     {-# INLINABLE (==) #-}
     StartBid == StartBid = True
     Bid a == Bid b = a == b
-    Offer a == Offer b = a == b
+
 
 data TradeAction = Buy | Sell | BidHigher | Cancel
     deriving (Generic, ToJSON, FromJSON)
+
+-- only compare necessary types in order to save storage!!
+instance Eq TradeAction where
+    {-# INLINABLE (==) #-}
+    BidHigher == BidHigher = True
+    (==) _ _ = False
 
 
 -- Validator
@@ -195,14 +196,16 @@ tradeValidate contractInfo tradeDatum tradeAction context = case tradeDatum of
             in
                 case xs of
                     [v] -> v -- normally just one script input is allowed
-                    [v1, v2] -> case tradeDatum of
-                    -- allow 2 script inputs if it's a combination of cancelling bid and buying OR cancelling offer and selling (same SpaceBud only)
-                        (Bid details) ->  case (containsPolicyBidNFT v1 (budId details), containsPolicyBidNFT v2 (budId details), containsSpaceBudNFT v1 (budId details), containsSpaceBudNFT v2 (budId details)) of
-                            (True, False, False, True) -> v1 -- expected script input 1 to contain bid token and script input 2 SpaceBud 
-                            (False, True, True, False) -> v2 -- expected script input 2 to contain bid token and script input 1 SpaceBud 
-                        (Offer details) ->  case (containsPolicyBidNFT v1 (budId details), containsPolicyBidNFT v2 (budId details), containsSpaceBudNFT v1 (budId details), containsSpaceBudNFT v2 (budId details)) of
-                            (True, False, False, True) -> v2 -- expected script input 1 to contain bid token and script input 2 SpaceBud 
-                            (False, True, True, False) -> v1 -- expected script input 2 to contain bid token and script input 1 SpaceBud 
+                    [v1, v2] -> 
+                        -- allow 2 script inputs if it's a combination of cancelling bid and buying OR cancelling offer and selling (same SpaceBud only)
+                        case tradeDatum of
+                            (Bid details) -> case (tradeAction == BidHigher) of -- additional check to prevent user from using BidHigher redeemer
+                                False -> case (containsPolicyBidNFT v1 (budId details), containsPolicyBidNFT v2 (budId details), containsSpaceBudNFT v1 (budId details), containsSpaceBudNFT v2 (budId details)) of
+                                    (True, False, False, True) -> v1 -- expected script input 1 to contain bid token and script input 2 SpaceBud 
+                                    (False, True, True, False) -> v2 -- expected script input 2 to contain bid token and script input 1 SpaceBud
+                            (Offer details) -> case (containsPolicyBidNFT v1 (budId details), containsPolicyBidNFT v2 (budId details), containsSpaceBudNFT v1 (budId details), containsSpaceBudNFT v2 (budId details)) of
+                                (True, False, False, True) -> v2 -- expected script input 1 to contain bid token and script input 2 SpaceBud 
+                                (False, True, True, False) -> v1 -- expected script input 2 to contain bid token and script input 1 SpaceBud 
 
         scriptOutputValue :: Value
         scriptOutputDatum :: TradeDatum
