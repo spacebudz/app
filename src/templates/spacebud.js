@@ -80,18 +80,18 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const checkTransaction = async (txHash, { type, lovelace } = {}) => {
     if (!txHash) return;
     PendingTransactionToast(toast);
-    // if (type) {
-    //   fetch("https://api.spacebudzbot.com/tweet", {
-    //     method: "POST",
-    //     headers: {
-    //       Authorization: "Bearer " + secrets.TWITTER_BOT_TOKEN,
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({ id: spacebud.id.toString(), type, lovelace }),
-    //   })
-    //     .then(console.log)
-    //     .catch(console.log);
-    // }
+    if (type) {
+      fetch("https://api.spacebudzbot.com/tweet", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + secrets.TWITTER_BOT_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: spacebud.id.toString(), type, lovelace }),
+      })
+        .then(console.log)
+        .catch(console.log);
+    }
     await market.current.awaitConfirmation(txHash);
     toast.closeAll();
     SuccessTransactionToast(toast, txHash);
