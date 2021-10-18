@@ -19,7 +19,7 @@ To make sure you have a real SpaceBud the Policy ID must match the following:
 You can find the according policy script in `./minting_policy.json`
 
 The contract address for the official SpaceBudz market place:
-**`addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed`**
+**`addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq`**
 
 ### Metadata
 

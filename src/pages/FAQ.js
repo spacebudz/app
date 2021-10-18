@@ -157,10 +157,10 @@ const FAQ = (props) => {
                   3rd party or middleman involved.
                   <br /> The contract address:{" "}
                   <Link
-                    href="https://cardanoscan.io/address/addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed"
+                    href="https://cardanoscan.io/address/addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq"
                     target="_blank"
                   >
-                    addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed
+                    addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq
                   </Link>
                   <br />
                   <br />

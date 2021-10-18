@@ -68,7 +68,7 @@ toFraction p = toInteger $ floor (1 / (p / 1000))
 
 contractInfo = ContractInfo 
     { policySpaceBudz = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"
-    , policyBid = "6bec713b08a2d7c64baa3596d200b41b560850919d72e634944f2d52"
+    , policyBid = "800df05a0cc6b6f0d28aaa1812135bd9eebfbf5e8e80fd47da9989eb"
     , prefixSpaceBud = "SpaceBud"
     , prefixSpaceBudBid = "SpaceBudBid"
     , owner1 = ("826d9fafe1b3acf15bd250de69c04e3fc92c4493785939e069932e89", 416, 625) -- 2.4% 1.6%
@@ -104,13 +104,6 @@ instance Eq TradeDatum where
 
 data TradeAction = Buy | Sell | BidHigher | Cancel
     deriving (Generic, ToJSON, FromJSON)
-
--- only compare necessary types in order to save storage!!
-instance Eq TradeAction where
-    {-# INLINABLE (==) #-}
-    BidHigher == BidHigher = True
-    (==) _ _ = False
-
 
 -- Validator
 

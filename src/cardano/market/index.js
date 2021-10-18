@@ -30,7 +30,7 @@ const CONTRACT = () => {
 
 const CONTRACT_ADDRESS = () =>
   Loader.Cardano.Address.from_bech32(
-    "addr1wx3sw6tr8xm4fkza5tzezlw743zlvfpytg40z9tp3e2rz3sxwxczs"
+    "addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq"
   );
 
 // Datums
@@ -637,7 +637,7 @@ class SpaceBudzMarket {
     this.contractInfo = {
       policySpaceBudz:
         "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc",
-      policyBid: "f1a22b7e7174748c309d8fe61350736eb6f74020842eeb6d73449bd7",
+      policyBid: "800df05a0cc6b6f0d28aaa1812135bd9eebfbf5e8e80fd47da9989eb",
       prefixSpaceBud: "SpaceBud",
       prefixSpaceBudBid: "SpaceBudBid",
       owner1: {

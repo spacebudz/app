@@ -63,7 +63,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
 
   const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
   const CONTRACT_ADDRESS =
-    "addr1wx3sw6tr8xm4fkza5tzezlw743zlvfpytg40z9tp3e2rz3sxwxczs";
+    "addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq";
 
   React.useEffect(() => {
     loadMarket();

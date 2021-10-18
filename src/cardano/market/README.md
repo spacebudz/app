@@ -13,7 +13,7 @@ The `contract.hs` file contains the validator and the off-chain code written in 
 The SpaceBudz market place can be run by community members. **0.4%** of the traded amount goes to a community member, if trades happens through his market instance.
 
 The contract address:
-**`addr1wx468s53gytznzs5dt6hmq2kk9vr7xplcpwq4fywa9d7cug7fd0ed`**
+**`addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq`**
 
 ### 🚀 Quick start
 
