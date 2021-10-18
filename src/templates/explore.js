@@ -10,9 +10,9 @@ import { Button, ButtonGroup } from "@chakra-ui/button";
 import { Box, SimpleGrid } from "@chakra-ui/layout";
 import { mdiFilterOutline } from "@mdi/js";
 import Icon from "@mdi/react";
-import { BeatLoader } from "react-spinners";
 import { useDisclosure } from "@chakra-ui/hooks";
 import { Checkbox } from "@chakra-ui/checkbox";
+import { Spinner } from "@chakra-ui/spinner";
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -22,8 +22,6 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
   const fullList = React.useRef([]);
   const recentSearch = React.useRef();
   const filterInterval = React.useRef();
-
-  fullList.current = initialOrder.map((id) => spacebudz[id]);
 
   const [array, setArray] = React.useState([]);
   const [filters, setFilters] = React.useState({
@@ -112,7 +110,15 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
   };
 
   const fetchData = async () => {
-    setLoading(false);
+    setLoading(true);
+    const offers = await fetch(`https://spacebudz.io/api/offers`)
+      .then((res) => res.json())
+      .then((res) => res.offers);
+    offers.forEach(({ budId, offer }) => {
+      spacebudz[budId] = { ...spacebudz[budId], price: offer.amount };
+    });
+    fullList.current = initialOrder.map((id) => spacebudz[id]);
+
     filterInterval.current = setInterval(() => {
       applySearch();
     });
@@ -243,7 +249,11 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                     rounded="2xl"
                     onClick={() => {
                       window.history.pushState({}, null, `/explore/`);
-                      setFilters({ order_id: null, order_price: null });
+                      setFilters({
+                        order_id: null,
+                        order_price: null,
+                        on_sale: false,
+                      });
                     }}
                   >
                     Reset
@@ -427,8 +437,13 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
             }}
           >
             {loading ? (
-              <Box display="flex" alignItems="center" justifyContent="center">
-                <BeatLoader size="5" color="#6B46C1" />
+              <Box
+                mt="30px"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Spinner size="sm" color="purple" />
               </Box>
             ) : (
               array && (

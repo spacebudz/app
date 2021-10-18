@@ -8,6 +8,7 @@ import { BeatLoader } from "react-spinners";
 import Icon from "@mdi/react";
 import { mdiOpenInNew } from "@mdi/js";
 import secrets from "../../secrets";
+import { Spinner } from "@chakra-ui/spinner";
 
 const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc";
 
@@ -20,27 +21,52 @@ function fromHex(hex) {
 
 const Profile = ({ pageContext: { spacebudz } }) => {
   const [address, setAddress] = React.useState("");
-  const [tokens, setTokens] = React.useState(null);
+  const [tokens, setTokens] = React.useState({
+    owned: [],
+    bids: [],
+    offers: [],
+  });
+  const [isLoading, setIsLoading] = React.useState(true);
   const connected = useStoreState((state) => state.connection.connected);
   const didMount = React.useRef(false);
   const isFirstConnect = React.useRef(true);
   const fetchAddressBudz = async (address) => {
+    setIsLoading(true);
     setTokens(null);
+    const tokens = { owned: [], bids: [], offers: [] };
     const amount = await fetch(
       `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${address}`,
       { headers: { project_id: secrets.PROJECT_ID } }
     )
       .then((res) => res.json())
       .then((res) => res.amount);
+    const offers = await fetch(`https://spacebudz.io/api/offers/${address}`, {
+      headers: { project_id: secrets.PROJECT_ID },
+    }).then((res) => res.json());
+
+    tokens.offers = offers.offers.map((offer) => ({
+      ...spacebudz[offer.budId],
+      price: offer.offer.amount,
+    }));
+
+    const bids = await fetch(`https://spacebudz.io/api/bids/${address}`, {
+      headers: { project_id: secrets.PROJECT_ID },
+    }).then((res) => res.json());
+
+    tokens.bids = bids.bids.map((bid) => ({
+      ...spacebudz[bid.budId],
+      price: bid.bid.amount,
+    }));
+
     try {
-      const budzAmount = amount
+      const ownedAmount = amount
         .filter((am) => am.unit.startsWith(POLICY))
         .map((am) => parseInt(fromHex(am.unit.slice(56)).split("SpaceBud")[1]));
-      const tokens = budzAmount.map((id) => spacebudz[id]);
-      setTokens(tokens);
-    } catch (e) {
-      setTokens([]);
-    }
+      const owned = ownedAmount.map((id) => spacebudz[id]);
+      tokens.owned = owned;
+    } catch (e) {}
+    setTokens(tokens);
+    setIsLoading(false);
   };
   const update = async () => {
     const address =
@@ -151,7 +177,9 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                   Total Owned
                 </div>
                 <div style={{ fontWeight: "bold", fontSize: 18 }}>
-                  {tokens ? tokens.length : "..."}
+                  {!isLoading
+                    ? tokens.owned.length + tokens.offers.length
+                    : "..."}
                 </div>
               </div>
               <div
@@ -174,7 +202,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                   Open Bids
                 </div>
                 <div style={{ fontWeight: "bold", fontSize: 18 }}>
-                  {tokens ? tokens.length : "..."}
+                  {!isLoading ? tokens.bids.length : "..."}
                 </div>
               </div>
               <div
@@ -197,7 +225,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                   Open Offers
                 </div>
                 <div style={{ fontWeight: "bold", fontSize: 18 }}>
-                  {tokens ? tokens.length : "..."}
+                  {!isLoading ? tokens.offers.length : "..."}
                 </div>
               </div>
             </SimpleGrid>
@@ -205,14 +233,14 @@ const Profile = ({ pageContext: { spacebudz } }) => {
           {/* <Spacer y={3} /> */}
           <Box h={10} />
           <div style={{ marginBottom: 100 }}>
-            {!tokens ? (
+            {isLoading ? (
               <Box
-                w="full"
+                width="full"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
               >
-                <BeatLoader size="5" color="#6B46C1" />
+                <Spinner mt="10" size="sm" color="purple" />
               </Box>
             ) : (
               <Box
@@ -227,21 +255,29 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                   Open Bids
                 </Box>
                 <Box width="full">
-                  <InfiniteGrid array={[]} spacebudz={spacebudz} />
+                  <InfiniteGrid
+                    array={tokens.bids}
+                    spacebudz={spacebudz}
+                    type="Bid"
+                  />
                 </Box>
                 <Box h="1px" w="95%" background="gray.200" my={10} />
                 <Box width="full" fontWeight="bold" fontSize="x-large" mb={4}>
                   Open Offers
                 </Box>
                 <Box width="full">
-                  <InfiniteGrid array={[]} spacebudz={spacebudz} />
+                  <InfiniteGrid
+                    array={tokens.offers}
+                    spacebudz={spacebudz}
+                    type="Offer"
+                  />
                 </Box>
                 <Box h="1px" w="95%" background="gray.200" my={10} />
                 <Box width="full" fontWeight="bold" fontSize="x-large" mb={4}>
                   Owned
                 </Box>
                 <Box width="full">
-                  <InfiniteGrid array={tokens} spacebudz={spacebudz} />
+                  <InfiniteGrid array={tokens.owned} spacebudz={spacebudz} />
                 </Box>
               </Box>
             )}

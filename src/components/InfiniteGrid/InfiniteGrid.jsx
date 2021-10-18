@@ -5,9 +5,9 @@ import { Link } from "gatsby";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import styled, { keyframes } from "styled-components";
-import { BeatLoader } from "react-spinners";
 import { Box } from "@chakra-ui/layout";
 import { UnitDisplay } from "../UnitDisplay";
+import { Spinner } from "@chakra-ui/spinner";
 
 var converterEngine = function (input) {
   // fn BLOB => Binary => Base64 ?
@@ -112,8 +112,6 @@ class InfiniteGrid extends React.Component {
     const items = [];
     const start = this.start || 0;
 
-    console.log(this.props.array);
-
     for (let i = 0; i < num; ++i) {
       const bud = this.props.array[start + i];
       items.push(
@@ -180,7 +178,7 @@ class InfiniteGrid extends React.Component {
             justifyContent="center"
           >
             <div style={{ height: 100 }} />
-            <BeatLoader size="5" color="#6B46C1" />
+            <Spinner size="sm" color="purple" />
           </Box>
         )}
       </div>

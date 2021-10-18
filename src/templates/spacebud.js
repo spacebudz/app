@@ -48,6 +48,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const [details, setDetails] = React.useState({
     bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
     offer: { offerUtxo: null, lovelace: null, usd: null, owner: true },
+    lastSale: { lovelace: null, usd: null },
   });
   const [loadingButton, setLoadingButton] = React.useState({
     cancelBid: false,
@@ -61,6 +62,8 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const market = React.useRef();
 
   const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
+  const CONTRACT_ADDRESS =
+    "addr1wx3sw6tr8xm4fkza5tzezlw743zlvfpytg40z9tp3e2rz3sxwxczs";
 
   React.useEffect(() => {
     loadMarket();
@@ -77,18 +80,18 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const checkTransaction = async (txHash, { type, lovelace } = {}) => {
     if (!txHash) return;
     PendingTransactionToast(toast);
-    if (type) {
-      fetch("https://api.spacebudzbot.com/tweet", {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + secrets.TWITTER_BOT_TOKEN,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ id: spacebud.id.toString(), type, lovelace }),
-      })
-        .then(console.log)
-        .catch(console.log);
-    }
+    // if (type) {
+    //   fetch("https://api.spacebudzbot.com/tweet", {
+    //     method: "POST",
+    //     headers: {
+    //       Authorization: "Bearer " + secrets.TWITTER_BOT_TOKEN,
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ id: spacebud.id.toString(), type, lovelace }),
+    //   })
+    //     .then(console.log)
+    //     .catch(console.log);
+    // }
     await market.current.awaitConfirmation(txHash);
     toast.closeAll();
     SuccessTransactionToast(toast, txHash);
@@ -121,6 +124,12 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     )
       .then((res) => res.json())
       .then((res) => res.cardano["usd"]);
+    const lastSale = await fetch(
+      `https://spacebudz.io/api/specificSpaceBud/${spacebud.id}`
+    )
+      .then((res) => res.json())
+      .then((res) => res.lastSale);
+
     const bidUtxo = await market.current.getBid(spacebud.id);
     let offerUtxo = await market.current.getOffer(spacebud.id);
     // check if twin
@@ -137,6 +146,11 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
         } else {
           const offerUtxo1 = offerUtxo[0];
           const offerUtxo2 = offerUtxo[1];
+          // set correct owner
+          addresses = [
+            { adddress: offerUtxo1.tradeOwnerAddress.to_bech32() },
+            { address: offerUtxo1.tradeOwnerAddress.to_bech32() },
+          ];
           if (
             isBrowser() &&
             window.BigInt(offerUtxo1.lovelace) <
@@ -152,6 +166,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     const details = {
       bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
       offer: { offerUtxo: null, lovelace: null, usd: null, owner: false },
+      lastSale: { lovelace: null, usd: null },
     };
     details.bid.bidUtxo = bidUtxo;
     details.offer.offerUtxo = offerUtxo;
@@ -167,10 +182,28 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     if (addresses.find((address) => address.address == connected))
       details.offer.owner = true;
     if (offerUtxo) {
+      addresses = addresses.map((address) =>
+        address.address == CONTRACT_ADDRESS
+          ? { address: offerUtxo.tradeOwnerAddress.to_bech32() }
+          : address
+      );
       if (offerUtxo.tradeOwnerAddress.to_bech32() === connected)
         details.offer.owner = true;
       details.offer.lovelace = offerUtxo.lovelace;
       details.offer.usd = (offerUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
+    }
+
+    if (lastSale) {
+      details.lastSale.lovelace = lastSale;
+      details.lastSale.usd = (lastSale / 10 ** 6) * fiatPrice * 10 ** 2;
+    }
+
+    //check if same address if there are 2
+    if (
+      addresses.length > 1 &&
+      addresses[0].adddress == addresses[1].adddress
+    ) {
+      addresses = [addresses[0]];
     }
 
     setDetails(details);
@@ -379,17 +412,17 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                   Last Sale
                 </div>
                 <UnitDisplay
-                  showQuantity={!Boolean(details.offer.lovelace)}
+                  showQuantity={!Boolean(details.lastSale.lovelace)}
                   fontWeight="medium"
-                  quantity={details.offer.lovelace || 0}
+                  quantity={details.lastSale.lovelace || 0}
                   symbol="ADA"
                   decimals={6}
                 />
                 <UnitDisplay
-                  showQuantity={!Boolean(details.offer.usd)}
+                  showQuantity={!Boolean(details.lastSale.usd)}
                   fontSize={12}
                   color="#777777"
-                  quantity={details.offer.usd || 0}
+                  quantity={details.lastSale.usd || 0}
                   symbol="USD"
                   decimals={2}
                 />

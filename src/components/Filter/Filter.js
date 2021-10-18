@@ -46,7 +46,6 @@ export const setFilter = async (array, filters) => {
     );
   }
   if (filters.order_price) {
-    console.log("JOOOooooooo");
     filtered = sortArray(filtered, filters.order_price);
   }
 
