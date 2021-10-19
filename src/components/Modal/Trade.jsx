@@ -82,7 +82,7 @@ const TradeModal = React.forwardRef(
         <ModalOverlay />
         <ModalContent>
           <ModalHeader textAlign="center" mt="2">
-            {type == "BID" ? "Bid" : "Offer"}
+            {type == "BID" ? "Bid" : "Listing"}
           </ModalHeader>
           <Box textAlign="center" mt="-2" color="GrayText">
             SPACEBUD #{budId}
@@ -110,7 +110,7 @@ const TradeModal = React.forwardRef(
                 }}
                 rounded="3xl"
                 focusBorderColor="purple.500"
-                placeholder={type == "BID" ? "Bid amount" : "Offer amount"}
+                placeholder={type == "BID" ? "Bid amount" : "List price"}
               />
             </InputGroup>
             <Box h={3} />
@@ -155,7 +155,7 @@ const TradeModal = React.forwardRef(
                 onClose();
               }}
             >
-              {type == "BID" ? "Bid" : "Offer"}
+              {type == "BID" ? "Bid" : "List"}
             </Button>
           </ModalFooter>
         </ModalContent>

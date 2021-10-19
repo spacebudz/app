@@ -587,13 +587,14 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                             });
                           }}
                         >
-                          Offer
+                          {/* Offer */}
+                          List
                         </Button>
                       )}
                     </Box>
                     <Box w={5} />
                     <Box width="150px">
-                      <div style={{ fontSize: 12 }}>Offer price</div>
+                      <div style={{ fontSize: 12 }}>Ask price</div>
                       <UnitDisplay
                         showQuantity={!Boolean(details.offer.lovelace)}
                         fontWeight="medium"

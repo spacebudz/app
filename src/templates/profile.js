@@ -49,20 +49,29 @@ const Profile = ({ pageContext: { spacebudz } }) => {
       price: offer.offer.amount,
     }));
 
-    const bids = await fetch(`https://spacebudz.io/api/bids/${address}`, {
+    const bids = await fetch(`https://spacebudz.io/api/bids`, {
       headers: { project_id: secrets.PROJECT_ID },
     }).then((res) => res.json());
 
-    tokens.bids = bids.bids.map((bid) => ({
-      ...spacebudz[bid.budId],
-      price: bid.bid.amount,
-    }));
+    tokens.bids = bids.bids
+      .filter((bid) => bid.bid.owner == address)
+      .map((bid) => ({
+        ...spacebudz[bid.budId],
+        price: bid.bid.amount,
+      }));
 
     try {
       const ownedAmount = amount
         .filter((am) => am.unit.startsWith(POLICY))
         .map((am) => parseInt(fromHex(am.unit.slice(56)).split("SpaceBud")[1]));
-      const owned = ownedAmount.map((id) => spacebudz[id]);
+      const ownedBids = bids.bids.filter((bid) => bid.bid.owner == address);
+      const owned = ownedAmount.map((id) => {
+        const sellPrice = bids.bids.find((bid) => bid.budId == id);
+        return {
+          ...spacebudz[id],
+          price: sellPrice ? sellPrice.bid.amount : undefined,
+        };
+      });
       tokens.owned = owned;
     } catch (e) {}
     setTokens(tokens);
@@ -222,7 +231,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                     marginBottom: 4,
                   }}
                 >
-                  Open Offers
+                  Listed
                 </div>
                 <div style={{ fontWeight: "bold", fontSize: 18 }}>
                   {!isLoading ? tokens.offers.length : "..."}
@@ -263,13 +272,13 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                 </Box>
                 <Box h="1px" w="95%" background="gray.200" my={10} />
                 <Box width="full" fontWeight="bold" fontSize="x-large" mb={4}>
-                  Open Offers
+                  Listed
                 </Box>
                 <Box width="full">
                   <InfiniteGrid
                     array={tokens.offers}
                     spacebudz={spacebudz}
-                    type="Offer"
+                    type="Listed"
                   />
                 </Box>
                 <Box h="1px" w="95%" background="gray.200" my={10} />
@@ -277,7 +286,11 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                   Owned
                 </Box>
                 <Box width="full">
-                  <InfiniteGrid array={tokens.owned} spacebudz={spacebudz} />
+                  <InfiniteGrid
+                    array={tokens.owned}
+                    spacebudz={spacebudz}
+                    type="Bid"
+                  />
                 </Box>
               </Box>
             )}
