@@ -199,10 +199,8 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     }
 
     //check if same address if there are 2
-    if (
-      addresses.length > 1 &&
-      addresses[0].adddress == addresses[1].adddress
-    ) {
+
+    if (addresses.length > 1 && addresses[0].address == addresses[1].address) {
       addresses = [addresses[0]];
     }
 
