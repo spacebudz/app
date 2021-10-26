@@ -108,6 +108,8 @@ const TradeModal = React.forwardRef(
                   if (!v.match("[0-9]+([.,][0-9]+)?") && v) return;
                   setAda(v);
                 }}
+                rounded="3xl"
+                focusBorderColor="purple.500"
                 placeholder={type == "BID" ? "Bid amount" : "List price"}
               />
             </InputGroup>

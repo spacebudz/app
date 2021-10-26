@@ -40,13 +40,20 @@ const Input = ({
   );
 };
 
+Input.defaultProps = {
+  width: null,
+  height: null,
+  placeholder: null,
+  onKeyUp: null
+}
+
 Input.propTypes = {
   width: PropTypes.string,
   height: PropTypes.string,
   value: PropTypes.string.isRequired,
   placeholder: PropTypes.string,
   onSearch: PropTypes.func.isRequired,
-  onKeyUp: PropTypes.func.isRequired,
+  onKeyUp: PropTypes.func,
   onChange: PropTypes.func.isRequired,
 }
 
