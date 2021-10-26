@@ -12,9 +12,13 @@ import {
 } from "@chakra-ui/react";
 
 //assets
+import { navigate } from "gatsby";
+import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import { Box } from "@chakra-ui/layout";
 
-const FAQ = () => {
+const FAQ = (props) => {
+  const matches = useBreakpoint();
+
   return (
     <>
       <Metadata
@@ -114,9 +118,8 @@ const FAQ = () => {
                   These tokens are unique forever. The minting policy is time
                   based and closed on the 22nd of August 2021.
                   <br /> The minting script:
-                  <br />
-                  <br />
-                  {`{
+                  <Box fontWeight="medium" my={4}>
+                    {`{
                     type: "all",
                     scripts: [
                       { slot: 38082894, type: "before" },
@@ -127,8 +130,7 @@ const FAQ = () => {
                       }
                     ]
                   }`}
-                  <br />
-                  <br />
+                  </Box>
                   Hash it and you get the following Policy ID:
                   <br />
                   <Link
