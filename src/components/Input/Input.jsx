@@ -1,32 +1,49 @@
 import React from "react";
+import PropTypes from "prop-types";
+
 import { mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
+
 import * as styles from "./Input.module.css";
 
-const Input = (props) => {
+const Input = ({
+  onKeyUp,
+  value,
+  onChange,
+  placeholder,
+  onSearch,
+}) => {
   return (
     <div style={{ display: "flex", alignItems: "center" }}>
       <input
-        {...props}
-        style={{ width: props.width, height: props.height }}
+        onKeyUp={onKeyUp}
         className={styles.customInput}
-        value={props.value}
+        value={value}
         type="text"
-        onChange={props.onChange}
-        placeholder={props.placeholder}
+        onChange={onChange}
+        placeholder={placeholder}
         onFocus={(e) => (e.target.placeholder = "")}
-        onBlur={(e) => (e.target.placeholder = `${props.placeholder}`)}
-      ></input>
+        onBlur={(e) => (e.target.placeholder = `${placeholder}`)}
+      />
 
       <Icon
         path={mdiMagnify}
         size={1}
         style={{ marginLeft: -40, marginRight: 20, cursor: "pointer" }}
         color="white"
-        onClick={(e) => props.onSearch(e)}
+        onClick={(e) => onSearch(e)}
       />
     </div>
   );
 };
+
+
+Input.propTypes = {
+  value: PropTypes.string.isRequired,
+  placeholder: PropTypes.string.isRequired,
+  onSearch: PropTypes.func.isRequired,
+  onKeyUp: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+}
 
 export default Input;
