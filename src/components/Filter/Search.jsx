@@ -1,27 +1,34 @@
 import React from "react";
-import { mdiMagnify, mdiSearchWeb } from "@mdi/js";
-import Icon from "@mdi/react";
+import PropTypes from "prop-types";
+
 import Input from "../Input";
 
-const Search = (props) => {
-  const [searchId, setSearchId] = React.useState(props.param);
+const Search = ({param, onKeyUp, onSearch, onChange}) => {
+  const [searchId, setSearchId] = React.useState(param);
   React.useEffect(() => {
-    if (props.param) setSearchId(props.param);
-  }, [props.param]);
+    if (param) setSearchId(param);
+  }, [param]);
   return (
     <Input
       placeholder="Search #"
       value={searchId}
-      onKeyUp={(e) => props.onKeyUp(e)}
-      onSearch={() => props.onSearch(searchId)}
+      onKeyUp={(e) => onKeyUp(e)}
+      onSearch={() => onSearch(searchId)}
       onChange={(e) => {
         const re = /^[0-9\b]+$/;
         if (!re.test(e.target.value) && e.target.value != "") return;
         setSearchId(e.target.value);
-        props.onChange && props.onChange(e);
+        onChange(e);
       }}
     />
   );
 };
+
+Search.propTypes = {
+  param: PropTypes.string.isRequired,
+  onKeyUp: PropTypes.func.isRequired,
+  onSearch: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+}
 
 export default Search;
