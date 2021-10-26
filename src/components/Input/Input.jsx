@@ -40,9 +40,9 @@ const Input = ({
 
 Input.propTypes = {
   value: PropTypes.string.isRequired,
-  placeholder: PropTypes.string,
+  placeholder: PropTypes.string.isRequired,
   onSearch: PropTypes.func.isRequired,
-  onKeyUp: PropTypes.func,
+  onKeyUp: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
 }
 
