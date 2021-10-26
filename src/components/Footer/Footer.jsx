@@ -41,6 +41,9 @@ const Footer = (props) => {
                 <Tab onClick={() => navigate("/tutorial")}>How It Works</Tab>
                 <Tab onClick={() => navigate("/FAQ")}>FAQ</Tab>
                 <Tab onClick={() => navigate("/about")}>About</Tab>
+                <Tab onClick={() => window.open("https://v1.spacebudz.io")}>
+                  Go to v1
+                </Tab>
               </div>
             </Grid>
             <Grid
