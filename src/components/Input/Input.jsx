@@ -8,8 +8,6 @@ import * as styles from "./Input.module.css";
 
 const Input = ({
   onKeyUp,
-  width,
-  height,
   value,
   onChange,
   placeholder,
@@ -19,7 +17,6 @@ const Input = ({
     <div style={{ display: "flex", alignItems: "center" }}>
       <input
         onKeyUp={onKeyUp}
-        style={{ width: width, height: height }}
         className={styles.customInput}
         value={value}
         type="text"
@@ -40,16 +37,8 @@ const Input = ({
   );
 };
 
-Input.defaultProps = {
-  width: null,
-  height: null,
-  placeholder: null,
-  onKeyUp: null
-}
 
 Input.propTypes = {
-  width: PropTypes.string,
-  height: PropTypes.string,
   value: PropTypes.string.isRequired,
   placeholder: PropTypes.string,
   onSearch: PropTypes.func.isRequired,

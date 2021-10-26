@@ -24,13 +24,9 @@ const Search = ({param, onKeyUp, onSearch, onChange}) => {
   );
 };
 
-Search.defaultProps = {
-  onKeyUp: null
-}
-
 Search.propTypes = {
   param: PropTypes.string.isRequired,
-  onKeyUp: PropTypes.func,
+  onKeyUp: PropTypes.func.isRequired,
   onSearch: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
 }
