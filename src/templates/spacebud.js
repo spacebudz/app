@@ -793,10 +793,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             }}
           >
             {spacebud.gadgets.length > 0 ? (
-              spacebud.gadgets.map((gadget, index) => (
-                <Box p="1">
+              spacebud.gadgets.map((gadget) => (
+                <Box key={gadget} p="1">
                   <Attribute
-                    key={index}
                     onClick={() => navigate(`/explore/?gadget=${gadget}`)}
                   >
                     {gadget}
