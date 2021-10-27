@@ -435,7 +435,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
               <Box display="flex" alignItems="center">
                 {details.offer.owner ? (
                   <>
-                    <Box width="150px" textAlign="right">
+                    <Box
+                      width={matches.md ? "100px" : "150px"}
+                      textAlign="right"
+                    >
                       <div style={{ fontSize: 12 }}>Sell now price</div>
                       <UnitDisplay
                         showQuantity={!Boolean(details.bid.lovelace)}
@@ -593,7 +596,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                       )}
                     </Box>
                     <Box w={5} />
-                    <Box width="150px">
+                    <Box width={matches.md ? "100px" : "150px"}>
                       <div style={{ fontSize: 12 }}>Ask price</div>
                       <UnitDisplay
                         showQuantity={!Boolean(details.offer.lovelace)}
@@ -615,7 +618,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                 ) : (
                   <>
                     {" "}
-                    <Box width="150px" textAlign="right">
+                    <Box
+                      width={matches.md ? "100px" : "150px"}
+                      textAlign="right"
+                    >
                       <div style={{ fontSize: 12 }}>Buy now price</div>
                       <UnitDisplay
                         showQuantity={!Boolean(details.offer.lovelace)}
@@ -739,7 +745,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                       </ButtonGroup>
                     </Box>
                     <Box w={5} />
-                    <Box width="150px">
+                    <Box width={matches.md ? "100px" : "150px"}>
                       <div style={{ fontSize: 12 }}>Bid price</div>
                       <UnitDisplay
                         showQuantity={!Boolean(details.bid.lovelace)}
