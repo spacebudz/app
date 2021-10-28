@@ -63,7 +63,7 @@ All functions are asynchronous.
 ```js
 - getBid(budId : number) : TradeUtxo
 // If you want to check if a bid is currently active or it is the start bid:
-if (Buffer.from(bidUtxo.datum.to_bytes()).toString("hex")) !== "d866820080")
+if (Buffer.from(bidUtxo.datum.to_bytes()).toString("hex")) === "d866820080")
 // if true then it's a start bid otherwise an active bid
 
 - getOffer(budId : number) : TradeUtxo | TradeUtxo[] | undefined
