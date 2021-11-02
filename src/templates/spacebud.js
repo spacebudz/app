@@ -1,7 +1,6 @@
 import { useDisclosure } from "@chakra-ui/hooks";
 import React from "react";
 import MiddleEllipsis from "react-middle-ellipsis";
-// import { Button } from "../components/Button";
 import { navigate } from "gatsby";
 import { useBreakpoint } from "gatsby-plugin-breakpoints";
 import Metadata from "../components/Metadata";
@@ -11,7 +10,6 @@ import {
   TradeModal,
   SuccessTransactionToast,
   PendingTransactionToast,
-  FailedTransactionToast,
   tradeErrorHandler,
 } from "../components/Modal";
 import { Share2 } from "@geist-ui/react-icons";
@@ -135,12 +133,13 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     // check if twin
     if (Array.isArray(offerUtxo)) {
       if (
-        offerUtxo.length == 2 &&
-        (spacebud.id == 1903 || spacebud.id == 6413)
+        offerUtxo.length === 2 &&
+        (spacebud.id === 1903 || spacebud.id === 6413)
       ) {
         const ownerUtxo = offerUtxo.find(
-          (utxo) => utxo.tradeOwnerAddress.to_bech32() == connected
+          (utxo) => utxo.tradeOwnerAddress.to_bech32() === connected
         );
+
         if (ownerUtxo) {
           offerUtxo = ownerUtxo;
         } else {
@@ -179,11 +178,11 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       details.bid.lovelace = bidUtxo.lovelace;
       details.bid.usd = (bidUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
-    if (addresses.find((address) => address.address == connected))
+    if (addresses.find((address) => address.address === connected))
       details.offer.owner = true;
     if (offerUtxo) {
       addresses = addresses.map((address) =>
-        address.address == CONTRACT_ADDRESS
+        address.address === CONTRACT_ADDRESS
           ? { address: offerUtxo.tradeOwnerAddress.to_bech32() }
           : address
       );
@@ -200,7 +199,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
 
     //check if same address if there are 2
 
-    if (addresses.length > 1 && addresses[0].address == addresses[1].address) {
+    if (addresses.length > 1 && addresses[0].address === addresses[1].address) {
       addresses = [addresses[0]];
     }
 
@@ -280,7 +279,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
             }}
           >
             <div style={{ width: "100%", position: "relative" }}>
-              {(spacebud.id == 1903 || spacebud.id == 6413) && (
+              {(spacebud.id === 1903 || spacebud.id === 6413) && (
                 <img
                   src={spacebud.image}
                   style={{
@@ -309,7 +308,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           </LinkName>
         </div>
         <Box h={6} />
-        {(spacebud.id == 1903 || spacebud.id == 6413) && (
+        {(spacebud.id === 1903 || spacebud.id === 6413) && (
           <>
             <div
               style={{

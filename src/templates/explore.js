@@ -1,5 +1,4 @@
 import React from "react";
-import Headroom from "react-headroom";
 import { Search, setFilter } from "../components/Filter";
 import InfiniteGrid from "../components/InfiniteGrid";
 import { FloatingButton } from "../components/Button";
@@ -35,17 +34,17 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const setColor = (order, up = true) => {
-    if (order == null) return "#b5b5b5";
-    if (order == "ASC" && up) return "black";
-    if (order == "ASC" && !up) return "#b5b5b5";
-    if (order == "DESC" && up) return "#b5b5b5";
-    if (order == "DESC" && !up) return "black";
+    if (order === null) return "#b5b5b5";
+    if (order === "ASC" && up) return "black";
+    if (order === "ASC" && !up) return "#b5b5b5";
+    if (order === "DESC" && up) return "#b5b5b5";
+    if (order === "DESC" && !up) return "black";
   };
 
   const numberOfAppliedFilter = () => {
     const f = filters;
     let count = 0;
-    if (f.id || f.id == 0) count += 1;
+    if (f.id || f.id === 0) count += 1;
     if (f.types) f.types.forEach(() => (count += 1));
     if (f.gadgets) f.gadgets.forEach(() => (count += 1));
     if (f.range && f.range.length > 0) count += 1;
@@ -73,12 +72,12 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
       order_price +
       on_sale
     ).toString();
-    if (searchString == recentSearch.current) return;
+    if (searchString === recentSearch.current) return;
     recentSearch.current = searchString;
     setLoading(true);
     if (
       id ||
-      id == 0 ||
+      id === 0 ||
       types.length > 0 ||
       gadgets.length > 0 ||
       range.length > 0 ||
@@ -87,7 +86,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
       order_price ||
       on_sale
     ) {
-      if (id || id == 0) setParam(id);
+      if (id || id === 0) setParam(id);
       await sleep();
       const f = filters;
       f.id = id;
@@ -97,7 +96,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
       f.gadgetsCount = gadgetsCount;
       f.order_id = order_id;
       f.order_price = order_price;
-      f.on_sale = on_sale;
+      f.on_sale = Boolean(on_sale);
       const filtered = await setFilter(fullList.current, f);
       setArray(null);
       setTimeout(() => setArray(filtered));
@@ -179,7 +178,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                 onKeyUp={(e) => {
                   if (e.key === "Enter") {
                     window.scrollTo(0, 0);
-                    if (e.target.value == "") return;
+                    if (e.target.value === "") return;
                     window.history.pushState(
                       {},
                       null,
@@ -190,13 +189,13 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                 onSearch={(e) => {
                   window.scrollTo(0, 0);
 
-                  if (e == "") return;
+                  if (e === "") return;
                   window.history.pushState({}, null, `/explore/?id=${e}`);
                 }}
                 onChange={(e) => {
                   if (e.target.value) e.persist();
                   if (
-                    e.target.value == "" &&
+                    e.target.value === "" &&
                     array.toString() != fullList.current
                   ) {
                     window.history.pushState({}, null, `/explore/`);
@@ -301,7 +300,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                     onClick={() => {
                       const f = filters;
                       f.order_id = filters.order_id
-                        ? filters.order_id == "ASC"
+                        ? filters.order_id === "ASC"
                           ? "DESC"
                           : null
                         : "ASC";
@@ -345,7 +344,7 @@ const Explore = ({ pageContext: { spacebudz, initialOrder }, location }) => {
                     onClick={() => {
                       const f = filters;
                       f.order_price = filters.order_price
-                        ? filters.order_price == "ASC"
+                        ? filters.order_price === "ASC"
                           ? "DESC"
                           : null
                         : "ASC";

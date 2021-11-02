@@ -1,24 +1,18 @@
 export const setFilter = async (array, filters) => {
   let filtered = [...array];
-  // filters.price != null && (filtered = sortArray(filtered, filters.price));
-  // filters.forSale &&
-  //   (filtered = filterBudz(
-  //     filtered,
-  //     (bud) => Boolean(bud.price) && bud.price > 0
-  //   ));
 
-  if (filters.id || filters.id == 0) {
-    let result = filtered.find((bud) => bud.id == filters.id);
+  if (filters.id || filters.id === 0) {
+    let result = filtered.find((bud) => bud.id === filters.id);
     filtered = result ? [result] : [];
   }
 
   if (filters.types.length > 0) {
     filtered = filtered.filter((bud) =>
-      filters.types.some((type) => type == bud.type)
+      filters.types.some((type) => type === bud.type)
     );
   }
   if (filters.gadgets.length > 0) {
-    if (filters.gadgets[0] == "No Gadget")
+    if (filters.gadgets[0] === "No Gadget")
       filtered = filtered.filter((bud) => bud.gadgets.length <= 0);
     else
       filtered = filtered.filter((bud) => {
@@ -34,7 +28,7 @@ export const setFilter = async (array, filters) => {
     );
   }
 
-  if (filters.gadgetsCount || filters.gadgetsCount == 0) {
+  if (filters.gadgetsCount || filters.gadgetsCount === 0) {
     filtered = filtered.filter(
       (bud) => bud.gadgets.length >= parseInt(filters.gadgetsCount)
     );
@@ -42,7 +36,7 @@ export const setFilter = async (array, filters) => {
 
   if (filters.order_id) {
     filtered = filtered.sort((a, b) =>
-      filters.order_id == "ASC" ? a.id - b.id : b.id - a.id
+      filters.order_id === "ASC" ? a.id - b.id : b.id - a.id
     );
   }
   if (filters.order_price) {
@@ -75,11 +69,11 @@ const sortArray = (array, price) => {
       return -1;
     }
     // otherwise, if we're ascending, lowest sorts first
-    else if (price == "ASC") {
+    else if (price === "ASC") {
       return a.price < b.price ? -1 : 1;
     }
     // if descending, highest sorts first
-    else if (price == "DESC") {
+    else if (price === "DESC") {
       return a.price < b.price ? 1 : -1;
     }
     // if (!a.price || !b.price) return 1;
