@@ -81,6 +81,12 @@ if (Buffer.from(bidUtxo.datum.to_bytes()).toString("hex")) === "d866820080")
 - cancelBid(bidUtxo : TradeUtxo) : Transaction Id
 
 - cancelOffer(offerUtxo : TradeUtxo) : Transaction Id
+
+- cancelBidAndBuy(bidUtxo : TradeUtxo, offerUtxo : TradeUtxo) : Transaction Id
+    
+- cancelOfferAndSell(offerUtxo : TradeUtxo, bidUtxo : TradeUtxo) : Transaction Id
+
+- cancelOfferAndOffer(offerUtxo : TradeUtxo, requestedAmount : string) : Transaction Id
 ```
 
 ### State machine
