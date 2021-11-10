@@ -135,8 +135,8 @@ const SELL = (index) => {
     Loader.Cardano.BigNum.from_str(index),
     redeemerData,
     Loader.Cardano.ExUnits.new(
-      Loader.Cardano.BigNum.from_str("7000000"),
-      Loader.Cardano.BigNum.from_str("3000000000")
+      Loader.Cardano.BigNum.from_str("6000000"),
+      Loader.Cardano.BigNum.from_str("2000000000")
     )
   );
   return redeemer;
@@ -171,7 +171,7 @@ const CANCEL = (index) => {
     Loader.Cardano.BigNum.from_str(index),
     redeemerData,
     Loader.Cardano.ExUnits.new(
-      Loader.Cardano.BigNum.from_str("5000000"),
+      Loader.Cardano.BigNum.from_str("4000000"),
       Loader.Cardano.BigNum.from_str("2000000000")
     )
   );
@@ -374,15 +374,15 @@ class SpaceBudzMarket {
     outputs,
     datums,
     metadata,
-    scriptUtxo,
-    action,
+    scriptUtxos,
+    actions,
   }) {
     const transactionWitnessSet = Loader.Cardano.TransactionWitnessSet.new();
     let { input, change } = CoinSelection.randomImprove(
       utxos,
       outputs,
       8,
-      scriptUtxo ? [scriptUtxo] : []
+      scriptUtxos ? scriptUtxos : []
     );
     input.forEach((utxo) => {
       txBuilder.add_input(
@@ -394,12 +394,20 @@ class SpaceBudzMarket {
     for (let i = 0; i < outputs.len(); i++) {
       txBuilder.add_output(outputs.get(i));
     }
-    if (scriptUtxo) {
+    if (scriptUtxos) {
       const redeemers = Loader.Cardano.Redeemers.new();
+      let redeemerIndexes = [];
+      scriptUtxos.map(scriptUtxo => {
       const redeemerIndex = txBuilder
         .index_of_input(scriptUtxo.input())
         .toString();
-      redeemers.add(action(redeemerIndex));
+        redeemerIndexes.push(redeemerIndex);
+      })
+
+      actions.map((action,index) => {
+        redeemers.add(action(redeemerIndexes[index]))
+      });
+
       txBuilder.set_redeemers(
         Loader.Cardano.Redeemers.from_bytes(redeemers.to_bytes())
       );
@@ -839,7 +847,7 @@ class SpaceBudzMarket {
       );
       datums.add(bidDatum);
       if (
-        bidUtxo.tradeOwnerAddress.to_bech32() !=
+        bidUtxo.tradeOwnerAddress.to_bech32() !==
         walletAddress.to_address().to_bech32()
       )
         // check if bidder is owner of utxo. if so, not necessary to pay back to you own address
@@ -863,8 +871,8 @@ class SpaceBudzMarket {
       outputs,
       datums,
       metadata,
-      scriptUtxo: bidUtxo.utxo,
-      action: BID_HIGHER,
+      scriptUtxos: [bidUtxo.utxo],
+      actions: [BID_HIGHER],
     });
     return txHash;
   }
@@ -937,8 +945,8 @@ class SpaceBudzMarket {
       outputs,
       datums,
       metadata,
-      scriptUtxo: bidUtxo.utxo,
-      action: SELL,
+      scriptUtxos: [bidUtxo.utxo],
+      actions: [SELL],
     });
     return txHash;
   }
@@ -955,7 +963,7 @@ class SpaceBudzMarket {
     if (
       Loader.Cardano.BigNum.from_str(requestedAmount).compare(
         this.contractInfo.minPrice
-      ) == -1
+      ) === -1
     )
       throw new Error("Amount too small");
     const walletAddress = Loader.Cardano.BaseAddress.from_address(
@@ -1041,8 +1049,8 @@ class SpaceBudzMarket {
       utxos,
       outputs,
       datums,
-      scriptUtxo: offerUtxo.utxo,
-      action: BUY,
+      scriptUtxos: [offerUtxo.utxo],
+      actions: [BUY],
     });
     return txHash;
   }
@@ -1079,8 +1087,8 @@ class SpaceBudzMarket {
       utxos,
       outputs,
       datums,
-      scriptUtxo: offerUtxo.utxo,
-      action: CANCEL,
+      scriptUtxos: [offerUtxo.utxo],
+      actions: [CANCEL],
     });
     return txHash;
   }
@@ -1136,8 +1144,245 @@ class SpaceBudzMarket {
       outputs,
       datums,
       metadata,
-      scriptUtxo: bidUtxo.utxo,
-      action: CANCEL,
+      scriptUtxos: [bidUtxo.utxo],
+      actions: [CANCEL],
+    });
+    return txHash;
+  }
+
+  /**
+   * @param {TradeUtxo} bidUtxo
+   * @param {TradeUtxo} offerUtxo
+   * @returns {string} Transaction Id
+   */
+  async cancelBidAndBuy (bidUtxo, offerUtxo) {
+    const bidDatumType = bidUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    if (bidDatumType !== DATUM_TYPE.Bid)
+      throw new Error("Datum needs to be Bid");
+
+    const offerDatumType = offerUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    if (offerDatumType !== DATUM_TYPE.Offer)
+      throw new Error("Datum needs to be Offer");
+
+    const { txBuilder, datums, metadata, outputs } = await this.initTx();
+    const budId = bidUtxo.budId;
+
+    const walletAddress = Loader.Cardano.BaseAddress.from_address(
+        Loader.Cardano.Address.from_bytes(
+            fromHex((await window.cardano.getUsedAddresses())[0])
+        )
+    );
+
+    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+        Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
+    );
+
+    outputs.add(
+        this.createOutput(
+            CONTRACT_ADDRESS(),
+            assetsToValue([
+              {
+                unit:
+                    this.contractInfo.policyBid +
+                    fromAscii(this.contractInfo.prefixSpaceBudBid + budId),
+                quantity: "1",
+              },
+            ]),
+            {
+              datum: START_BID(),
+              index: 0,
+              metadata,
+            }
+        )
+    );
+    datums.add(bidUtxo.datum);
+    datums.add(offerUtxo.datum);
+    datums.add(START_BID());
+
+    const tradeDetails = getTradeDetails(offerUtxo.datum);
+    const offerValue = offerUtxo.utxo.output().amount();
+    const lovelaceAmount = tradeDetails.requestedAmount;
+
+    this.splitAmount(lovelaceAmount, offerUtxo.tradeOwnerAddress, outputs);
+    outputs.add(this.createOutput(walletAddress.to_address(), offerValue)); // buyer receiving SpaceBud
+
+    const requiredSigners = Loader.Cardano.Ed25519KeyHashes.new();
+    requiredSigners.add(getTradeDetails(bidUtxo.datum).tradeOwner);
+    txBuilder.set_required_signers(requiredSigners);
+
+    const txHash = await this.finalizeTx({
+      txBuilder,
+      changeAddress: walletAddress,
+      utxos,
+      outputs,
+      datums,
+      metadata,
+      scriptUtxos: [bidUtxo.utxo, offerUtxo.utxo],
+      actions: [CANCEL, BUY],
+    });
+    return txHash;
+  }
+
+  /**
+   * @param {TradeUtxo} offerUtxo
+   * @param {TradeUtxo} bidUtxo
+   * @returns {string} Transaction Id
+   */
+  async cancelOfferAndSell (offerUtxo, bidUtxo) {
+    const offerDatumType = offerUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    if (offerDatumType !== DATUM_TYPE.Offer)
+      throw new Error("Datum needs to be Offer");
+
+    const bidDatumType = bidUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    if (bidDatumType !== DATUM_TYPE.Bid)
+      throw new Error("Datum needs to be Bid");
+
+    const { txBuilder, datums, metadata, outputs } = await this.initTx();
+    const budId = bidUtxo.budId;
+
+    const walletAddress = Loader.Cardano.BaseAddress.from_address(
+        Loader.Cardano.Address.from_bytes(
+            fromHex((await window.cardano.getUsedAddresses())[0])
+        )
+    );
+
+    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+        Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
+    );
+
+    const bidValue = bidUtxo.utxo.output().amount();
+
+    outputs.add(
+        this.createOutput(
+            CONTRACT_ADDRESS(),
+            assetsToValue([
+              {
+                unit:
+                    this.contractInfo.policyBid +
+                    fromAscii(this.contractInfo.prefixSpaceBudBid + budId),
+                quantity: "1",
+              },
+            ]),
+            {
+              datum: START_BID(),
+              index: 0,
+              metadata,
+            }
+        )
+    );
+
+    datums.add(offerUtxo.datum);
+    datums.add(bidUtxo.datum);
+    datums.add(START_BID());
+
+    this.splitAmount(bidValue.coin(), walletAddress.to_address(), outputs);
+
+    outputs.add(
+        this.createOutput(
+            bidUtxo.tradeOwnerAddress,
+            assetsToValue([
+              {
+                unit:
+                    this.contractInfo.policySpaceBudz +
+                    fromAscii(this.contractInfo.prefixSpaceBud + budId),
+                quantity: "1",
+              },
+            ])
+        )
+    ); // bidder receiving SpaceBud
+
+    const requiredSigners = Loader.Cardano.Ed25519KeyHashes.new();
+    requiredSigners.add(getTradeDetails(offerUtxo.datum).tradeOwner);
+    requiredSigners.add(walletAddress.payment_cred().to_keyhash());
+    txBuilder.set_required_signers(requiredSigners);
+
+    const txHash = await this.finalizeTx({
+      txBuilder,
+      changeAddress: walletAddress,
+      utxos,
+      outputs,
+      datums,
+      metadata,
+      scriptUtxos: [offerUtxo.utxo, bidUtxo.utxo],
+      actions: [CANCEL, SELL],
+    });
+
+    return txHash;
+  }
+
+  /**
+   * @param {TradeUtxo} offerUtxo
+   * @param {string} requestedAmount lovelace
+   * @returns {string} Transaction Id
+   */
+  async cancelOfferAndOffer (offerUtxo, requestedAmount) {
+
+    if (
+        Loader.Cardano.BigNum.from_str(requestedAmount).compare(
+            this.contractInfo.minPrice
+        ) === -1
+    )
+      throw new Error("Amount too small");
+
+    const offerDatumType = offerUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    if (offerDatumType !== DATUM_TYPE.Offer)
+      throw new Error("Datum needs to be Offer");
+
+    const { txBuilder, datums, metadata, outputs } = await this.initTx();
+    const budId = offerUtxo.budId;
+
+    const walletAddress = Loader.Cardano.BaseAddress.from_address(
+        Loader.Cardano.Address.from_bytes(
+            fromHex((await window.cardano.getUsedAddresses())[0])
+        )
+    );
+
+    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+        Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
+    );
+
+    const offerDatum = OFFER({
+      tradeOwner: toHex(walletAddress.payment_cred().to_keyhash().to_bytes()),
+      budId,
+      requestedAmount
+    });
+
+    outputs.add(
+        this.createOutput(
+            CONTRACT_ADDRESS(),
+            assetsToValue([
+              {
+                unit:
+                    this.contractInfo.policySpaceBudz +
+                    fromAscii(this.contractInfo.prefixSpaceBud + budId),
+                quantity: "1",
+              },
+            ]),
+            {
+              datum: offerDatum,
+              index: 0,
+              tradeOwnerAddress: walletAddress,
+              metadata,
+            }
+        )
+    );
+
+    datums.add(offerDatum);
+    datums.add(offerUtxo.datum);
+
+    const requiredSigners = Loader.Cardano.Ed25519KeyHashes.new();
+    requiredSigners.add(getTradeDetails(offerUtxo.datum).tradeOwner);
+    txBuilder.set_required_signers(requiredSigners);
+
+    const txHash = await this.finalizeTx({
+      txBuilder,
+      changeAddress: walletAddress,
+      utxos,
+      outputs,
+      datums,
+      metadata,
+      scriptUtxos: [offerUtxo.utxo],
+      actions: [CANCEL]
     });
     return txHash;
   }
