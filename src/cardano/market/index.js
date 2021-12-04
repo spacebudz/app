@@ -410,6 +410,7 @@ class SpaceBudzMarket {
       const collateral = (await window.cardano.getCollateral()).map((utxo) =>
         Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
       );
+      if (collateral.length <= 0) throw new Error("NO_COLLATERAL");
       this.setCollateral(txBuilder, collateral);
 
       transactionWitnessSet.set_plutus_scripts(CONTRACT());

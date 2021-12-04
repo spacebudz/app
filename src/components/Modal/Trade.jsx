@@ -45,6 +45,8 @@ export const tradeErrorHandler = (e, toast) => {
       FailedTransactionToast(toast, "Too many UTxOs. Refactor wallet.");
     else if (e.message.includes("MAX_SIZE_REACHED"))
       FailedTransactionToast(toast, "Size too large");
+    else if (e.message.includes("NO_COLLATERAL"))
+      FailedTransactionToast(toast, "Collateral not set");
   } else if (e.info) {
     FailedTransactionToast(toast, e.info);
   } else {
