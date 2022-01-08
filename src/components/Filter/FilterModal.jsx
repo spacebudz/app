@@ -93,7 +93,6 @@ const FilterModal = ({ isOpen, onOpen, onClose }) => {
   const [sliderId, setSliderId] = React.useState([0, 9999]);
 
   React.useEffect(() => {
-    console.log(isOpen);
     if (!isOpen) return;
     const urlParams = new URLSearchParams(window.location.search);
     const typesArray = urlParams.getAll("type");
@@ -286,12 +285,12 @@ const FilterModal = ({ isOpen, onOpen, onClose }) => {
               <Box h={3} />
               <Slider
                 width="80%"
-                value={sliderGadgets == "Any" ? 0 : sliderGadgets}
+                value={sliderGadgets === "Any" ? 0 : sliderGadgets}
                 min={0}
                 max={12}
                 step={1}
                 onChange={(val) =>
-                  val == 0 ? setSliderGadgets("Any") : setSliderGadgets(val)
+                  val === 0 ? setSliderGadgets("Any") : setSliderGadgets(val)
                 }
               >
                 <SliderTrack>
@@ -398,7 +397,7 @@ const FilterModal = ({ isOpen, onOpen, onClose }) => {
                         onChange={(e) => {
                           const val = e.target.checked;
                           if (gadgets)
-                            if (gadget == "No Gadget") {
+                            if (gadget === "No Gadget") {
                               setGadgets(null);
                               setTimeout(() =>
                                 setGadgets({
