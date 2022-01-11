@@ -254,7 +254,12 @@ const nameMap = (category, property1, property2) => {
     default:
       extendedTraits.push(propertyMap[property1]);
       if (!propertyMap[property2]) break;
-      if (propertyMap[property2].color) {
+      else if (category == "Arcane" && property2 == "closedPink.png") {
+        extendedTraits = extendedTraits.concat([
+          { trait: "Covered Helmet", color: "Pink" },
+          { typeColor: "Black" },
+        ]);
+      } else if (propertyMap[property2].color) {
         extendedTraits.push({ typeColor: propertyMap[property2].color });
       } else extendedTraits = extendedTraits.concat(propertyMap[property2]);
       break;
