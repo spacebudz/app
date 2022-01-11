@@ -1,0 +1,149 @@
+{
+  "Background": {
+    "Green": 1851,
+    "Cyan": 1832,
+    "Blue": 1855,
+    "Purple": 1881,
+    "Dark": 1851
+  },
+  "Star Suit": {
+    "Light": 314,
+    "Green": 311,
+    "Yellow": 294,
+    "Black": 296,
+    "Blue": 325,
+    "Red": 280
+  },
+  "Chestplate": {
+    "Red": 1264,
+    "Orange": 1244,
+    "Blue": 1273,
+    "Yellow": 1246,
+    "Purple": 1233,
+    "Green": 1223
+  },
+  "Belt": {
+    "Pipe": {
+      "Purple": 609,
+      "Light": 615,
+      "Red": 621,
+      "Cyan": 575,
+      "Black": 563,
+      "Blue": 578,
+      "Green": 591
+    },
+    "Light": 581,
+    "Cyan": 571,
+    "Green": 601,
+    "Red": 647,
+    "Purple": 655,
+    "Black": 609,
+    "Blue": 578,
+    "Pink": 554
+  },
+  "Emotions": {
+    "Classic": 2242,
+    "Happy": 1628,
+    "Shy": 265,
+    "Joking": 1336,
+    "Confused": 247,
+    "Angry": 1986,
+    "Greedy": 200,
+    "Sad": 514,
+    "Serious": 401,
+    "Shocked": 243,
+    "Laughing": 268,
+    "Superior": 281,
+    "Amazed": 389
+  },
+  "Covered Helmet": { "Classic": 4952, "Pink": 44 },
+  "Types": {
+    "Orange": 721,
+    "Pink": 735,
+    "Green": 547,
+    "Blue": 1286,
+    "Red": 1274,
+    "Black": 1411,
+    "Purple": 638,
+    "White": 584,
+    "Brown": 493,
+    "Panda": 151,
+    "Classic": 480,
+    "Yellow": 801,
+    "Mint": 115,
+    "Gray": 580,
+    "Light": 341
+  },
+  "Gloves": {
+    "Light": 1428,
+    "Blue": 1472,
+    "Purple": 1361,
+    "Green": 1479,
+    "Black": 1417,
+    "Red": 1367,
+    "Pink": 1476
+  },
+  "Suit": { "Classic": 6045, "Pink": 319 },
+  "Revolver": { "Right Hand": 238, "Left Hand": 150 },
+  "Sword": {
+    "Left Hand": { "Classic": 57, "Fire": 58, "Ice": 51 },
+    "Right Hand": { "Classic": 252 }
+  },
+  "Ski Goggles": 439,
+  "Wool Boots": 827,
+  "SPO": { "Both Hands": 30 },
+  "Special Background": {
+    "Blue Gradient": 146,
+    "Blue Star Gradient": 161,
+    "Blue Circular Gradient": 140,
+    "Orange Gradient": 137,
+    "Purple Fade": 146
+  },
+  "X-Ray": 427,
+  "Snorkel": 434,
+  "Watch": 911,
+  "Camo Suit": {
+    "Brown": 297,
+    "Purple": 300,
+    "Light": 303,
+    "Red": 301,
+    "Blue": 299,
+    "Green": 316
+  },
+  "Cardano": {
+    "Left Hand": { "Classic": 163, "Pink": 149 },
+    "Right Hand": { "Classic": 19 }
+  },
+  "Flowers": { "Left Hand": 178, "Right Hand": 120 },
+  "Sun Glasses": 410,
+  "Bazooka": { "Both Hands": 219 },
+  "Jetpack": 356,
+  "Amulet": { "Left Hand": 174, "Neck": 495 },
+  "Pistol": { "Left Hand": { "Classic": 165, "Pink": 177 } },
+  "Anchor": { "Both Hands": 210 },
+  "Harpoon": { "Left Hand": { "Classic": 69, "Pink": 93, "Yellow": 85 } },
+  "Binoculars": { "Left Hand": 140 },
+  "Eye Patch": 439,
+  "Umbrella": {
+    "Right Hand": {
+      "Green": 51,
+      "Purple": 49,
+      "Yellow": 51,
+      "Red": 54,
+      "Blue": 50,
+      "Black": 49,
+      "Orange": 37
+    }
+  },
+  "Arc": { "Both Hands": 201 },
+  "Flag": { "Left Hand": 88, "Right Hand": 252 },
+  "Axe": { "Right Hand": 263 },
+  "Backpack": 349,
+  "Wine": { "Left Hand": 192 },
+  "Jo-Jo": { "Left Hand": 189 },
+  "Blaster": { "Left Hand": 164 },
+  "VR": 506,
+  "Candle": { "Left Hand": 150 },
+  "Hockey Stick": { "Right Hand": 241 },
+  "Baguette": { "Left Hand": 152 }
+}

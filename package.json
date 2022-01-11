@@ -47,6 +47,7 @@
     "gatsby-source-filesystem": "^3.9.0",
     "gatsby-transformer-sharp": "^3.9.0",
     "keep-alive-route": "^0.1.2",
+    "lodash": "^4.17.21",
     "node-fetch": "^2.6.1",
     "node-sass": "^4.14.1",
     "rc-slider": "^9.7.2",
