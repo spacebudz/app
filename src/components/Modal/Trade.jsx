@@ -22,6 +22,7 @@ import {
   WarningIcon,
 } from "@chakra-ui/icons";
 import { UnitDisplay } from "../UnitDisplay";
+import NumberFormat from "react-number-format";
 
 const toUnit = (amount, decimals = 6) => {
   const result = parseFloat(amount.replace(/[,\s]/g, ""))
@@ -103,16 +104,25 @@ const TradeModal = React.forwardRef(
                 fontSize="1.2em"
                 children="₳"
               />
-              <Input
+              <NumberFormat
+                allowNegative={false}
+                thousandsGroupStyle="thousand"
+                decimalSeparator="."
+                displayType="input"
+                type="text"
+                px="10"
+                thousandSeparator={true}
+                decimalScale={6}
+                allowEmptyFormatting={true}
                 value={ada}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (!v.match("[0-9]+([.,][0-9]+)?") && v) return;
+                onValueChange={({ formattedValue }) => {
+                  const v = formattedValue;
                   setAda(v);
                 }}
                 rounded="3xl"
                 focusBorderColor="purple.500"
                 placeholder={type == "BID" ? "Bid amount" : "List price"}
+                customInput={Input}
               />
             </InputGroup>
             <Box h={3} />

@@ -27,8 +27,14 @@ import MiddleEllipsis from "react-middle-ellipsis";
 import { ChevronRightIcon, InfoIcon, SmallCloseIcon } from "@chakra-ui/icons";
 
 // backwards compatibility until all Nami users have updated
+const isBrowser = () => typeof window !== "undefined";
 
-if (window.cardano && window.cardano.enable && !window.cardano.nami) {
+if (
+  isBrowser() &&
+  window.cardano &&
+  window.cardano.enable &&
+  !window.cardano.nami
+) {
   window.cardano.nami = {
     enable: async () => {
       if (await window.cardano.enable()) {

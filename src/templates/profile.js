@@ -77,25 +77,39 @@ const Profile = ({ pageContext: { spacebudz } }) => {
         .then((res) => res.amount);
     }
 
-    const offers = await fetch(`https://spacebudz.io/api/offers/${address}`, {
+    const offers = await fetch(`https://spacebudz.io/api/offers/`, {
       headers: { project_id: secrets.PROJECT_ID },
     }).then((res) => res.json());
-
-    tokens.offers = offers.offers.map((offer) => ({
-      ...spacebudz[offer.budId],
-      price: offer.offer.amount,
-    }));
 
     const bids = await fetch(`https://spacebudz.io/api/bids`, {
       headers: { project_id: secrets.PROJECT_ID },
     }).then((res) => res.json());
 
+    tokens.offers = offers.offers
+      .filter((offer) => offer.offer.owner == address)
+      .map((offer) => {
+        const bidPrice = bids.bids.find((bid) => bid.budId == offer.budId);
+        return {
+          ...spacebudz[offer.budId],
+          listingPrice: offer.offer.amount,
+          bidPrice: bidPrice ? bidPrice.bid.amount : undefined,
+        };
+      });
+
     tokens.bids = bids.bids
       .filter((bid) => bid.bid.owner == address)
-      .map((bid) => ({
-        ...spacebudz[bid.budId],
-        price: bid.bid.amount,
-      }));
+      .map((bid) => {
+        const listingPrice = offers.offers.find(
+          (offer) => offer.budId == bid.budId
+        );
+        return {
+          ...spacebudz[bid.budId],
+          bidPrice: bid.bid.amount,
+          listingPrice: listingPrice ? listingPrice.offer.amount : undefined,
+        };
+      });
+
+    console.log(tokens.bids);
 
     try {
       const ownedAmount = amount
@@ -103,10 +117,10 @@ const Profile = ({ pageContext: { spacebudz } }) => {
         .map((am) => parseInt(fromHex(am.unit.slice(56)).split("SpaceBud")[1]));
       const ownedBids = bids.bids.filter((bid) => bid.bid.owner == address);
       const owned = ownedAmount.map((id) => {
-        const sellPrice = bids.bids.find((bid) => bid.budId == id);
+        const bidPrice = bids.bids.find((bid) => bid.budId == id);
         return {
           ...spacebudz[id],
-          price: sellPrice ? sellPrice.bid.amount : undefined,
+          bidPrice: bidPrice ? bidPrice.bid.amount : undefined,
         };
       });
       tokens.owned = owned;
@@ -305,6 +319,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                     array={tokens.bids}
                     spacebudz={spacebudz}
                     type="Bid"
+                    hasDouble
                   />
                 </Box>
                 <Box h="1px" w="95%" background="gray.200" my={10} />
@@ -316,6 +331,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                     array={tokens.offers}
                     spacebudz={spacebudz}
                     type="Listed"
+                    hasDouble
                   />
                 </Box>
                 <Box h="1px" w="95%" background="gray.200" my={10} />
@@ -327,6 +343,7 @@ const Profile = ({ pageContext: { spacebudz } }) => {
                     array={tokens.owned}
                     spacebudz={spacebudz}
                     type="Bid"
+                    hasDouble
                   />
                 </Box>
               </Box>

@@ -61,6 +61,7 @@
     "react-lazy-load-image-component": "^1.5.1",
     "react-lazyload": "^3.0.0",
     "react-middle-ellipsis": "^1.1.0",
+    "react-number-format": "^4.9.1",
     "react-planet": "^1.0.1",
     "react-qr-code": "^1.1.1",
     "react-reveal": "^1.2.2",

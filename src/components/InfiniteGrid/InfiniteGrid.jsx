@@ -46,7 +46,7 @@ const CustomLazyImage = styled(LazyLoadImage)`
   animation: ${fade} 0.4s;
 `;
 
-const Item = ({ bud, im, type }) => {
+const Item = ({ bud, im, type, hasDouble }) => {
   const [image, setImage] = React.useState(null);
   React.useEffect(() => {
     // getImageBase64(im, (data) => setImage("data:image/png;base64," + data));
@@ -57,30 +57,118 @@ const Item = ({ bud, im, type }) => {
     <div className="itemGrid">
       <Link to={`/explore/spacebud/${bud.id}`}>
         <div className="thumbnail">
-          <div
-            style={{
-              textAlign: "center",
-              marginBottom: -55,
-              background: "white",
-              fontSize: 14,
-              fontWeight: 600,
-              zIndex: 1,
-              opacity: !bud.price && 0,
-              color: "black",
-              padding: "4px 16px",
-              border: "solid 2px #777777",
-              borderRadius: 20,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <span style={{ color: "#777777", marginRight: 4 }}>{type}</span>{" "}
-            <span>
-              {" "}
-              <UnitDisplay quantity={bud.price} decimals={6} symbol="₳" />
-            </span>
-          </div>
+          {hasDouble ? (
+            <Box
+              display={"flex"}
+              alignItems={"center"}
+              justifyContent={"center"}
+              flexDirection={"column"}
+              marginBottom={"-88px"}
+            >
+              <div
+                style={{
+                  textAlign: "center",
+                  // marginBottom: -55,
+                  background: "white",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  zIndex: 1,
+                  opacity:
+                    type === "Bid"
+                      ? bud.bidPrice
+                        ? 1
+                        : 0
+                      : bud.listingPrice
+                      ? 1
+                      : 0,
+                  color: "black",
+                  padding: "4px 16px",
+                  border: "solid 2px #777777",
+                  borderRadius: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span style={{ color: "#777777", marginRight: 4 }}>{type}</span>{" "}
+                <span>
+                  {" "}
+                  <UnitDisplay
+                    quantity={type === "Bid" ? bud.bidPrice : bud.listingPrice}
+                    decimals={6}
+                    symbol="₳"
+                  />
+                </span>
+              </div>
+              <div
+                style={{
+                  textAlign: "center",
+                  // marginBottom: -55,
+                  background: "white",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  zIndex: 1,
+                  opacity:
+                    type === "Bid"
+                      ? bud.listingPrice
+                        ? 1
+                        : 0
+                      : bud.bidPrice
+                      ? 1
+                      : 0,
+                  color: "black",
+                  padding: "4px 16px",
+                  border: "solid 2px #777777",
+                  borderRadius: 20,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Box
+                  as={"span"}
+                  color={"purple.400"}
+                  fontWeight={"bold"}
+                  style={{ marginRight: 4 }}
+                >
+                  {type === "Bid" ? "Listed" : "Bid"}
+                </Box>{" "}
+                <span>
+                  {" "}
+                  <UnitDisplay
+                    quantity={type === "Bid" ? bud.listingPrice : bud.bidPrice}
+                    decimals={6}
+                    symbol="₳"
+                  />
+                </span>
+              </div>
+            </Box>
+          ) : (
+            <div
+              style={{
+                textAlign: "center",
+                marginBottom: -55,
+                background: "white",
+                fontSize: 14,
+                fontWeight: 600,
+                zIndex: 1,
+                opacity: !bud.price && 0,
+                color: "black",
+                padding: "4px 16px",
+                border: "solid 2px #777777",
+                borderRadius: 20,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <span style={{ color: "#777777", marginRight: 4 }}>{type}</span>{" "}
+              <span>
+                {" "}
+                <UnitDisplay quantity={bud.price} decimals={6} symbol="₳" />
+              </span>
+            </div>
+          )}
           {!image ? (
             <div></div>
           ) : (
@@ -121,6 +209,7 @@ class InfiniteGrid extends React.Component {
           key={start + i}
           bud={this.props.array[start + i]}
           type={this.props.type}
+          hasDouble={this.props.hasDouble}
         />
       );
     }
