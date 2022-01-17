@@ -91,6 +91,8 @@ const StartButton = (props) => {
   const { onOpen, onClose, isOpen } = useDisclosure();
   const toast = useToast();
 
+  const [hasCardano, setHasCardano] = React.useState(null);
+
   React.useEffect(() => {
     if (connected && !flag)
       window.cardano.selectedWallet.name === "Nami" &&
@@ -103,6 +105,10 @@ const StartButton = (props) => {
           }
         );
   }, [connected]);
+
+  React.useEffect(() => {
+    setHasCardano(window.cardano);
+  }, []);
 
   const checkConnection = async () => {
     if (window.cardano) {
@@ -199,61 +205,62 @@ const StartButton = (props) => {
             Choose wallet
           </Box>
           <Box h={4} />
-          {isBrowser() && window.cardano ? (
+          {hasCardano ? (
             <SimpleGrid width={"full"} columns={2} spacing={4}>
-              {Object.keys(window.cardano)
-                .filter(
-                  (walletName) =>
-                    walletName == "nami" || walletName == "ccvault"
-                )
-                .map((walletName) => (
-                  <Box
-                    width={"90px"}
-                    height={"90px"}
-                    _hover={{ background: "gray.100", rounded: "xl" }}
-                    display={"flex"}
-                    alignItems={"center"}
-                    justifyContent={"center"}
-                    flexDirection={"column"}
-                    cursor={"pointer"}
-                    onClick={async () => {
-                      setIsLoading(true);
-                      onClose();
-                      const api = await window.cardano[walletName]
-                        .enable()
-                        .catch((e) => {});
-                      if (api) {
-                        if (!(await checkStatus(toast, connected))) {
-                          setIsLoading(false);
-                          return;
+              {window.cardano &&
+                Object.keys(window.cardano)
+                  .filter(
+                    (walletName) =>
+                      walletName == "nami" || walletName == "ccvault"
+                  )
+                  .map((walletName) => (
+                    <Box
+                      width={"90px"}
+                      height={"90px"}
+                      _hover={{ background: "gray.100", rounded: "xl" }}
+                      display={"flex"}
+                      alignItems={"center"}
+                      justifyContent={"center"}
+                      flexDirection={"column"}
+                      cursor={"pointer"}
+                      onClick={async () => {
+                        setIsLoading(true);
+                        onClose();
+                        const api = await window.cardano[walletName]
+                          .enable()
+                          .catch((e) => {});
+                        if (api) {
+                          if (!(await checkStatus(toast, connected))) {
+                            setIsLoading(false);
+                            return;
+                          }
+                          window.cardano.selectedWallet = {
+                            ...window.cardano[walletName],
+                            ...api,
+                          };
+                          const address = await addressToBech32();
+                          setConnected(address);
+                          localStorage.setItem(
+                            "session",
+                            JSON.stringify({
+                              time: Date.now().toString(),
+                              walletName,
+                            })
+                          );
                         }
-                        window.cardano.selectedWallet = {
-                          ...window.cardano[walletName],
-                          ...api,
-                        };
-                        const address = await addressToBech32();
-                        setConnected(address);
-                        localStorage.setItem(
-                          "session",
-                          JSON.stringify({
-                            time: Date.now().toString(),
-                            walletName,
-                          })
-                        );
-                      }
-                      setIsLoading(false);
-                    }}
-                  >
-                    <Image
-                      src={window.cardano[walletName].icon}
-                      width={"40px"}
-                    />
-                    <Box h={1} />
-                    <Box fontWeight={"medium"}>
-                      {window.cardano[walletName].name}
+                        setIsLoading(false);
+                      }}
+                    >
+                      <Image
+                        src={window.cardano[walletName].icon}
+                        width={"40px"}
+                      />
+                      <Box h={1} />
+                      <Box fontWeight={"medium"}>
+                        {window.cardano[walletName].name}
+                      </Box>
                     </Box>
-                  </Box>
-                ))}
+                  ))}
             </SimpleGrid>
           ) : (
             <Box textAlign={"center"} width={"full"}>
