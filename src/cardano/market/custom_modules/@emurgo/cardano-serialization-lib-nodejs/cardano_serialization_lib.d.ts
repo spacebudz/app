@@ -1,28 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {Uint8Array} bytes
-* @returns {TransactionMetadatum}
-*/
-export function encode_arbitrary_bytes_as_metadatum(bytes: Uint8Array): TransactionMetadatum;
-/**
-* @param {TransactionMetadatum} metadata
-* @returns {Uint8Array}
-*/
-export function decode_arbitrary_bytes_from_metadatum(metadata: TransactionMetadatum): Uint8Array;
-/**
-* @param {string} json
-* @param {number} schema
-* @returns {TransactionMetadatum}
-*/
-export function encode_json_str_to_metadatum(json: string, schema: number): TransactionMetadatum;
-/**
-* @param {TransactionMetadatum} metadatum
-* @param {number} schema
-* @returns {string}
-*/
-export function decode_metadatum_to_json_str(metadatum: TransactionMetadatum, schema: number): string;
-/**
 * @param {string} password
 * @param {string} salt
 * @param {string} nonce
@@ -108,6 +86,28 @@ export function min_ada_required(assets: Value, minimum_utxo_val: BigNum, data_h
 */
 export function min_fee(tx: Transaction, linear_fee: LinearFee, mem_price: number, step_price: number): BigNum;
 /**
+* @param {Uint8Array} bytes
+* @returns {TransactionMetadatum}
+*/
+export function encode_arbitrary_bytes_as_metadatum(bytes: Uint8Array): TransactionMetadatum;
+/**
+* @param {TransactionMetadatum} metadata
+* @returns {Uint8Array}
+*/
+export function decode_arbitrary_bytes_from_metadatum(metadata: TransactionMetadatum): Uint8Array;
+/**
+* @param {string} json
+* @param {number} schema
+* @returns {TransactionMetadatum}
+*/
+export function encode_json_str_to_metadatum(json: string, schema: number): TransactionMetadatum;
+/**
+* @param {TransactionMetadatum} metadatum
+* @param {number} schema
+* @returns {string}
+*/
+export function decode_metadatum_to_json_str(metadatum: TransactionMetadatum, schema: number): string;
+/**
 */
 export enum CertificateKind {
   StakeRegistration,
@@ -164,22 +164,6 @@ export enum NetworkIdKind {
 }
 /**
 */
-export enum TransactionMetadatumKind {
-  MetadataMap,
-  MetadataList,
-  Int,
-  Bytes,
-  Text,
-}
-/**
-*/
-export enum MetadataJsonSchema {
-  NoConversions,
-  BasicConversions,
-  DetailedSchema,
-}
-/**
-*/
 export enum LanguageKind {
   PlutusV1,
 }
@@ -199,6 +183,22 @@ export enum RedeemerTagKind {
   Mint,
   Cert,
   Reward,
+}
+/**
+*/
+export enum TransactionMetadatumKind {
+  MetadataMap,
+  MetadataList,
+  Int,
+  Bytes,
+  Text,
+}
+/**
+*/
+export enum MetadataJsonSchema {
+  NoConversions,
+  BasicConversions,
+  DetailedSchema,
 }
 /**
 */
@@ -4048,6 +4048,10 @@ export class TransactionBuilder {
 * @param {Withdrawals} withdrawals
 */
   set_withdrawals(withdrawals: Withdrawals): void;
+/**
+* @param {Address} address
+*/
+  add_address_witness(address: Address): void;
 /**
 * @param {TransactionInputs} collateral
 */

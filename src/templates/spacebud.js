@@ -63,16 +63,19 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
   const CONTRACT_ADDRESS =
     "addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq";
 
-  React.useEffect(() => {
-    loadMarket();
-  }, []);
   const firstUpdate = React.useRef(true);
-  React.useEffect(() => {
+  const init = async () => {
     if (firstUpdate.current) {
+      await loadMarket();
+      await loadSpaceBudData();
       firstUpdate.current = false;
       return;
     }
-    loadSpaceBudData();
+    await loadSpaceBudData();
+  };
+
+  React.useEffect(() => {
+    init();
   }, [connected]);
 
   const checkTransaction = async (txHash, { type, lovelace } = {}) => {
@@ -106,7 +109,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       "addr1qxpxm8a0uxe6eu2m6fgdu6wqfclujtzyjdu9jw0qdxfjaz02h5ngjz7fftac5twlxj6jha4meenh6476m5xdwmeyh4hq0zeknx"
     );
     await market.current.load();
-    loadSpaceBudData();
+    // loadSpaceBudData();
   };
 
   const loadSpaceBudData = async () => {
@@ -173,6 +176,7 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     console.log(offerUtxo);
     // ignore if state is StartBid
     if (toHex(bidUtxo.datum.to_bytes()) !== "d866820080") {
+      console.log(connected);
       if (bidUtxo.tradeOwnerAddress.to_bech32() === connected)
         details.bid.owner = true;
       details.bid.lovelace = bidUtxo.lovelace;
@@ -202,6 +206,8 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     if (addresses.length > 1 && addresses[0].address === addresses[1].address) {
       addresses = [addresses[0]];
     }
+
+    console.log(JSON.parse(JSON.stringify(details)));
 
     setDetails(details);
     setOwner(addresses);

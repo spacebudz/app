@@ -6,42 +6,6 @@
  */
 
 /**
- * @param {Uint8Array} bytes
- * @returns {TransactionMetadatum}
- */
-declare export function encode_arbitrary_bytes_as_metadatum(
-  bytes: Uint8Array
-): TransactionMetadatum;
-
-/**
- * @param {TransactionMetadatum} metadata
- * @returns {Uint8Array}
- */
-declare export function decode_arbitrary_bytes_from_metadatum(
-  metadata: TransactionMetadatum
-): Uint8Array;
-
-/**
- * @param {string} json
- * @param {number} schema
- * @returns {TransactionMetadatum}
- */
-declare export function encode_json_str_to_metadatum(
-  json: string,
-  schema: number
-): TransactionMetadatum;
-
-/**
- * @param {TransactionMetadatum} metadatum
- * @param {number} schema
- * @returns {string}
- */
-declare export function decode_metadatum_to_json_str(
-  metadatum: TransactionMetadatum,
-  schema: number
-): string;
-
-/**
  * @param {string} password
  * @param {string} salt
  * @param {string} nonce
@@ -184,6 +148,42 @@ declare export function min_fee(
 ): BigNum;
 
 /**
+ * @param {Uint8Array} bytes
+ * @returns {TransactionMetadatum}
+ */
+declare export function encode_arbitrary_bytes_as_metadatum(
+  bytes: Uint8Array
+): TransactionMetadatum;
+
+/**
+ * @param {TransactionMetadatum} metadata
+ * @returns {Uint8Array}
+ */
+declare export function decode_arbitrary_bytes_from_metadatum(
+  metadata: TransactionMetadatum
+): Uint8Array;
+
+/**
+ * @param {string} json
+ * @param {number} schema
+ * @returns {TransactionMetadatum}
+ */
+declare export function encode_json_str_to_metadatum(
+  json: string,
+  schema: number
+): TransactionMetadatum;
+
+/**
+ * @param {TransactionMetadatum} metadatum
+ * @param {number} schema
+ * @returns {string}
+ */
+declare export function decode_metadatum_to_json_str(
+  metadatum: TransactionMetadatum,
+  schema: number
+): string;
+
+/**
  */
 
 declare export var CertificateKind: {|
@@ -255,26 +255,6 @@ declare export var NetworkIdKind: {|
 /**
  */
 
-declare export var TransactionMetadatumKind: {|
-  +MetadataMap: 0, // 0
-  +MetadataList: 1, // 1
-  +Int: 2, // 2
-  +Bytes: 3, // 3
-  +Text: 4, // 4
-|};
-
-/**
- */
-
-declare export var MetadataJsonSchema: {|
-  +NoConversions: 0, // 0
-  +BasicConversions: 1, // 1
-  +DetailedSchema: 2, // 2
-|};
-
-/**
- */
-
 declare export var LanguageKind: {|
   +PlutusV1: 0, // 0
 |};
@@ -298,6 +278,26 @@ declare export var RedeemerTagKind: {|
   +Mint: 1, // 1
   +Cert: 2, // 2
   +Reward: 3, // 3
+|};
+
+/**
+ */
+
+declare export var TransactionMetadatumKind: {|
+  +MetadataMap: 0, // 0
+  +MetadataList: 1, // 1
+  +Int: 2, // 2
+  +Bytes: 3, // 3
+  +Text: 4, // 4
+|};
+
+/**
+ */
+
+declare export var MetadataJsonSchema: {|
+  +NoConversions: 0, // 0
+  +BasicConversions: 1, // 1
+  +DetailedSchema: 2, // 2
 |};
 
 /**
@@ -4986,6 +4986,11 @@ declare export class TransactionBuilder {
    * @param {Withdrawals} withdrawals
    */
   set_withdrawals(withdrawals: Withdrawals): void;
+
+  /**
+   * @param {Address} address
+   */
+  add_address_witness(address: Address): void;
 
   /**
    * @param {TransactionInputs} collateral

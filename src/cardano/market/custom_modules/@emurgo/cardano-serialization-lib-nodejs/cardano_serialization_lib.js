@@ -217,67 +217,6 @@ function passArray32ToWasm0(arg, malloc) {
     return ptr;
 }
 /**
-* @param {Uint8Array} bytes
-* @returns {TransactionMetadatum}
-*/
-module.exports.encode_arbitrary_bytes_as_metadatum = function(bytes) {
-    var ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-    var len0 = WASM_VECTOR_LEN;
-    var ret = wasm.encode_arbitrary_bytes_as_metadatum(ptr0, len0);
-    return TransactionMetadatum.__wrap(ret);
-};
-
-/**
-* @param {TransactionMetadatum} metadata
-* @returns {Uint8Array}
-*/
-module.exports.decode_arbitrary_bytes_from_metadatum = function(metadata) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        _assertClass(metadata, TransactionMetadatum);
-        wasm.decode_arbitrary_bytes_from_metadatum(retptr, metadata.ptr);
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        var v0 = getArrayU8FromWasm0(r0, r1).slice();
-        wasm.__wbindgen_free(r0, r1 * 1);
-        return v0;
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-};
-
-/**
-* @param {string} json
-* @param {number} schema
-* @returns {TransactionMetadatum}
-*/
-module.exports.encode_json_str_to_metadatum = function(json, schema) {
-    var ptr0 = passStringToWasm0(json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    var ret = wasm.encode_json_str_to_metadatum(ptr0, len0, schema);
-    return TransactionMetadatum.__wrap(ret);
-};
-
-/**
-* @param {TransactionMetadatum} metadatum
-* @param {number} schema
-* @returns {string}
-*/
-module.exports.decode_metadatum_to_json_str = function(metadatum, schema) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        _assertClass(metadatum, TransactionMetadatum);
-        wasm.decode_metadatum_to_json_str(retptr, metadatum.ptr, schema);
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_free(r0, r1);
-    }
-};
-
-/**
 * @param {string} password
 * @param {string} salt
 * @param {string} nonce
@@ -478,6 +417,67 @@ module.exports.min_fee = function(tx, linear_fee, mem_price, step_price) {
 };
 
 /**
+* @param {Uint8Array} bytes
+* @returns {TransactionMetadatum}
+*/
+module.exports.encode_arbitrary_bytes_as_metadatum = function(bytes) {
+    var ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ret = wasm.encode_arbitrary_bytes_as_metadatum(ptr0, len0);
+    return TransactionMetadatum.__wrap(ret);
+};
+
+/**
+* @param {TransactionMetadatum} metadata
+* @returns {Uint8Array}
+*/
+module.exports.decode_arbitrary_bytes_from_metadatum = function(metadata) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        _assertClass(metadata, TransactionMetadatum);
+        wasm.decode_arbitrary_bytes_from_metadatum(retptr, metadata.ptr);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var v0 = getArrayU8FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 1);
+        return v0;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+};
+
+/**
+* @param {string} json
+* @param {number} schema
+* @returns {TransactionMetadatum}
+*/
+module.exports.encode_json_str_to_metadatum = function(json, schema) {
+    var ptr0 = passStringToWasm0(json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ret = wasm.encode_json_str_to_metadatum(ptr0, len0, schema);
+    return TransactionMetadatum.__wrap(ret);
+};
+
+/**
+* @param {TransactionMetadatum} metadatum
+* @param {number} schema
+* @returns {string}
+*/
+module.exports.decode_metadatum_to_json_str = function(metadatum, schema) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        _assertClass(metadatum, TransactionMetadatum);
+        wasm.decode_metadatum_to_json_str(retptr, metadatum.ptr, schema);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_free(r0, r1);
+    }
+};
+
+/**
 */
 module.exports.CertificateKind = Object.freeze({ StakeRegistration:0,"0":"StakeRegistration",StakeDeregistration:1,"1":"StakeDeregistration",StakeDelegation:2,"2":"StakeDelegation",PoolRegistration:3,"3":"PoolRegistration",PoolRetirement:4,"4":"PoolRetirement",GenesisKeyDelegation:5,"5":"GenesisKeyDelegation",MoveInstantaneousRewardsCert:6,"6":"MoveInstantaneousRewardsCert", });
 /**
@@ -504,12 +504,6 @@ module.exports.ScriptHashNamespace = Object.freeze({ NativeScript:0,"0":"NativeS
 module.exports.NetworkIdKind = Object.freeze({ Testnet:0,"0":"Testnet",Mainnet:1,"1":"Mainnet", });
 /**
 */
-module.exports.TransactionMetadatumKind = Object.freeze({ MetadataMap:0,"0":"MetadataMap",MetadataList:1,"1":"MetadataList",Int:2,"2":"Int",Bytes:3,"3":"Bytes",Text:4,"4":"Text", });
-/**
-*/
-module.exports.MetadataJsonSchema = Object.freeze({ NoConversions:0,"0":"NoConversions",BasicConversions:1,"1":"BasicConversions",DetailedSchema:2,"2":"DetailedSchema", });
-/**
-*/
 module.exports.LanguageKind = Object.freeze({ PlutusV1:0,"0":"PlutusV1", });
 /**
 */
@@ -517,6 +511,12 @@ module.exports.PlutusDataKind = Object.freeze({ ConstrPlutusData:0,"0":"ConstrPl
 /**
 */
 module.exports.RedeemerTagKind = Object.freeze({ Spend:0,"0":"Spend",Mint:1,"1":"Mint",Cert:2,"2":"Cert",Reward:3,"3":"Reward", });
+/**
+*/
+module.exports.TransactionMetadatumKind = Object.freeze({ MetadataMap:0,"0":"MetadataMap",MetadataList:1,"1":"MetadataList",Int:2,"2":"Int",Bytes:3,"3":"Bytes",Text:4,"4":"Text", });
+/**
+*/
+module.exports.MetadataJsonSchema = Object.freeze({ NoConversions:0,"0":"NoConversions",BasicConversions:1,"1":"BasicConversions",DetailedSchema:2,"2":"DetailedSchema", });
 /**
 */
 class Address {
@@ -10328,6 +10328,13 @@ class TransactionBuilder {
         wasm.transactionbuilder_set_withdrawals(this.ptr, withdrawals.ptr);
     }
     /**
+    * @param {Address} address
+    */
+    add_address_witness(address) {
+        _assertClass(address, Address);
+        wasm.transactionbuilder_add_address_witness(this.ptr, address.ptr);
+    }
+    /**
     * @param {TransactionInputs} collateral
     */
     set_collateral(collateral) {
@@ -12410,12 +12417,12 @@ module.exports.__wbg_require_6461b1e9a0d7c34a = function(arg0, arg1) {
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_getRandomValues_1ef11e888e5228e9 = function(arg0, arg1, arg2) {
-    getObject(arg0).getRandomValues(getArrayU8FromWasm0(arg1, arg2));
-};
-
 module.exports.__wbg_randomFillSync_1b52c8482374c55b = function(arg0, arg1, arg2) {
     getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
+};
+
+module.exports.__wbg_getRandomValues_1ef11e888e5228e9 = function(arg0, arg1, arg2) {
+    getObject(arg0).getRandomValues(getArrayU8FromWasm0(arg1, arg2));
 };
 
 module.exports.__wbindgen_string_get = function(arg0, arg1) {

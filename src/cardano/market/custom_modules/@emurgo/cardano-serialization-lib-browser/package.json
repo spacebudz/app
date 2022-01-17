@@ -13,6 +13,7 @@
   "files": [
     "cardano_serialization_lib_bg.wasm",
     "cardano_serialization_lib.js",
+    "cardano_serialization_lib_bg.js",
     "cardano_serialization_lib.d.ts"
   ],
   "module": "cardano_serialization_lib.js",

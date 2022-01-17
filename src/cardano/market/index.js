@@ -360,6 +360,7 @@ class SpaceBudzMarket {
     const inputs = Loader.Cardano.TransactionInputs.new();
     utxos.forEach((utxo) => {
       inputs.add(utxo.input());
+      txBuilder.add_address_witness(utxo.output().address());
     });
     txBuilder.set_collateral(inputs);
   }
@@ -407,7 +408,9 @@ class SpaceBudzMarket {
         Loader.Cardano.PlutusList.from_bytes(datums.to_bytes())
       );
       txBuilder.set_plutus_scripts(CONTRACT());
-      const collateral = (await window.cardano.getCollateral()).map((utxo) =>
+      const collateral = (
+        await window.cardano.selectedWallet.experimental.getCollateral()
+      ).map((utxo) =>
         Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
       );
       if (collateral.length <= 0) throw new Error("NO_COLLATERAL");
@@ -507,7 +510,7 @@ class SpaceBudzMarket {
     console.log(size);
     if (size > this.protocolParameters.maxTxSize)
       throw new Error("MAX_SIZE_REACHED");
-    let txVkeyWitnesses = await window.cardano.signTx(
+    let txVkeyWitnesses = await window.cardano.selectedWallet.signTx(
       toHex(tx.to_bytes()),
       true
     );
@@ -523,7 +526,9 @@ class SpaceBudzMarket {
 
     console.log("Full Tx Size", signedTx.to_bytes().length);
 
-    const txHash = await window.cardano.submitTx(toHex(signedTx.to_bytes()));
+    const txHash = await window.cardano.selectedWallet.submitTx(
+      toHex(signedTx.to_bytes())
+    );
     return txHash;
   }
 
@@ -607,33 +612,33 @@ class SpaceBudzMarket {
   async load() {
     await Loader.load();
     const p = await this.blockfrostRequest(`/epochs/latest/parameters`);
-    // this.protocolParameters = {
-    //   linearFee: {
-    //     minFeeA: p.min_fee_a.toString(),
-    //     minFeeB: p.min_fee_b.toString(),
-    //   },
-    //   minUtxo: "1000000",
-    //   poolDeposit: p.pool_deposit,
-    //   keyDeposit: p.key_deposit,
-    //   maxValSize: parseInt(p.max_val_size),
-    //   maxTxSize: parseInt(p.max_tx_size),
-    //   priceMem: parseFloat(p.price_mem),
-    //   priceStep: parseFloat(p.price_step),
-    // };
-    //TODO: wait for blockfrost fix
     this.protocolParameters = {
       linearFee: {
         minFeeA: p.min_fee_a.toString(),
         minFeeB: p.min_fee_b.toString(),
       },
       minUtxo: "1000000",
-      poolDeposit: "500000000",
-      keyDeposit: "2000000",
-      maxValSize: "5000",
-      maxTxSize: 16384,
-      priceMem: 5.77e-2,
-      priceStep: 7.21e-5,
+      poolDeposit: p.pool_deposit,
+      keyDeposit: p.key_deposit,
+      maxValSize: parseInt(p.max_val_size),
+      maxTxSize: parseInt(p.max_tx_size),
+      priceMem: parseFloat(p.price_mem),
+      priceStep: parseFloat(p.price_step),
     };
+    //TODO: wait for blockfrost fix
+    // this.protocolParameters = {
+    //   linearFee: {
+    //     minFeeA: p.min_fee_a.toString(),
+    //     minFeeB: p.min_fee_b.toString(),
+    //   },
+    //   minUtxo: "1000000",
+    //   poolDeposit: "500000000",
+    //   keyDeposit: "2000000",
+    //   maxValSize: "5000",
+    //   maxTxSize: 16384,
+    //   priceMem: 5.77e-2,
+    //   priceStep: 7.21e-5,
+    // };
 
     this.contractInfo = {
       policySpaceBudz:
@@ -704,6 +709,32 @@ class SpaceBudzMarket {
     return null;
   }
 
+  async getAddress() {
+    try {
+      return Loader.Cardano.BaseAddress.from_address(
+        Loader.Cardano.Address.from_bytes(
+          fromHex((await window.cardano.selectedWallet.getUsedAddresses())[0])
+        )
+      );
+    } catch (e) {}
+    try {
+      return Loader.Cardano.EnterpriseAddress.from_address(
+        Loader.Cardano.Address.from_bytes(
+          fromHex((await window.cardano.selectedWallet.getUsedAddresses())[0])
+        )
+      );
+    } catch (e) {}
+    try {
+    } catch (e) {
+      return Loader.Cardano.PointerAddress.from_address(
+        Loader.Cardano.Address.from_bytes(
+          fromHex((await window.cardano.selectedWallet.getUsedAddresses())[0])
+        )
+      );
+    }
+    throw Error("Not supported address type");
+  }
+
   /**
    *
    * @param {number} budId
@@ -729,13 +760,9 @@ class SpaceBudzMarket {
     const { txBuilder, datums, metadata, outputs } = await this.initTx();
     const budId = bidUtxo.budId;
 
-    const walletAddress = Loader.Cardano.BaseAddress.from_address(
-      Loader.Cardano.Address.from_bytes(
-        fromHex((await window.cardano.getUsedAddresses())[0])
-      )
-    );
+    const walletAddress = await this.getAddress();
 
-    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+    const utxos = (await window.cardano.selectedWallet.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
     datums.add(bidUtxo.datum);
@@ -879,13 +906,9 @@ class SpaceBudzMarket {
     const { txBuilder, datums, metadata, outputs } = await this.initTx();
     const budId = bidUtxo.budId;
 
-    const walletAddress = Loader.Cardano.BaseAddress.from_address(
-      Loader.Cardano.Address.from_bytes(
-        fromHex((await window.cardano.getUsedAddresses())[0])
-      )
-    );
+    const walletAddress = await this.getAddress();
 
-    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+    const utxos = (await window.cardano.selectedWallet.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
     datums.add(bidUtxo.datum);
@@ -959,13 +982,9 @@ class SpaceBudzMarket {
       ) == -1
     )
       throw new Error("Amount too small");
-    const walletAddress = Loader.Cardano.BaseAddress.from_address(
-      Loader.Cardano.Address.from_bytes(
-        fromHex((await window.cardano.getUsedAddresses())[0])
-      )
-    );
+    const walletAddress = await this.getAddress();
 
-    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+    const utxos = (await window.cardano.selectedWallet.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
     const offerDatum = OFFER({
@@ -1011,13 +1030,9 @@ class SpaceBudzMarket {
    */
   async buy(offerUtxo) {
     const { txBuilder, datums, outputs } = await this.initTx();
-    const walletAddress = Loader.Cardano.BaseAddress.from_address(
-      Loader.Cardano.Address.from_bytes(
-        fromHex((await window.cardano.getUsedAddresses())[0])
-      )
-    );
+    const walletAddress = await this.getAddress();
 
-    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+    const utxos = (await window.cardano.selectedWallet.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
     datums.add(offerUtxo.datum);
@@ -1055,13 +1070,9 @@ class SpaceBudzMarket {
   async cancelOffer(offerUtxo) {
     const { txBuilder, datums, outputs } = await this.initTx();
 
-    const walletAddress = Loader.Cardano.BaseAddress.from_address(
-      Loader.Cardano.Address.from_bytes(
-        fromHex((await window.cardano.getUsedAddresses())[0])
-      )
-    );
+    const walletAddress = await this.getAddress();
 
-    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+    const utxos = (await window.cardano.selectedWallet.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
     datums.add(offerUtxo.datum);
@@ -1093,13 +1104,9 @@ class SpaceBudzMarket {
   async cancelBid(bidUtxo) {
     const { txBuilder, datums, metadata, outputs } = await this.initTx();
     const budId = bidUtxo.budId;
-    const walletAddress = Loader.Cardano.BaseAddress.from_address(
-      Loader.Cardano.Address.from_bytes(
-        fromHex((await window.cardano.getUsedAddresses())[0])
-      )
-    );
+    const walletAddress = await this.getAddress();
 
-    const utxos = (await window.cardano.getUtxos()).map((utxo) =>
+    const utxos = (await window.cardano.selectedWallet.getUtxos()).map((utxo) =>
       Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
     );
     datums.add(bidUtxo.datum);

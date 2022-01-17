@@ -9,6 +9,7 @@ import Icon from "@mdi/react";
 import { mdiOpenInNew } from "@mdi/js";
 import secrets from "../../secrets";
 import { Spinner } from "@chakra-ui/spinner";
+import Loader from "../cardano/loader";
 
 const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc";
 
@@ -18,6 +19,31 @@ function fromHex(hex) {
     str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
   return str;
 }
+
+const valueToAssets = (value) => {
+  const assets = [];
+  assets.push({ unit: "lovelace", quantity: value.coin().to_str() });
+  if (value.multiasset()) {
+    const multiAssets = value.multiasset().keys();
+    for (let j = 0; j < multiAssets.len(); j++) {
+      const policy = multiAssets.get(j);
+      const policyAssets = value.multiasset().get(policy);
+      const assetNames = policyAssets.keys();
+      for (let k = 0; k < assetNames.len(); k++) {
+        const policyAsset = assetNames.get(k);
+        const quantity = policyAssets.get(policyAsset);
+        const asset =
+          Buffer.from(policy.to_bytes(), "hex").toString("hex") +
+          Buffer.from(policyAsset.name(), "hex").toString("hex");
+        assets.push({
+          unit: asset,
+          quantity: quantity.to_str(),
+        });
+      }
+    }
+  }
+  return assets;
+};
 
 const Profile = ({ pageContext: { spacebudz } }) => {
   const [address, setAddress] = React.useState("");
@@ -34,12 +60,23 @@ const Profile = ({ pageContext: { spacebudz } }) => {
     setIsLoading(true);
     setTokens(null);
     const tokens = { owned: [], bids: [], offers: [] };
-    const amount = await fetch(
-      `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${address}`,
-      { headers: { project_id: secrets.PROJECT_ID } }
-    )
-      .then((res) => res.json())
-      .then((res) => res.amount);
+    let amount;
+    if (connected === address) {
+      await Loader.load();
+      const value = Loader.Cardano.Value.from_bytes(
+        Buffer.from(await window.cardano.selectedWallet.getBalance(), "hex")
+      );
+
+      amount = valueToAssets(value);
+    } else {
+      amount = await fetch(
+        `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${address}`,
+        { headers: { project_id: secrets.PROJECT_ID } }
+      )
+        .then((res) => res.json())
+        .then((res) => res.amount);
+    }
+
     const offers = await fetch(`https://spacebudz.io/api/offers/${address}`, {
       headers: { project_id: secrets.PROJECT_ID },
     }).then((res) => res.json());
