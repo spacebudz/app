@@ -199,7 +199,7 @@ const StartButton = (props) => {
             Choose wallet
           </Box>
           <Box h={4} />
-          {window.cardano ? (
+          {isBrowser() && window.cardano ? (
             <SimpleGrid width={"full"} columns={2} spacing={4}>
               {Object.keys(window.cardano)
                 .filter(

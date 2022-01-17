@@ -109,8 +109,6 @@ const Profile = ({ pageContext: { spacebudz } }) => {
         };
       });
 
-    console.log(tokens.bids);
-
     try {
       const ownedAmount = amount
         .filter((am) => am.unit.startsWith(POLICY))

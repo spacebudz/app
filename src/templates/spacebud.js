@@ -176,7 +176,6 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     console.log(offerUtxo);
     // ignore if state is StartBid
     if (toHex(bidUtxo.datum.to_bytes()) !== "d866820080") {
-      console.log(connected);
       if (bidUtxo.tradeOwnerAddress.to_bech32() === connected)
         details.bid.owner = true;
       details.bid.lovelace = bidUtxo.lovelace;
@@ -206,8 +205,6 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     if (addresses.length > 1 && addresses[0].address === addresses[1].address) {
       addresses = [addresses[0]];
     }
-
-    console.log(JSON.parse(JSON.stringify(details)));
 
     setDetails(details);
     setOwner(addresses);
