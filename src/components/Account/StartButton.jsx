@@ -119,7 +119,7 @@ const StartButton = (props) => {
         .enable()
         .catch((e) => {});
       if (api) {
-        if (!(await checkStatus(toast, connected))) {
+        if (!(await checkStatus(toast, api))) {
           return;
         }
         window.cardano.selectedWallet = {
@@ -230,7 +230,7 @@ const StartButton = (props) => {
                           .enable()
                           .catch((e) => {});
                         if (api) {
-                          if (!(await checkStatus(toast, connected))) {
+                          if (!(await checkStatus(toast, api))) {
                             setIsLoading(false);
                             return;
                           }
@@ -311,11 +311,11 @@ const Ellipsis = ({ connected }) => {
 
 export default StartButton;
 
-const checkStatus = async (toast, connected) => {
+const checkStatus = async (toast, api) => {
   return (
     // NoNami(toast) &&
     // (await window.cardano.enable().catch((e) => {})) &&
-    await WrongNetworkToast(toast)
+    await WrongNetworkToast(toast, api)
   );
 };
 
@@ -354,8 +354,8 @@ const NoNami = (toast) => {
   return false;
 };
 
-const WrongNetworkToast = async (toast) => {
-  if ((await window.cardano.getNetworkId()) === 1) return true;
+const WrongNetworkToast = async (toast, api) => {
+  if ((await api.getNetworkId()) === 1) return true;
   toast({
     position: "bottom-right",
     duration: 5000,
