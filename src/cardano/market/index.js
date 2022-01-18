@@ -725,13 +725,12 @@ class SpaceBudzMarket {
       );
     } catch (e) {}
     try {
-    } catch (e) {
       return Loader.Cardano.PointerAddress.from_address(
         Loader.Cardano.Address.from_bytes(
           fromHex((await window.cardano.selectedWallet.getUsedAddresses())[0])
         )
       );
-    }
+    } catch (e) {}
     throw Error("Not supported address type");
   }
 
