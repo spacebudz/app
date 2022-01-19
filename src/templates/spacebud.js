@@ -27,10 +27,11 @@ import { SmallCloseIcon, RepeatIcon } from "@chakra-ui/icons";
 import { useStoreState } from "easy-peasy";
 import Market from "../cardano/market";
 import secrets from "../../secrets";
+import { UnitDisplay } from "../components/UnitDisplay";
+import Loader from "../cardano/loader";
 
 //assets
 import Show from "../images/assets/show.svg";
-import { UnitDisplay } from "../components/UnitDisplay";
 
 export const toHex = (bytes) => Buffer.from(bytes).toString("hex");
 
@@ -57,14 +58,29 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     sell: false,
   });
   const connected = useStoreState((state) => state.connection.connected);
+
   const market = React.useRef();
 
   const POLICY = "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"; // mainnet
   const CONTRACT_ADDRESS =
     "addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq";
 
+  const connectedAddresses = React.useRef([]);
+
+  const isOwner = (address) =>
+    connectedAddresses.current.length > 0
+      ? connectedAddresses.current.some((addr) => addr === address)
+      : false;
+
   const firstUpdate = React.useRef(true);
   const init = async () => {
+    connectedAddresses.current = connected
+      ? (await window.cardano.selectedWallet.getUsedAddresses()).map((addr) =>
+          Loader.Cardano.Address.from_bytes(
+            Buffer.from(addr, "hex")
+          ).to_bech32()
+        )
+      : [];
     if (firstUpdate.current) {
       await loadMarket();
       await loadSpaceBudData();
@@ -109,10 +125,10 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
       "addr1qxpxm8a0uxe6eu2m6fgdu6wqfclujtzyjdu9jw0qdxfjaz02h5ngjz7fftac5twlxj6jha4meenh6476m5xdwmeyh4hq0zeknx"
     );
     await market.current.load();
-    // loadSpaceBudData();
   };
 
   const loadSpaceBudData = async () => {
+    await Loader.load();
     setIsLoadingMarket(true);
     setOwner([]);
     const token = POLICY + toHex(`SpaceBud${spacebud.id}`);
@@ -133,14 +149,15 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
 
     const bidUtxo = await market.current.getBid(spacebud.id);
     let offerUtxo = await market.current.getOffer(spacebud.id);
+
     // check if twin
     if (Array.isArray(offerUtxo)) {
       if (
         offerUtxo.length === 2 &&
         (spacebud.id === 1903 || spacebud.id === 6413)
       ) {
-        const ownerUtxo = offerUtxo.find(
-          (utxo) => utxo.tradeOwnerAddress.to_bech32() === connected
+        const ownerUtxo = offerUtxo.find((utxo) =>
+          isOwner(utxo.tradeOwnerAddress.to_bech32())
         );
 
         if (ownerUtxo) {
@@ -176,12 +193,13 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
     console.log(offerUtxo);
     // ignore if state is StartBid
     if (toHex(bidUtxo.datum.to_bytes()) !== "d866820080") {
-      if (bidUtxo.tradeOwnerAddress.to_bech32() === connected)
+      if (isOwner(bidUtxo.tradeOwnerAddress.to_bech32())) {
         details.bid.owner = true;
+      }
       details.bid.lovelace = bidUtxo.lovelace;
       details.bid.usd = (bidUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
-    if (addresses.find((address) => address.address === connected))
+    if (addresses.find((address) => isOwner(address.address)))
       details.offer.owner = true;
     if (offerUtxo) {
       addresses = addresses.map((address) =>
@@ -189,8 +207,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
           ? { address: offerUtxo.tradeOwnerAddress.to_bech32() }
           : address
       );
-      if (offerUtxo.tradeOwnerAddress.to_bech32() === connected)
+      if (isOwner(offerUtxo.tradeOwnerAddress.to_bech32())) {
         details.offer.owner = true;
+      }
       details.offer.lovelace = offerUtxo.lovelace;
       details.offer.usd = (offerUtxo.lovelace / 10 ** 6) * fiatPrice * 10 ** 2;
     }
@@ -492,8 +511,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                       <Tooltip
                         label={
                           details.offer.offerUtxo &&
-                          connected ==
-                            details.offer.offerUtxo.tradeOwnerAddress.to_bech32() &&
+                          isOwner(
+                            details.offer.offerUtxo.tradeOwnerAddress.to_bech32()
+                          ) &&
                           "Cancel Offer first"
                         }
                         rounded="3xl"
@@ -514,8 +534,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                             if (
                               !connected ||
                               (details.offer.offerUtxo &&
-                                connected ==
-                                  details.offer.offerUtxo.tradeOwnerAddress.to_bech32())
+                                isOwner(
+                                  details.offer.offerUtxo.tradeOwnerAddress.to_bech32()
+                                ))
                             )
                               return;
                             setLoadingButton((l) => ({
@@ -548,8 +569,9 @@ const SpaceBud = ({ pageContext: { spacebud } }) => {
                     >
                       {details.offer.lovelace &&
                       details.offer.offerUtxo &&
-                      connected ==
-                        details.offer.offerUtxo.tradeOwnerAddress.to_bech32() ? (
+                      isOwner(
+                        details.offer.offerUtxo.tradeOwnerAddress.to_bech32()
+                      ) ? (
                         <Tooltip label="Cancel Offer" rounded="3xl">
                           <Button
                             isDisabled={loadingButton.cancelOffer}
