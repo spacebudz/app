@@ -61,6 +61,20 @@ const Profile = ({ pageContext: { spacebudz } }) => {
     setTokens(null);
     const tokens = { owned: [], bids: [], offers: [] };
     let amount;
+
+    const connectedAddresses = connected
+      ? (await window.cardano.selectedWallet.getUsedAddresses()).map((addr) =>
+          Loader.Cardano.Address.from_bytes(
+            Buffer.from(addr, "hex")
+          ).to_bech32()
+        )
+      : [];
+
+    const isOwner = (address) =>
+      connectedAddresses.length > 0
+        ? connectedAddresses.some((addr) => addr === address)
+        : false;
+
     if (connected === address) {
       await Loader.load();
       const value = Loader.Cardano.Value.from_bytes(
@@ -86,7 +100,11 @@ const Profile = ({ pageContext: { spacebudz } }) => {
     }).then((res) => res.json());
 
     tokens.offers = offers.offers
-      .filter((offer) => offer.offer.owner == address)
+      .filter(
+        (offer) =>
+          offer.offer.owner == address ||
+          (connected === address && isOwner(offer.offer.owner))
+      )
       .map((offer) => {
         const bidPrice = bids.bids.find((bid) => bid.budId == offer.budId);
         return {
@@ -97,7 +115,11 @@ const Profile = ({ pageContext: { spacebudz } }) => {
       });
 
     tokens.bids = bids.bids
-      .filter((bid) => bid.bid.owner == address)
+      .filter(
+        (bid) =>
+          bid.bid.owner == address ||
+          (connected === address && isOwner(bid.bid.owner))
+      )
       .map((bid) => {
         const listingPrice = offers.offers.find(
           (offer) => offer.budId == bid.budId
@@ -113,7 +135,6 @@ const Profile = ({ pageContext: { spacebudz } }) => {
       const ownedAmount = amount
         .filter((am) => am.unit.startsWith(POLICY))
         .map((am) => parseInt(fromHex(am.unit.slice(56)).split("SpaceBud")[1]));
-      const ownedBids = bids.bids.filter((bid) => bid.bid.owner == address);
       const owned = ownedAmount.map((id) => {
         const bidPrice = bids.bids.find((bid) => bid.budId == id);
         return {
