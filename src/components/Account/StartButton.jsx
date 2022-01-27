@@ -246,10 +246,20 @@ const StartButton = (props) => {
                             setIsLoading(false);
                             return;
                           }
-                          window.cardano.selectedWallet = {
-                            ...window.cardano[walletName],
-                            ...api,
-                          };
+                          if (session.walletName === "flint") {
+                            window.cardano.selectedWallet = {
+                              ...window.cardano[session.walletName],
+                              ...api,
+                              experimental: {
+                                getCollateral: api.getCollateral,
+                              },
+                            };
+                          } else {
+                            window.cardano.selectedWallet = {
+                              ...window.cardano[walletName],
+                              ...api,
+                            };
+                          }
                           const address = await addressToBech32();
                           setConnected(address);
                           localStorage.setItem(
