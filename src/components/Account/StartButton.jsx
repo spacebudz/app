@@ -122,10 +122,20 @@ const StartButton = (props) => {
         if (!(await checkStatus(toast, api))) {
           return;
         }
-        window.cardano.selectedWallet = {
-          ...window.cardano[session.walletName],
-          ...api,
-        };
+        if (session.walletName === "flint") {
+          window.cardano.selectedWallet = {
+            ...window.cardano[session.walletName],
+            ...api,
+            experimental: {
+              getCollateral: api.getCollateral,
+            },
+          };
+        } else {
+          window.cardano.selectedWallet = {
+            ...window.cardano[session.walletName],
+            ...api,
+          };
+        }
       }
       if (Date.now() - parseInt(session.time) < 6000000) {
         //1h
@@ -211,7 +221,9 @@ const StartButton = (props) => {
                 Object.keys(window.cardano)
                   .filter(
                     (walletName) =>
-                      walletName == "nami" || walletName == "ccvault"
+                      walletName == "nami" ||
+                      walletName == "ccvault" ||
+                      walletName === "flint"
                   )
                   .map((walletName) => (
                     <Box
