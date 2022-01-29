@@ -227,6 +227,7 @@ const StartButton = (props) => {
                   )
                   .map((walletName) => (
                     <Box
+                      key={walletName}
                       width={"90px"}
                       height={"90px"}
                       _hover={{ background: "gray.100", rounded: "xl" }}
