@@ -246,9 +246,9 @@ const StartButton = (props) => {
                             setIsLoading(false);
                             return;
                           }
-                          if (session.walletName === "flint") {
+                          if (walletName === "flint") {
                             window.cardano.selectedWallet = {
-                              ...window.cardano[session.walletName],
+                              ...window.cardano[walletName],
                               ...api,
                               experimental: {
                                 getCollateral: api.getCollateral,
