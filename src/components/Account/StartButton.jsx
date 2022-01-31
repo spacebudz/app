@@ -223,7 +223,7 @@ const StartButton = (props) => {
                     (walletName) =>
                       walletName == "nami" ||
                       walletName == "ccvault" ||
-                      walletName === "flint"
+                      // walletName === "flint"
                   )
                   .map((walletName) => (
                     <Box

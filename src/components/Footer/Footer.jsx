@@ -67,7 +67,7 @@ const Footer = (props) => {
                   Telegram
                 </Tab>
                 <Tab
-                  onClick={() => window.open("https://discord.gg/ePJZBVwQNq")}
+                  onClick={() => window.open("https://discord.gg/aG74bGSYbT")}
                 >
                   Discord
                 </Tab>

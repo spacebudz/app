@@ -172,7 +172,7 @@ const Header = () => {
                   textAlign="left"
                   color="gray.600"
                   className={style.tabItem}
-                  onClick={() => window.open("https://discord.gg/ePJZBVwQNq")}
+                  onClick={() => window.open("https://discord.gg/aG74bGSYbT")}
                   style={{ display: "flex", alignItems: "center" }}
                 >
                   <Icon path={mdiDiscord} size={0.7} />{" "}
