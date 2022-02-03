@@ -21,6 +21,14 @@ var converterEngine = function (input) {
   return base64;
 };
 
+const ipfsGateways = [
+  "https://ipfs.blockfrost.dev/ipfs/",
+  "https://gateway.ipfs.io/ipfs/",
+  "https://infura-ipfs.io/ipfs/",
+  "https://ipfs.io/ipfs/",
+  "https://cf-ipfs.com/ipfs/",
+];
+
 var getImageBase64 = function (url, callback) {
   // 1. Loading file from url:
   var xhr = new XMLHttpRequest(url);
@@ -49,8 +57,18 @@ const CustomLazyImage = styled(LazyLoadImage)`
 const Item = ({ bud, im, type, hasDouble }) => {
   const [image, setImage] = React.useState(null);
   React.useEffect(() => {
+    const s = im.split("/");
+    const hash = s[s.length - 1];
+    let link =
+      ipfsGateways[Math.floor(Math.random() * ipfsGateways.length)] + hash;
     // getImageBase64(im, (data) => setImage("data:image/png;base64," + data));
-    setImage(im);
+    const l = localStorage.getItem(hash);
+    if (!l) {
+      localStorage.setItem(hash, link);
+    } else {
+      link = l;
+    }
+    setImage(link);
   }, []);
 
   return (
