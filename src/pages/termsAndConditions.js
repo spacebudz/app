@@ -75,7 +75,7 @@ const PrivacyPolicy = () => {
                       <Box h={2} />
                       <li dir="ltr">
                         <p dir="ltr">
-                          Additionally, for as long at you own the User Owned
+                          Additionally, for as long as you own the User Owned
                           NFT, SpaceBudz grants you a limited, personal,
                           non-exclusive, worldwide license under any copyright
                           owned by the SpaceBudz over that particular User Owned

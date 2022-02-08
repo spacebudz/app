@@ -26,6 +26,11 @@ const isBrowser = () => typeof window !== "undefined";
 
 const Header = () => {
   const matches = useBreakpoint();
+  const [win, setWin] = React.useState();
+
+  React.useEffect(() => {
+    if (isBrowser()) setWin(window);
+  }, []);
 
   return (
     <div style={{ position: "absolute", width: "100%" }}>
@@ -60,9 +65,7 @@ const Header = () => {
                 fontFamily={"'Nunito', sans-serif;"}
                 fontSize={22}
                 color={
-                  isBrowser() && window.location.href.split("/")[3]
-                    ? "#8064F4"
-                    : "white"
+                  win && win.location.href.split("/")[3] ? "#8064F4" : "white"
                 }
                 fontWeight={700}
               >
