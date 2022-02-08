@@ -22,6 +22,8 @@ import LogoNew from "../../images/assets/LogoNew.svg";
 import Title from "../../images/assets/title.png";
 import { Box, Link } from "@chakra-ui/layout";
 
+const isBrowser = () => typeof window !== "undefined";
+
 const Header = () => {
   const matches = useBreakpoint();
 
@@ -57,7 +59,11 @@ const Header = () => {
               <Box
                 fontFamily={"'Nunito', sans-serif;"}
                 fontSize={22}
-                color={window.location.href.split("/")[3] ? "#8064F4" : "white"}
+                color={
+                  isBrowser() && window.location.href.split("/")[3]
+                    ? "#8064F4"
+                    : "white"
+                }
                 fontWeight={700}
               >
                 SpaceBudz
