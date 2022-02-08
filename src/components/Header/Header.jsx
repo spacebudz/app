@@ -8,7 +8,6 @@ import {
   mdiTelegram,
   mdiDiscord,
 } from "@mdi/js";
-import { Popover, Text } from "@geist-ui/react";
 import Icon from "@mdi/react";
 import { StartButton } from "../Account";
 import { navigate } from "gatsby";
@@ -19,6 +18,7 @@ import * as style from "./Tab.module.css";
 
 //assets
 import Logo from "../../images/assets/spacebudz.svg";
+import LogoNew from "../../images/assets/LogoNew.svg";
 import Title from "../../images/assets/title.png";
 import { Box, Link } from "@chakra-ui/layout";
 
@@ -50,20 +50,18 @@ const Header = () => {
             window.scrollTo(0, 0);
           }}
         >
-          <img
-            style={{
-              backgroundColor: "white",
-              padding: 2,
-              borderRadius: "50%",
-            }}
-            draggable={false}
-            width={!matches.md ? 55 : 45}
-            src={Logo}
-          />
+          <img draggable={false} width={!matches.md ? 55 : 45} src={LogoNew} />
           {!matches.md && (
             <>
               <Box w={4} />
-              <img src={Title} width={140} draggable={false} />
+              <Box
+                fontFamily={"'Nunito', sans-serif;"}
+                fontSize={22}
+                color={window.location.href.split("/")[3] ? "#8064F4" : "white"}
+                fontWeight={700}
+              >
+                SpaceBudz
+              </Box>
             </>
           )}
         </div>
@@ -172,7 +170,7 @@ const Header = () => {
                   textAlign="left"
                   color="gray.600"
                   className={style.tabItem}
-                  onClick={() => window.open("https://discord.gg/aG74bGSYbT")}
+                  onClick={() => window.open("https://discord.gg/spacebudz")}
                   style={{ display: "flex", alignItems: "center" }}
                 >
                   <Icon path={mdiDiscord} size={0.7} />{" "}

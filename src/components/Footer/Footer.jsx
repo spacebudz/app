@@ -44,6 +44,9 @@ const Footer = (props) => {
                 <Tab onClick={() => window.open("https://v1.spacebudz.io")}>
                   Go to v1
                 </Tab>
+                <Tab onClick={() => navigate("/termsAndConditions")}>
+                  Terms and Conditions
+                </Tab>
               </div>
             </Grid>
             <Grid
@@ -67,7 +70,7 @@ const Footer = (props) => {
                   Telegram
                 </Tab>
                 <Tab
-                  onClick={() => window.open("https://discord.gg/aG74bGSYbT")}
+                  onClick={() => window.open("https://discord.gg/spacebudz")}
                 >
                   Discord
                 </Tab>

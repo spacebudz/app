@@ -178,10 +178,11 @@ const Landing = (props) => {
               justifyContent: "center",
             }}
           >
-            <img src={BudRepresent} width="20%" style={{ minWidth: 100 }} />
-            <Box w={10} />
+            {/* <img src={BudRepresent} width="20%" style={{ minWidth: 100 }} /> */}
             <div>
-              <div style={{ fontSize: 32 }}>What is SpaceBudz?</div>
+              <div style={{ fontSize: 32, textAlign: "center" }}>
+                What is SpaceBudz?
+              </div>
               <Box h={4} />
               <div
                 style={{
