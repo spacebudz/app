@@ -62,8 +62,7 @@ data ContractInfo = ContractInfo
     , bidStep :: !Integer
     } deriving (Generic, ToJSON, FromJSON)
 
-toFraction :: Float -> Integer
-toFraction p = toInteger $ floor (1 / (p / 1000))
+
 
 
 contractInfo = ContractInfo 
@@ -289,6 +288,10 @@ PlutusTx.makeLift ''TradeAction
 
 
 -- helper functions
+
+-- toFraction relocated here by Seamoss
+toFraction :: Float -> Integer
+toFraction p = toInteger $ floor (1 / (p / 1000))
 
 containsSpaceBudNFT :: Value -> BuiltinByteString -> Bool
 containsSpaceBudNFT v tn = valueOf v (policySpaceBudz contractInfo) (TokenName ((prefixSpaceBud contractInfo) <> tn)) >= 1
