@@ -250,7 +250,9 @@ const Landing = (props) => {
 
             <Icon
               style={{ cursor: "pointer" }}
-              onClick={() => window.open("https://discord.gg/ePJZBVwQNq")}
+              onClick={() =>
+                window.open("https://discord.com/invite/spacebudz")
+              }
               path={mdiDiscord}
               size={1.2}
             />
