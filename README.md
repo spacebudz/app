@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://spacebudz.io">
-    <img alt="Gatsby" src="./src/images/assets/spacebudz.png" width="60" />
+    <img alt="Gatsby" src="./src/images/assets/LogoNew3.png" width="80" />
   </a>
 </p>
 <h1 align="center">
