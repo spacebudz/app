@@ -341,40 +341,7 @@ const checkStatus = async (toast, api) => {
   );
 };
 
-const NoNami = (toast) => {
-  if (window.cardano) return true;
-  toast({
-    position: "bottom-right",
-    render: () => (
-      <Box
-        background="purple.400"
-        color="white"
-        px={6}
-        py={3}
-        rounded="3xl"
-        display="flex"
-        alignItems="center"
-      >
-        <InfoIcon />
-        <Box ml="3" fontWeight="medium">
-          Nami not installed
-        </Box>
-        <Button
-          rounded="3xl"
-          colorScheme="whiteAlpha"
-          onClick={() => window.open("https://namiwallet.io")}
-          ml="4"
-          size="xs"
-          rightIcon={<ChevronRightIcon />}
-        >
-          Get it
-        </Button>
-      </Box>
-    ),
-    duration: 9000,
-  });
-  return false;
-};
+
 
 const WrongNetworkToast = async (toast, api) => {
   if ((await api.getNetworkId()) === 1) return true;
