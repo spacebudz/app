@@ -164,6 +164,18 @@ export const Header = (props: HeaderProps) => {
               </span>
             </div>
           </Link>
+          <Link to="/termsAndConditions/">
+            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
+              <span className="flex items-center">
+                <span className="text-md font-medium text-black">
+                  NFT license
+                </span>
+              </span>
+              <span className="block text-sm text-gray-500">
+                Our terms and conditions
+              </span>
+            </div>
+          </Link>
           <Link to="/about/">
             <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
               <span className="flex items-center">
