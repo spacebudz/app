@@ -1,3 +1,2 @@
-import CustomLayout from "./wrapPageElement";
-
-export const wrapPageElement = CustomLayout;
+import wrapWithProvider from "./wrap-with-provider";
+export const wrapRootElement = wrapWithProvider;

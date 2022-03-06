@@ -1,28 +1,67 @@
+const defaultTheme = require("tailwindcss/defaultTheme");
+const { theme } = require("./src/theme/theme");
+
+const tailwindQueries = {
+  xs: `(max-width: ${defaultTheme.screens.xs})`,
+  sm: `(max-width: ${defaultTheme.screens.sm})`,
+  md: `(max-width: ${defaultTheme.screens.md})`,
+  lg: `(max-width: ${defaultTheme.screens.lg})`,
+  xl: `(max-width: ${defaultTheme.screens.xl})`,
+  portrait: "(orientation: portrait)",
+};
+
 module.exports = {
+  siteMetadata: {
+    siteUrl: `https://spacebudz.io`,
+  },
   plugins: [
-    `gatsby-transformer-sharp`,
-    `gatsby-plugin-sharp`,
-    `gatsby-plugin-sass`,
-    `gatsby-plugin-styled-components`,
-    `gatsby-plugin-react-helmet`,
-    `@chakra-ui/gatsby-plugin`,
     {
-      resolve: `gatsby-source-filesystem`,
+      resolve: `gatsby-plugin-manifest`,
       options: {
-        path: `${__dirname}/src/images/`,
+        name: `SpaceBudz`,
+        short_name: `SpaceBudz`,
+        description:
+          "Let's go on an adventure, where will your SpaceBudz take you?",
+        start_url: `/`,
+        background_color: `#ffffff`,
+        theme_color: theme.colors.primary,
+        display: `standalone`,
+        icon: "src/images/icon.png",
+      },
+    },
+    "gatsby-plugin-image",
+    "gatsby-plugin-react-helmet",
+    "gatsby-plugin-sitemap",
+    "gatsby-plugin-sharp",
+    "gatsby-transformer-sharp",
+    {
+      resolve: `gatsby-plugin-ts`,
+      options: {
+        codegen: false,
       },
     },
     {
+      resolve: "gatsby-source-filesystem",
+      options: {
+        name: "images",
+        path: "./src/images/",
+      },
+      __key: "images",
+    },
+    `gatsby-plugin-postcss`,
+    {
       resolve: "gatsby-plugin-breakpoints",
       options: {
-        queries: {
-          xs: "(max-width: 650px)",
-          sm: "(max-width: 900px)",
-          md: "(max-width: 1280px)",
-          l: "(max-width: 1920px)",
-          xl: "(max-width: 10000px)",
-          portrait: "(orientation: portrait)",
-        },
+        queries: tailwindQueries,
+      },
+    },
+    "gatsby-plugin-use-query-params",
+    `gatsby-transformer-json`,
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: "data",
+        path: `./src/data/`,
       },
     },
   ],

@@ -1,10 +1,7 @@
 node_modules/
 .cache/
-public/
-static/
-.firebase/
-.firebaserc
-firebase.json
-package-lock.json
+public
+**/.DS_Store
 secrets.js
-.DS_Store
+.firebase/
+firebase-debug.log
