@@ -138,7 +138,11 @@ export const makeFilter = (
   return (
     (filter.type.length > 0 ? filter.type.includes(node.type) : true) &&
     (filter.gadget.length > 0
-      ? filter.gadget.every((gadget) => node.traits.includes(gadget))
+      ? filter.gadget.every((gadget) =>
+          gadget.startsWith("NOT_")
+            ? !node.traits.includes(gadget.slice(4))
+            : node.traits.includes(gadget)
+        )
       : true) &&
     (filter.buyRange
       ? (filter.buyRange[0] === "MIN" ||
@@ -259,19 +263,37 @@ export const makeSearch = (
   };
 };
 
-export const FilterTile = ({ entry, setFilter, filter, kind }) => {
+export const FilterTile = ({
+  entry,
+  setFilter,
+  filter,
+  kind,
+  negate = false,
+}) => {
   const [name, amount] = entry;
-  const selected = filter[kind].includes(name);
+  const selected = filter[kind].find((gadget) => gadget.includes(name));
+  const negatedName = selected?.startsWith("NOT_") && selected.slice(4);
   return (
     <div
       className={`border-2 p-2 border-slate-900 rounded-xl text-xs cursor-pointer flex justify-center items-center text-center font-bold ${
-        selected ? "bg-primary" : ""
+        selected ? (negatedName ? "bg-rose-400" : "bg-primary") : ""
       }`}
       onClick={() => {
-        if (selected) {
-          const index = filter[kind].indexOf(name);
+        if (selected && negatedName) {
+          // this one needs to be the selected variable, because of the NON_ prefix
+          const index = filter[kind].indexOf(selected);
           filter[kind].splice(index, 1);
           setFilter(filter[kind]);
+        } else if (selected) {
+          if (negate) {
+            const index = filter[kind].indexOf(name);
+            filter[kind][index] = "NOT_" + name;
+            setFilter(filter[kind]);
+          } else {
+            const index = filter[kind].indexOf(name);
+            filter[kind].splice(index, 1);
+            setFilter(filter[kind]);
+          }
         } else {
           filter[kind].push(name);
           setFilter(filter[kind]);
@@ -454,6 +476,7 @@ export const FilterPanel = ({
               kind="gadget"
               filter={filter}
               setFilter={setGadgets}
+              negate
             />
           ))}
         </div>
