@@ -1,0 +1,50 @@
+[
+  {
+    "name": "pool.pm",
+    "description": "SpaceBudz marketplace history updated in realtime",
+    "image": "../images/toolsRegistry/pool_pm.jpg",
+    "url": "https://pool.pm/spacebudz"
+  },
+  {
+    "name": "SpaceBudz Art",
+    "description": "View the entire SpaceBudz collection in one picture, created by @kevzivan",
+    "image": "../images/toolsRegistry/spacebudzart.png",
+    "url": "https://spacebudz.art/"
+  },
+  {
+    "name": "SpaceBudzBot",
+    "description": "Greetings, humans. I announce sales for SpaceBudz on the Cardano blockchain",
+    "image": "../images/toolsRegistry/spacebudzbot.png",
+    "url": "https://twitter.com/spacebudzbot"
+  },
+  {
+    "name": "SpaceBudz Live",
+    "description": "All listings and bids for SpaceBudz",
+    "image": "../images/toolsRegistry/spacebudzbot.png",
+    "url": "https://twitter.com/spacebudzlive"
+  },
+  {
+    "name": "SpaceBudz Sales",
+    "description": "@spaceBudzNFT Sales! Automated by @CryptoBurnerAkt",
+    "image": "../images/toolsRegistry/spacebudzsales.png",
+    "url": "https://twitter.com/SpaceBudzSales"
+  },
+  {
+    "name": "SpaceBudz Analytics",
+    "description": "Analytical data about the SpaceBudz collection",
+    "image": "../images/toolsRegistry/spacebudzanalytics.png",
+    "url": "https://spacebudz-analytics.herokuapp.com/"
+  },
+  {
+    "name": "opencnft",
+    "description": "CNFT RANKINGS Leaderboards & Analytics of the Cardano NFT ecosystem",
+    "image": "../images/toolsRegistry/opencnft.svg",
+    "url": "https://opencnft.io/pXaNOxRjRruayv1a"
+  },
+  {
+    "name": "CNFT Tools",
+    "description": "CNFT Market Aggregator and Rankings",
+    "image": "../images/toolsRegistry/cnft_tools.png",
+    "url": "https://cnft.tools/spacebudz"
+  }
+]
