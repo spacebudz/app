@@ -34,3 +34,25 @@ The marketplace can be run by members of the community. They can host the market
 We have a seperate module inside this repository for the marketplace with the full source code.
 
 Check it out [here](./src/cardano/market/).
+
+### Community tools
+
+[Here](https://spacebudz.io/communityTools) you can find helpful and useful tools created by the community.
+
+You have created something for SpaceBudz and it's not in the list?
+Make a PR!
+
+Add your tool to the registry under `./src/data/toolsRegistry.json` with the following format:
+```
+  {
+    name: string,
+    description: string (max 70 characters),
+    image: string (relative path to image),
+    url: string (e.g. https://spacebudz.io)
+  }
+```
+The `image` property contains the relative path to the image: `../image/toolsRegistry/{image}`. Place the actual image under `./src/images/toolsRegistry/`.
+The image should be in landscape mode (e.g. 600px width, 400px height).
+You could use the other tools in the registry as template in case something is unclear.
+
+

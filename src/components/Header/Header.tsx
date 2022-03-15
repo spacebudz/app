@@ -140,6 +140,18 @@ export const Header = (props: HeaderProps) => {
               </span>
             </div>
           </a>
+          <Link to="/communityTools/">
+            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
+              <span className="flex items-center">
+                <span className="text-md font-medium text-primary">
+                  Community tools
+                </span>
+              </span>
+              <span className="block text-sm text-gray-500">
+                Explore helpful and useful tools created by the community
+              </span>
+            </div>
+          </Link>
         </Popover>
         <Popover
           position="center"
