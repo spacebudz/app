@@ -55,7 +55,7 @@ const Explore = () => {
 
   const isMounted = useIsMounted();
 
-  React.useEffect(() => {}, []);
+  const interval = React.useRef<NodeJS.Timer>();
 
   const init = async () => {
     if (!array || !lastUpdate || Date.now() - lastUpdate > 60000) {
@@ -91,10 +91,31 @@ const Explore = () => {
         setLoading(false);
       }
     }
+
+    // check for new activies every 10s
+    interval.current = setInterval(async () => {
+      const activityRaw = await getActivity();
+      const budImageMap = {};
+      data.allMetadataJson.edges.map((node) => {
+        // side effect, stores images in a map to look them up quicker in activity array
+        budImageMap[node.node.budId] = node.node.image;
+      });
+
+      const activity: Activity[] = activityRaw.map((ac) => ({
+        ...ac,
+        image: budImageMap[ac.budId],
+      }));
+      if (isMounted.current) {
+        setActivity(activity);
+      }
+    }, 10000);
   };
 
   React.useEffect(() => {
     init();
+    return () => {
+      clearInterval(interval.current);
+    };
   }, []);
 
   const {
