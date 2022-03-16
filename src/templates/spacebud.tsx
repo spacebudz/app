@@ -211,9 +211,11 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
           </div>
           <div className="w-full lg:w-2/4 px-8 lg:px-10 flex flex-col">
             <div className="text-4xl font-bold font-title">{name}</div>
-            <div className="text-3xl font-semibold font-title text-slate-500">
-              {type}
-            </div>
+            <Link to={`/explore/?type=${type}`}>
+              <div className="text-3xl font-semibold font-title text-slate-500">
+                {type}
+              </div>
+            </Link>
             {loading ? (
               <div className="w-full mt-16 lg:mt-0 flex-grow flex justify-center items-center flex-col">
                 <Spinner theme="violet" className="!w-6 md:!w-8" />
