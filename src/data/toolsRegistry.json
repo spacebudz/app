@@ -36,6 +36,12 @@
     "url": "https://spacebudz-analytics.herokuapp.com/"
   },
   {
+    "name": "NFT Tools",
+    "description": "All collections are handpicked and supported with special care and quality",
+    "image": "../images/toolsRegistry/nft_tools.png",
+    "url": "https://spacebudz.nft-tools.xyz/"
+  },
+  {
     "name": "opencnft",
     "description": "CNFT RANKINGS Leaderboards & Analytics of the Cardano NFT ecosystem",
     "image": "../images/toolsRegistry/opencnft.svg",
