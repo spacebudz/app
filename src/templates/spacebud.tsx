@@ -422,12 +422,9 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
           market={market}
           details={details}
           budId={budId}
-          checkTx={({ type, lovelace, txHash }) =>
+          checkTx={({ txHash }) =>
             checkTx({
               txHash,
-              type,
-              lovelace,
-              budId,
               market,
             })
           }
@@ -437,12 +434,9 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
           market={market}
           details={details}
           budId={budId}
-          checkTx={({ type, lovelace, txHash }) =>
+          checkTx={({ txHash }) =>
             checkTx({
               txHash,
-              type,
-              lovelace,
-              budId,
               market,
             })
           }

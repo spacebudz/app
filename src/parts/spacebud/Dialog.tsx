@@ -3,10 +3,7 @@ import { Button, createToast, Input, Spinner, toast } from "../../components";
 import { Dialog } from "../../components/Dialog";
 import { fromLovelaceDisplay, toLovelace } from "../../utils";
 import { ExternalLink } from "@styled-icons/evaicons-solid/ExternalLink";
-import secrets from "../../../secrets";
 import NumberFormat from "react-number-format";
-
-type BotType = "sold" | "bought" | "bid" | "list";
 
 type Confirm = {
   type: "CancelBid" | "CancelListing" | "Sell" | "Buy" | null;
@@ -17,7 +14,7 @@ type ConfirmDialogProps = {
   market: any;
   budId: number;
   details: any;
-  checkTx: ({ type: BotType, txHash: string, lovelace: BigInt }) => void;
+  checkTx: ({ txHash: string }) => void;
 };
 
 export const ConfirmDialog = React.forwardRef(
@@ -107,10 +104,6 @@ export const ConfirmDialog = React.forwardRef(
       if (!txHash) return;
       checkTx({
         txHash,
-        type:
-          (confirm.type === "Buy" && "bought") ||
-          (confirm.type === "Sell" && "sold"),
-        lovelace: confirm.lovelace,
       });
       dialogRef.current.close();
     };
@@ -198,10 +191,6 @@ export const TradeDialog = React.forwardRef(
       if (!txHash) return;
       checkTx({
         txHash,
-        type:
-          (trade.type === "List" && "list") ||
-          (trade.type === "Offer" && "bid"),
-        lovelace,
       });
       dialogRef.current.close();
     };
@@ -311,25 +300,10 @@ const successTxToast = (txHash: string) => {
   });
 };
 
-export const checkTx = async ({ txHash, type, lovelace, budId, market }) => {
+export const checkTx = async ({ txHash, market }) => {
   if (!txHash) return;
   pendingTxToast();
-  if (type) {
-    fetch("https://api.spacebudzbot.com/tweet", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + secrets.TWITTER_BOT_TOKEN,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: budId.toString(),
-        type,
-        lovelace: lovelace.toString(),
-      }),
-    })
-      .then(console.log)
-      .catch(console.log);
-  }
+
   await market.awaitConfirmation(txHash);
   toast.dismiss();
   successTxToast(txHash);
