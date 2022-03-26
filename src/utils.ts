@@ -6,7 +6,7 @@ const { Address, Value } = await import(
 export const ipfsToHttps = (ipfs: string): string =>
   IPFS_GATEWAY + "/" + ipfs.split("ipfs://")[1];
 
-export const toLovelace = (ada: string | number | BigInt): BigInt => {
+export const toLovelace = (ada: string | number | BigInt): BigInt | undefined => {
   if (!ada) return;
   return BigInt(
     parseFloat(ada.toString().replace(/[,\s]/g, ""))
