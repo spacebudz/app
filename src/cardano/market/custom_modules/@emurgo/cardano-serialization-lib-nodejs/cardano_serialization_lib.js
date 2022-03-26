@@ -1,7 +1,7 @@
 let imports = {};
 imports['__wbindgen_placeholder__'] = module.exports;
 let wasm;
-const { TextDecoder, TextEncoder } = require(String.raw`util`);
+const { TextDecoder, TextEncoder } = require(`util`);
 
 const heap = new Array(32).fill(undefined);
 
@@ -217,53 +217,17 @@ function passArray32ToWasm0(arg, malloc) {
     return ptr;
 }
 /**
-* @param {string} password
-* @param {string} salt
-* @param {string} nonce
-* @param {string} data
-* @returns {string}
+* @param {Transaction} tx
+* @param {LinearFee} linear_fee
+* @param {number} mem_price
+* @param {number} step_price
+* @returns {BigNum}
 */
-module.exports.encrypt_with_password = function(password, salt, nonce, data) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        var ptr0 = passStringToWasm0(password, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(salt, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        var ptr2 = passStringToWasm0(nonce, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len2 = WASM_VECTOR_LEN;
-        var ptr3 = passStringToWasm0(data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len3 = WASM_VECTOR_LEN;
-        wasm.encrypt_with_password(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_free(r0, r1);
-    }
-};
-
-/**
-* @param {string} password
-* @param {string} data
-* @returns {string}
-*/
-module.exports.decrypt_with_password = function(password, data) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        var ptr0 = passStringToWasm0(password, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        wasm.decrypt_with_password(retptr, ptr0, len0, ptr1, len1);
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        return getStringFromWasm0(r0, r1);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-        wasm.__wbindgen_free(r0, r1);
-    }
+module.exports.min_fee = function(tx, linear_fee, mem_price, step_price) {
+    _assertClass(tx, Transaction);
+    _assertClass(linear_fee, LinearFee);
+    var ret = wasm.min_fee(tx.ptr, linear_fee.ptr, mem_price, step_price);
+    return BigNum.__wrap(ret);
 };
 
 /**
@@ -338,20 +302,20 @@ module.exports.hash_plutus_data = function(plutus_data) {
 
 /**
 * @param {Redeemers} redeemers
-* @param {LanguageViews} language_views
+* @param {Costmdls} cost_models
 * @param {PlutusList | undefined} datums
 * @returns {ScriptDataHash}
 */
-module.exports.hash_script_data = function(redeemers, language_views, datums) {
+module.exports.hash_script_data = function(redeemers, cost_models, datums) {
     _assertClass(redeemers, Redeemers);
-    _assertClass(language_views, LanguageViews);
+    _assertClass(cost_models, Costmdls);
     let ptr0 = 0;
     if (!isLikeNone(datums)) {
         _assertClass(datums, PlutusList);
         ptr0 = datums.ptr;
         datums.ptr = 0;
     }
-    var ret = wasm.hash_script_data(redeemers.ptr, language_views.ptr, ptr0);
+    var ret = wasm.hash_script_data(redeemers.ptr, cost_models.ptr, ptr0);
     return ScriptDataHash.__wrap(ret);
 };
 
@@ -385,35 +349,38 @@ module.exports.get_deposit = function(txbody, pool_deposit, key_deposit) {
 
 /**
 * @param {Value} assets
-* @param {BigNum} minimum_utxo_val
-* @param {DataHash | undefined} data_hash
+* @param {boolean} has_data_hash
+* @param {BigNum} coins_per_utxo_word
 * @returns {BigNum}
 */
-module.exports.min_ada_required = function(assets, minimum_utxo_val, data_hash) {
+module.exports.min_ada_required = function(assets, has_data_hash, coins_per_utxo_word) {
     _assertClass(assets, Value);
-    _assertClass(minimum_utxo_val, BigNum);
-    let ptr0 = 0;
-    if (!isLikeNone(data_hash)) {
-        _assertClass(data_hash, DataHash);
-        ptr0 = data_hash.ptr;
-        data_hash.ptr = 0;
-    }
-    var ret = wasm.min_ada_required(assets.ptr, minimum_utxo_val.ptr, ptr0);
+    _assertClass(coins_per_utxo_word, BigNum);
+    var ret = wasm.min_ada_required(assets.ptr, has_data_hash, coins_per_utxo_word.ptr);
     return BigNum.__wrap(ret);
 };
 
 /**
-* @param {Transaction} tx
-* @param {LinearFee} linear_fee
-* @param {number} mem_price
-* @param {number} step_price
-* @returns {BigNum}
+* Receives a script JSON string
+* and returns a NativeScript.
+* Cardano Wallet and Node styles are supported.
+*
+* * wallet: https://github.com/input-output-hk/cardano-wallet/blob/master/specifications/api/swagger.yaml
+* * node: https://github.com/input-output-hk/cardano-node/blob/master/doc/reference/simple-scripts.md
+*
+* self_xpub is expected to be a Bip32PublicKey as hex-encoded bytes
+* @param {string} json
+* @param {string} self_xpub
+* @param {number} schema
+* @returns {NativeScript}
 */
-module.exports.min_fee = function(tx, linear_fee, mem_price, step_price) {
-    _assertClass(tx, Transaction);
-    _assertClass(linear_fee, LinearFee);
-    var ret = wasm.min_fee(tx.ptr, linear_fee.ptr, mem_price, step_price);
-    return BigNum.__wrap(ret);
+module.exports.encode_json_str_to_native_script = function(json, self_xpub, schema) {
+    var ptr0 = passStringToWasm0(json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    var ptr1 = passStringToWasm0(self_xpub, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len1 = WASM_VECTOR_LEN;
+    var ret = wasm.encode_json_str_to_native_script(ptr0, len0, ptr1, len1, schema);
+    return NativeScript.__wrap(ret);
 };
 
 /**
@@ -478,6 +445,63 @@ module.exports.decode_metadatum_to_json_str = function(metadatum, schema) {
 };
 
 /**
+* @param {string} password
+* @param {string} salt
+* @param {string} nonce
+* @param {string} data
+* @returns {string}
+*/
+module.exports.encrypt_with_password = function(password, salt, nonce, data) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        var ptr0 = passStringToWasm0(password, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(salt, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        var ptr2 = passStringToWasm0(nonce, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
+        var ptr3 = passStringToWasm0(data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len3 = WASM_VECTOR_LEN;
+        wasm.encrypt_with_password(retptr, ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_free(r0, r1);
+    }
+};
+
+/**
+* @param {string} password
+* @param {string} data
+* @returns {string}
+*/
+module.exports.decrypt_with_password = function(password, data) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        var ptr0 = passStringToWasm0(password, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ptr1 = passStringToWasm0(data, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        wasm.decrypt_with_password(retptr, ptr0, len0, ptr1, len1);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        return getStringFromWasm0(r0, r1);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_free(r0, r1);
+    }
+};
+
+function handleError(f, args) {
+    try {
+        return f.apply(this, args);
+    } catch (e) {
+        wasm.__wbindgen_exn_store(addHeapObject(e));
+    }
+}
+/**
 */
 module.exports.CertificateKind = Object.freeze({ StakeRegistration:0,"0":"StakeRegistration",StakeDeregistration:1,"1":"StakeDeregistration",StakeDelegation:2,"2":"StakeDelegation",PoolRegistration:3,"3":"PoolRegistration",PoolRetirement:4,"4":"PoolRetirement",GenesisKeyDelegation:5,"5":"GenesisKeyDelegation",MoveInstantaneousRewardsCert:6,"6":"MoveInstantaneousRewardsCert", });
 /**
@@ -503,6 +527,38 @@ module.exports.ScriptHashNamespace = Object.freeze({ NativeScript:0,"0":"NativeS
 */
 module.exports.NetworkIdKind = Object.freeze({ Testnet:0,"0":"Testnet",Mainnet:1,"1":"Mainnet", });
 /**
+* Used to choosed the schema for a script JSON string
+*/
+module.exports.ScriptSchema = Object.freeze({ Wallet:0,"0":"Wallet",Node:1,"1":"Node", });
+/**
+*/
+module.exports.TransactionMetadatumKind = Object.freeze({ MetadataMap:0,"0":"MetadataMap",MetadataList:1,"1":"MetadataList",Int:2,"2":"Int",Bytes:3,"3":"Bytes",Text:4,"4":"Text", });
+/**
+*/
+module.exports.MetadataJsonSchema = Object.freeze({ NoConversions:0,"0":"NoConversions",BasicConversions:1,"1":"BasicConversions",DetailedSchema:2,"2":"DetailedSchema", });
+/**
+*/
+module.exports.CoinSelectionStrategyCIP2 = Object.freeze({
+/**
+* Performs CIP2's Largest First ada-only selection. Will error if outputs contain non-ADA assets.
+*/
+LargestFirst:0,"0":"LargestFirst",
+/**
+* Performs CIP2's Random Improve ada-only selection. Will error if outputs contain non-ADA assets.
+*/
+RandomImprove:1,"1":"RandomImprove",
+/**
+* Same as LargestFirst, but before adding ADA, will insert by largest-first for each asset type.
+*/
+LargestFirstMultiAsset:2,"2":"LargestFirstMultiAsset",
+/**
+* Same as RandomImprove, but before adding ADA, will insert by random-improve for each asset type.
+*/
+RandomImproveMultiAsset:3,"3":"RandomImproveMultiAsset", });
+/**
+*/
+module.exports.StakeCredKind = Object.freeze({ Key:0,"0":"Key",Script:1,"1":"Script", });
+/**
 */
 module.exports.LanguageKind = Object.freeze({ PlutusV1:0,"0":"PlutusV1", });
 /**
@@ -511,12 +567,6 @@ module.exports.PlutusDataKind = Object.freeze({ ConstrPlutusData:0,"0":"ConstrPl
 /**
 */
 module.exports.RedeemerTagKind = Object.freeze({ Spend:0,"0":"Spend",Mint:1,"1":"Mint",Cert:2,"2":"Cert",Reward:3,"3":"Reward", });
-/**
-*/
-module.exports.TransactionMetadatumKind = Object.freeze({ MetadataMap:0,"0":"MetadataMap",MetadataList:1,"1":"MetadataList",Int:2,"2":"Int",Bytes:3,"3":"Bytes",Text:4,"4":"Text", });
-/**
-*/
-module.exports.MetadataJsonSchema = Object.freeze({ NoConversions:0,"0":"NoConversions",BasicConversions:1,"1":"BasicConversions",DetailedSchema:2,"2":"DetailedSchema", });
 /**
 */
 class Address {
@@ -1326,21 +1376,19 @@ class BigNum {
         return BigNum.__wrap(ret);
     }
     /**
+    * @returns {boolean}
+    */
+    is_zero() {
+        var ret = wasm.bignum_is_zero(this.ptr);
+        return ret !== 0;
+    }
+    /**
     * @param {BigNum} other
     * @returns {BigNum}
     */
     checked_mul(other) {
         _assertClass(other, BigNum);
         var ret = wasm.bignum_checked_mul(this.ptr, other.ptr);
-        return BigNum.__wrap(ret);
-    }
-    /**
-    * @param {BigNum} other
-    * @returns {BigNum}
-    */
-    checked_div(other) {
-        _assertClass(other, BigNum);
-        var ret = wasm.bignum_checked_div(this.ptr, other.ptr);
         return BigNum.__wrap(ret);
     }
     /**
@@ -1359,6 +1407,15 @@ class BigNum {
     checked_sub(other) {
         _assertClass(other, BigNum);
         var ret = wasm.bignum_checked_sub(this.ptr, other.ptr);
+        return BigNum.__wrap(ret);
+    }
+    /**
+    * @param {BigNum} other
+    * @returns {BigNum}
+    */
+    checked_div(other) {
+        _assertClass(other, BigNum);
+        var ret = wasm.bignum_checked_div(this.ptr, other.ptr);
         return BigNum.__wrap(ret);
     }
     /**
@@ -2493,11 +2550,11 @@ class ConstrPlutusData {
         return ConstrPlutusData.__wrap(ret);
     }
     /**
-    * @returns {Int}
+    * @returns {BigNum}
     */
-    tag() {
-        var ret = wasm.constrplutusdata_tag(this.ptr);
-        return Int.__wrap(ret);
+    alternative() {
+        var ret = wasm.constrplutusdata_alternative(this.ptr);
+        return BigNum.__wrap(ret);
     }
     /**
     * @returns {PlutusList}
@@ -2507,16 +2564,14 @@ class ConstrPlutusData {
         return PlutusList.__wrap(ret);
     }
     /**
-    * @param {Int} tag
+    * @param {BigNum} alternative
     * @param {PlutusList} data
     * @returns {ConstrPlutusData}
     */
-    static new(tag, data) {
-        _assertClass(tag, Int);
-        var ptr0 = tag.ptr;
-        tag.ptr = 0;
+    static new(alternative, data) {
+        _assertClass(alternative, BigNum);
         _assertClass(data, PlutusList);
-        var ret = wasm.constrplutusdata_new(ptr0, data.ptr);
+        var ret = wasm.constrplutusdata_new(alternative.ptr, data.ptr);
         return ConstrPlutusData.__wrap(ret);
     }
 }
@@ -4078,6 +4133,12 @@ class Int {
         return ret !== 0;
     }
     /**
+    * BigNum can only contain unsigned u64 values
+    *
+    * This function will return the BigNum representation
+    * only in case the underlying i128 value is positive.
+    *
+    * Otherwise nothing will be returned (undefined).
     * @returns {BigNum | undefined}
     */
     as_positive() {
@@ -4085,6 +4146,12 @@ class Int {
         return ret === 0 ? undefined : BigNum.__wrap(ret);
     }
     /**
+    * BigNum can only contain unsigned u64 values
+    *
+    * This function will return the *absolute* BigNum representation
+    * only in case the underlying i128 value is negative.
+    *
+    * Otherwise nothing will be returned (undefined).
     * @returns {BigNum | undefined}
     */
     as_negative() {
@@ -4092,6 +4159,9 @@ class Int {
         return ret === 0 ? undefined : BigNum.__wrap(ret);
     }
     /**
+    * !!! DEPRECATED !!!
+    * Returns an i32 value in case the underlying original i128 value is within the limits.
+    * Otherwise will just return an empty value (undefined).
     * @returns {number | undefined}
     */
     as_i32() {
@@ -4103,6 +4173,48 @@ class Int {
             return r0 === 0 ? undefined : r1;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    * Returns the underlying value converted to i32 if possible (within limits)
+    * Otherwise will just return an empty value (undefined).
+    * @returns {number | undefined}
+    */
+    as_i32_or_nothing() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.int_as_i32_or_nothing(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return r0 === 0 ? undefined : r1;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    * Returns the underlying value converted to i32 if possible (within limits)
+    * JsError in case of out of boundary overflow
+    * @returns {number}
+    */
+    as_i32_or_fail() {
+        var ret = wasm.int_as_i32_or_fail(this.ptr);
+        return ret;
+    }
+    /**
+    * Returns string representation of the underlying i128 value directly.
+    * Might contain the minus sign (-) in case of negative value.
+    * @returns {string}
+    */
+    to_str() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.int_to_str(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return getStringFromWasm0(r0, r1);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+            wasm.__wbindgen_free(r0, r1);
         }
     }
 }
@@ -4451,82 +4563,6 @@ class Language {
     }
 }
 module.exports.Language = Language;
-/**
-*/
-class LanguageViews {
-
-    static __wrap(ptr) {
-        const obj = Object.create(LanguageViews.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_languageviews_free(ptr);
-    }
-    /**
-    * @returns {Uint8Array}
-    */
-    to_bytes() {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.languageviews_to_bytes(retptr, this.ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU8FromWasm0(r0, r1).slice();
-            wasm.__wbindgen_free(r0, r1 * 1);
-            return v0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-    /**
-    * @param {Uint8Array} bytes
-    * @returns {LanguageViews}
-    */
-    static from_bytes(bytes) {
-        var ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.languageviews_from_bytes(ptr0, len0);
-        return LanguageViews.__wrap(ret);
-    }
-    /**
-    * @param {Uint8Array} bytes
-    * @returns {LanguageViews}
-    */
-    static new(bytes) {
-        var ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ret = wasm.languageviews_new(ptr0, len0);
-        return LanguageViews.__wrap(ret);
-    }
-    /**
-    * @returns {Uint8Array}
-    */
-    bytes() {
-        try {
-            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.languageviews_bytes(retptr, this.ptr);
-            var r0 = getInt32Memory0()[retptr / 4 + 0];
-            var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU8FromWasm0(r0, r1).slice();
-            wasm.__wbindgen_free(r0, r1 * 1);
-            return v0;
-        } finally {
-            wasm.__wbindgen_add_to_stack_pointer(16);
-        }
-    }
-}
-module.exports.LanguageViews = LanguageViews;
 /**
 */
 class Languages {
@@ -5063,6 +5099,17 @@ class Mint {
         return Mint.__wrap(ret);
     }
     /**
+    * @param {ScriptHash} key
+    * @param {MintAssets} value
+    * @returns {Mint}
+    */
+    static new_from_entry(key, value) {
+        _assertClass(key, ScriptHash);
+        _assertClass(value, MintAssets);
+        var ret = wasm.mint_new_from_entry(key.ptr, value.ptr);
+        return Mint.__wrap(ret);
+    }
+    /**
     * @returns {number}
     */
     len() {
@@ -5096,6 +5143,22 @@ class Mint {
         var ret = wasm.mint_keys(this.ptr);
         return ScriptHashes.__wrap(ret);
     }
+    /**
+    * Returns the multiasset where only positive (minting) entries are present
+    * @returns {MultiAsset}
+    */
+    as_positive_multiasset() {
+        var ret = wasm.mint_as_positive_multiasset(this.ptr);
+        return MultiAsset.__wrap(ret);
+    }
+    /**
+    * Returns the multiasset where only negative (burning) entries are present
+    * @returns {MultiAsset}
+    */
+    as_negative_multiasset() {
+        var ret = wasm.mint_as_negative_multiasset(this.ptr);
+        return MultiAsset.__wrap(ret);
+    }
 }
 module.exports.Mint = Mint;
 /**
@@ -5125,6 +5188,19 @@ class MintAssets {
     */
     static new() {
         var ret = wasm.mintassets_new();
+        return MintAssets.__wrap(ret);
+    }
+    /**
+    * @param {AssetName} key
+    * @param {Int} value
+    * @returns {MintAssets}
+    */
+    static new_from_entry(key, value) {
+        _assertClass(key, AssetName);
+        _assertClass(value, Int);
+        var ptr0 = value.ptr;
+        value.ptr = 0;
+        var ret = wasm.mintassets_new_from_entry(key.ptr, ptr0);
         return MintAssets.__wrap(ret);
     }
     /**
@@ -5385,6 +5461,7 @@ class MultiAsset {
         return MultiAsset.__wrap(ret);
     }
     /**
+    * the number of unique policy IDs in the multiasset
     * @returns {number}
     */
     len() {
@@ -5392,26 +5469,59 @@ class MultiAsset {
         return ret >>> 0;
     }
     /**
-    * @param {ScriptHash} key
-    * @param {Assets} value
+    * set (and replace if it exists) all assets with policy {policy_id} to a copy of {assets}
+    * @param {ScriptHash} policy_id
+    * @param {Assets} assets
     * @returns {Assets | undefined}
     */
-    insert(key, value) {
-        _assertClass(key, ScriptHash);
-        _assertClass(value, Assets);
-        var ret = wasm.multiasset_insert(this.ptr, key.ptr, value.ptr);
+    insert(policy_id, assets) {
+        _assertClass(policy_id, ScriptHash);
+        _assertClass(assets, Assets);
+        var ret = wasm.multiasset_insert(this.ptr, policy_id.ptr, assets.ptr);
         return ret === 0 ? undefined : Assets.__wrap(ret);
     }
     /**
-    * @param {ScriptHash} key
+    * all assets under {policy_id}, if any exist, or else None (undefined in JS)
+    * @param {ScriptHash} policy_id
     * @returns {Assets | undefined}
     */
-    get(key) {
-        _assertClass(key, ScriptHash);
-        var ret = wasm.multiasset_get(this.ptr, key.ptr);
+    get(policy_id) {
+        _assertClass(policy_id, ScriptHash);
+        var ret = wasm.multiasset_get(this.ptr, policy_id.ptr);
         return ret === 0 ? undefined : Assets.__wrap(ret);
     }
     /**
+    * sets the asset {asset_name} to {value} under policy {policy_id}
+    * returns the previous amount if it was set, or else None (undefined in JS)
+    * @param {ScriptHash} policy_id
+    * @param {AssetName} asset_name
+    * @param {BigNum} value
+    * @returns {BigNum | undefined}
+    */
+    set_asset(policy_id, asset_name, value) {
+        _assertClass(policy_id, ScriptHash);
+        _assertClass(asset_name, AssetName);
+        _assertClass(value, BigNum);
+        var ptr0 = value.ptr;
+        value.ptr = 0;
+        var ret = wasm.multiasset_set_asset(this.ptr, policy_id.ptr, asset_name.ptr, ptr0);
+        return ret === 0 ? undefined : BigNum.__wrap(ret);
+    }
+    /**
+    * returns the amount of asset {asset_name} under policy {policy_id}
+    * If such an asset does not exist, 0 is returned.
+    * @param {ScriptHash} policy_id
+    * @param {AssetName} asset_name
+    * @returns {BigNum}
+    */
+    get_asset(policy_id, asset_name) {
+        _assertClass(policy_id, ScriptHash);
+        _assertClass(asset_name, AssetName);
+        var ret = wasm.multiasset_get_asset(this.ptr, policy_id.ptr, asset_name.ptr);
+        return BigNum.__wrap(ret);
+    }
+    /**
+    * returns all policy IDs used by assets in this multiasset
     * @returns {ScriptHashes}
     */
     keys() {
@@ -5420,6 +5530,7 @@ class MultiAsset {
     }
     /**
     * removes an asset from the list if the result is 0 or less
+    * does not modify this object, instead the result is returned
     * @param {MultiAsset} rhs_ma
     * @returns {MultiAsset}
     */
@@ -5546,11 +5657,11 @@ class NativeScript {
     }
     /**
     * @param {number} namespace
-    * @returns {Ed25519KeyHash}
+    * @returns {ScriptHash}
     */
     hash(namespace) {
         var ret = wasm.nativescript_hash(this.ptr, namespace);
-        return Ed25519KeyHash.__wrap(ret);
+        return ScriptHash.__wrap(ret);
     }
     /**
     * @param {ScriptPubkey} script_pubkey
@@ -5654,6 +5765,16 @@ class NativeScript {
     as_timelock_expiry() {
         var ret = wasm.nativescript_as_timelock_expiry(this.ptr);
         return ret === 0 ? undefined : TimelockExpiry.__wrap(ret);
+    }
+    /**
+    * Returns an array of unique Ed25519KeyHashes
+    * contained within this script recursively on any depth level.
+    * The order of the keys in the result is not determined in any way.
+    * @returns {Ed25519KeyHashes}
+    */
+    get_required_signers() {
+        var ret = wasm.nativescript_get_required_signers(this.ptr);
+        return Ed25519KeyHashes.__wrap(ret);
     }
 }
 module.exports.NativeScript = NativeScript;
@@ -6388,6 +6509,11 @@ class PlutusScript {
         return PlutusScript.__wrap(ret);
     }
     /**
+    *
+    *     * Creates a new Plutus script from the RAW bytes of the compiled script.
+    *     * This does NOT include any CBOR encoding around these bytes (e.g. from "cborBytes" in cardano-cli)
+    *     * If you creating this from those you should use PlutusScript::from_bytes() instead.
+    *
     * @param {Uint8Array} bytes
     * @returns {PlutusScript}
     */
@@ -6398,6 +6524,10 @@ class PlutusScript {
         return PlutusScript.__wrap(ret);
     }
     /**
+    *
+    *     * The raw bytes of this compiled Plutus script.
+    *     * If you need "cborBytes" for cardano-cli use PlutusScript::to_bytes() instead.
+    *
     * @returns {Uint8Array}
     */
     bytes() {
@@ -7095,6 +7225,24 @@ class PrivateKey {
         return PrivateKey.__wrap(ret);
     }
     /**
+    * Get private key from its bech32 representation
+    * ```javascript
+    * PrivateKey.from_bech32(&#39;ed25519_sk1ahfetf02qwwg4dkq7mgp4a25lx5vh9920cr5wnxmpzz9906qvm8qwvlts0&#39;);
+    * ```
+    * For an extended 25519 key
+    * ```javascript
+    * PrivateKey.from_bech32(&#39;ed25519e_sk1gqwl4szuwwh6d0yk3nsqcc6xxc3fpvjlevgwvt60df59v8zd8f8prazt8ln3lmz096ux3xvhhvm3ca9wj2yctdh3pnw0szrma07rt5gl748fp&#39;);
+    * ```
+    * @param {string} bech32_str
+    * @returns {PrivateKey}
+    */
+    static from_bech32(bech32_str) {
+        var ptr0 = passStringToWasm0(bech32_str, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        var ret = wasm.privatekey_from_bech32(ptr0, len0);
+        return PrivateKey.__wrap(ret);
+    }
+    /**
     * @returns {string}
     */
     to_bech32() {
@@ -7633,6 +7781,46 @@ class ProtocolParamUpdate {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
             wasm.protocolparamupdate_max_value_size(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return r0 === 0 ? undefined : r1 >>> 0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    * @param {number} collateral_percentage
+    */
+    set_collateral_percentage(collateral_percentage) {
+        wasm.protocolparamupdate_set_collateral_percentage(this.ptr, collateral_percentage);
+    }
+    /**
+    * @returns {number | undefined}
+    */
+    collateral_percentage() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.protocolparamupdate_collateral_percentage(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            return r0 === 0 ? undefined : r1 >>> 0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
+    }
+    /**
+    * @param {number} max_collateral_inputs
+    */
+    set_max_collateral_inputs(max_collateral_inputs) {
+        wasm.protocolparamupdate_set_max_collateral_inputs(this.ptr, max_collateral_inputs);
+    }
+    /**
+    * @returns {number | undefined}
+    */
+    max_collateral_inputs() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.protocolparamupdate_max_collateral_inputs(retptr, this.ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
@@ -9263,7 +9451,7 @@ class StakeCredential {
     */
     kind() {
         var ret = wasm.stakecredential_kind(this.ptr);
-        return ret;
+        return ret >>> 0;
     }
     /**
     * @returns {Uint8Array}
@@ -9841,17 +10029,17 @@ class Transaction {
         return ret !== 0;
     }
     /**
-    * @param {boolean} valid
-    */
-    set_is_valid(valid) {
-        wasm.transaction_set_is_valid(this.ptr, valid);
-    }
-    /**
     * @returns {AuxiliaryData | undefined}
     */
     auxiliary_data() {
         var ret = wasm.transaction_auxiliary_data(this.ptr);
         return ret === 0 ? undefined : AuxiliaryData.__wrap(ret);
+    }
+    /**
+    * @param {boolean} valid
+    */
+    set_is_valid(valid) {
+        wasm.transaction_set_is_valid(this.ptr, valid);
     }
     /**
     * @param {TransactionBody} body
@@ -10121,6 +10309,15 @@ class TransactionBody {
     /**
     * @returns {Mint | undefined}
     */
+    mint() {
+        var ret = wasm.transactionbody_mint(this.ptr);
+        return ret === 0 ? undefined : Mint.__wrap(ret);
+    }
+    /**
+    * This function returns the mint value of the transaction
+    * Use `.mint()` instead.
+    * @returns {Mint | undefined}
+    */
     multiassets() {
         var ret = wasm.transactionbody_multiassets(this.ptr);
         return ret === 0 ? undefined : Mint.__wrap(ret);
@@ -10220,6 +10417,24 @@ class TransactionBuilder {
         wasm.__wbg_transactionbuilder_free(ptr);
     }
     /**
+    * This automatically selects and adds inputs from {inputs} consisting of just enough to cover
+    * the outputs that have already been added.
+    * This should be called after adding all certs/outputs/etc and will be an error otherwise.
+    * Uses CIP2: https://github.com/cardano-foundation/CIPs/blob/master/CIP-0002/CIP-0002.md
+    * Adding a change output must be called after via TransactionBuilder::add_change_if_needed()
+    * This function, diverging from CIP2, takes into account fees and will attempt to add additional
+    * inputs to cover the minimum fees. This does not, however, set the txbuilder's fee.
+    * @param {TransactionUnspentOutputs} inputs
+    * @param {number} strategy
+    */
+    add_inputs_from(inputs, strategy) {
+        _assertClass(inputs, TransactionUnspentOutputs);
+        wasm.transactionbuilder_add_inputs_from(this.ptr, inputs.ptr, strategy);
+    }
+    /**
+    * We have to know what kind of inputs these are to know what kind of mock witnesses to create since
+    * 1) mock witnesses have different lengths depending on the type which changes the expecting fee
+    * 2) Witnesses are a set so we need to get rid of duplicates to avoid over-estimating the fee
     * @param {Ed25519KeyHash} hash
     * @param {TransactionInput} input
     * @param {Value} amount
@@ -10278,6 +10493,7 @@ class TransactionBuilder {
         return BigNum.__wrap(ret);
     }
     /**
+    * Add explicit output via a TransactionOutput object
     * @param {TransactionOutput} output
     */
     add_output(output) {
@@ -10328,11 +10544,162 @@ class TransactionBuilder {
         wasm.transactionbuilder_set_withdrawals(this.ptr, withdrawals.ptr);
     }
     /**
-    * @param {Address} address
+    * @returns {AuxiliaryData | undefined}
     */
-    add_address_witness(address) {
-        _assertClass(address, Address);
-        wasm.transactionbuilder_add_address_witness(this.ptr, address.ptr);
+    get_auxiliary_data() {
+        var ret = wasm.transactionbuilder_get_auxiliary_data(this.ptr);
+        return ret === 0 ? undefined : AuxiliaryData.__wrap(ret);
+    }
+    /**
+    * Set explicit auxiliary data via an AuxiliaryData object
+    * It might contain some metadata plus native or Plutus scripts
+    * @param {AuxiliaryData} auxiliary_data
+    */
+    set_auxiliary_data(auxiliary_data) {
+        _assertClass(auxiliary_data, AuxiliaryData);
+        wasm.transactionbuilder_set_auxiliary_data(this.ptr, auxiliary_data.ptr);
+    }
+    /**
+    * Set metadata using a GeneralTransactionMetadata object
+    * It will be set to the existing or new auxiliary data in this builder
+    * @param {GeneralTransactionMetadata} metadata
+    */
+    set_metadata(metadata) {
+        _assertClass(metadata, GeneralTransactionMetadata);
+        wasm.transactionbuilder_set_metadata(this.ptr, metadata.ptr);
+    }
+    /**
+    * Add a single metadatum using TransactionMetadatumLabel and TransactionMetadatum objects
+    * It will be securely added to existing or new metadata in this builder
+    * @param {BigNum} key
+    * @param {TransactionMetadatum} val
+    */
+    add_metadatum(key, val) {
+        _assertClass(key, BigNum);
+        _assertClass(val, TransactionMetadatum);
+        wasm.transactionbuilder_add_metadatum(this.ptr, key.ptr, val.ptr);
+    }
+    /**
+    * Add a single JSON metadatum using a TransactionMetadatumLabel and a String
+    * It will be securely added to existing or new metadata in this builder
+    * @param {BigNum} key
+    * @param {string} val
+    */
+    add_json_metadatum(key, val) {
+        _assertClass(key, BigNum);
+        var ptr0 = passStringToWasm0(val, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        wasm.transactionbuilder_add_json_metadatum(this.ptr, key.ptr, ptr0, len0);
+    }
+    /**
+    * Add a single JSON metadatum using a TransactionMetadatumLabel, a String, and a MetadataJsonSchema object
+    * It will be securely added to existing or new metadata in this builder
+    * @param {BigNum} key
+    * @param {string} val
+    * @param {number} schema
+    */
+    add_json_metadatum_with_schema(key, val, schema) {
+        _assertClass(key, BigNum);
+        var ptr0 = passStringToWasm0(val, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len0 = WASM_VECTOR_LEN;
+        wasm.transactionbuilder_add_json_metadatum_with_schema(this.ptr, key.ptr, ptr0, len0, schema);
+    }
+    /**
+    * Set explicit Mint object and the required witnesses to this builder
+    * it will replace any previously existing mint and mint scripts
+    * NOTE! Error will be returned in case a mint policy does not have a matching script
+    * @param {Mint} mint
+    * @param {NativeScripts} mint_scripts
+    */
+    set_mint(mint, mint_scripts) {
+        _assertClass(mint, Mint);
+        _assertClass(mint_scripts, NativeScripts);
+        wasm.transactionbuilder_set_mint(this.ptr, mint.ptr, mint_scripts.ptr);
+    }
+    /**
+    * Returns a copy of the current mint state in the builder
+    * @returns {Mint | undefined}
+    */
+    get_mint() {
+        var ret = wasm.transactionbuilder_get_mint(this.ptr);
+        return ret === 0 ? undefined : Mint.__wrap(ret);
+    }
+    /**
+    * Returns a copy of the current mint witness scripts in the builder
+    * @returns {NativeScripts | undefined}
+    */
+    get_mint_scripts() {
+        var ret = wasm.transactionbuilder_get_mint_scripts(this.ptr);
+        return ret === 0 ? undefined : NativeScripts.__wrap(ret);
+    }
+    /**
+    * Add a mint entry to this builder using a PolicyID and MintAssets object
+    * It will be securely added to existing or new Mint in this builder
+    * It will replace any existing mint assets with the same PolicyID
+    * @param {NativeScript} policy_script
+    * @param {MintAssets} mint_assets
+    */
+    set_mint_asset(policy_script, mint_assets) {
+        _assertClass(policy_script, NativeScript);
+        _assertClass(mint_assets, MintAssets);
+        wasm.transactionbuilder_set_mint_asset(this.ptr, policy_script.ptr, mint_assets.ptr);
+    }
+    /**
+    * Add a mint entry to this builder using a PolicyID, AssetName, and Int object for amount
+    * It will be securely added to existing or new Mint in this builder
+    * It will replace any previous existing amount same PolicyID and AssetName
+    * @param {NativeScript} policy_script
+    * @param {AssetName} asset_name
+    * @param {Int} amount
+    */
+    add_mint_asset(policy_script, asset_name, amount) {
+        _assertClass(policy_script, NativeScript);
+        _assertClass(asset_name, AssetName);
+        _assertClass(amount, Int);
+        var ptr0 = amount.ptr;
+        amount.ptr = 0;
+        wasm.transactionbuilder_add_mint_asset(this.ptr, policy_script.ptr, asset_name.ptr, ptr0);
+    }
+    /**
+    * Add a mint entry together with an output to this builder
+    * Using a PolicyID, AssetName, Int for amount, Address, and Coin (BigNum) objects
+    * The asset will be securely added to existing or new Mint in this builder
+    * A new output will be added with the specified Address, the Coin value, and the minted asset
+    * @param {NativeScript} policy_script
+    * @param {AssetName} asset_name
+    * @param {Int} amount
+    * @param {TransactionOutputAmountBuilder} output_builder
+    * @param {BigNum} output_coin
+    */
+    add_mint_asset_and_output(policy_script, asset_name, amount, output_builder, output_coin) {
+        _assertClass(policy_script, NativeScript);
+        _assertClass(asset_name, AssetName);
+        _assertClass(amount, Int);
+        var ptr0 = amount.ptr;
+        amount.ptr = 0;
+        _assertClass(output_builder, TransactionOutputAmountBuilder);
+        _assertClass(output_coin, BigNum);
+        wasm.transactionbuilder_add_mint_asset_and_output(this.ptr, policy_script.ptr, asset_name.ptr, ptr0, output_builder.ptr, output_coin.ptr);
+    }
+    /**
+    * Add a mint entry together with an output to this builder
+    * Using a PolicyID, AssetName, Int for amount, and Address objects
+    * The asset will be securely added to existing or new Mint in this builder
+    * A new output will be added with the specified Address and the minted asset
+    * The output will be set to contain the minimum required amount of Coin
+    * @param {NativeScript} policy_script
+    * @param {AssetName} asset_name
+    * @param {Int} amount
+    * @param {TransactionOutputAmountBuilder} output_builder
+    */
+    add_mint_asset_and_output_min_required_coin(policy_script, asset_name, amount, output_builder) {
+        _assertClass(policy_script, NativeScript);
+        _assertClass(asset_name, AssetName);
+        _assertClass(amount, Int);
+        var ptr0 = amount.ptr;
+        amount.ptr = 0;
+        _assertClass(output_builder, TransactionOutputAmountBuilder);
+        wasm.transactionbuilder_add_mint_asset_and_output_min_required_coin(this.ptr, policy_script.ptr, asset_name.ptr, ptr0, output_builder.ptr);
     }
     /**
     * @param {TransactionInputs} collateral
@@ -10370,13 +10737,6 @@ class TransactionBuilder {
         wasm.transactionbuilder_set_required_signers(this.ptr, required_signers.ptr);
     }
     /**
-    * @param {AuxiliaryData} auxiliary_data
-    */
-    set_auxiliary_data(auxiliary_data) {
-        _assertClass(auxiliary_data, AuxiliaryData);
-        wasm.transactionbuilder_set_auxiliary_data(this.ptr, auxiliary_data.ptr);
-    }
-    /**
     * @param {TransactionInput} input
     * @returns {number}
     */
@@ -10386,29 +10746,19 @@ class TransactionBuilder {
         return ret >>> 0;
     }
     /**
-    * @param {LinearFee} linear_fee
-    * @param {BigNum} minimum_utxo_val
-    * @param {BigNum} pool_deposit
-    * @param {BigNum} key_deposit
-    * @param {number} max_value_size
-    * @param {number} max_tx_size
-    * @param {number} price_mem
-    * @param {number} price_step
-    * @param {LanguageViews | undefined} language_views
+    * @param {Address} address
+    */
+    add_address_witness(address) {
+        _assertClass(address, Address);
+        wasm.transactionbuilder_add_address_witness(this.ptr, address.ptr);
+    }
+    /**
+    * @param {TransactionBuilderConfig} cfg
     * @returns {TransactionBuilder}
     */
-    static new(linear_fee, minimum_utxo_val, pool_deposit, key_deposit, max_value_size, max_tx_size, price_mem, price_step, language_views) {
-        _assertClass(linear_fee, LinearFee);
-        _assertClass(minimum_utxo_val, BigNum);
-        _assertClass(pool_deposit, BigNum);
-        _assertClass(key_deposit, BigNum);
-        let ptr0 = 0;
-        if (!isLikeNone(language_views)) {
-            _assertClass(language_views, LanguageViews);
-            ptr0 = language_views.ptr;
-            language_views.ptr = 0;
-        }
-        var ret = wasm.transactionbuilder_new(linear_fee.ptr, minimum_utxo_val.ptr, pool_deposit.ptr, key_deposit.ptr, max_value_size, max_tx_size, price_mem, price_step, ptr0);
+    static new(cfg) {
+        _assertClass(cfg, TransactionBuilderConfig);
+        var ret = wasm.transactionbuilder_new(cfg.ptr);
         return TransactionBuilder.__wrap(ret);
     }
     /**
@@ -10425,6 +10775,14 @@ class TransactionBuilder {
     */
     get_implicit_input() {
         var ret = wasm.transactionbuilder_get_implicit_input(this.ptr);
+        return Value.__wrap(ret);
+    }
+    /**
+    * Return explicit input plus implicit input plus mint minus burn
+    * @returns {Value}
+    */
+    get_total_input() {
+        var ret = wasm.transactionbuilder_get_total_input(this.ptr);
         return Value.__wrap(ret);
     }
     /**
@@ -10451,6 +10809,9 @@ class TransactionBuilder {
     }
     /**
     * Warning: this function will mutate the /fee/ field
+    * Make sure to call this function last after setting all other tx-body properties
+    * Editing inputs, outputs, mint, etc. after change been calculated
+    * might cause a mismatch in calculated fee versus the required fee
     * @param {Address} address
     * @returns {boolean}
     */
@@ -10483,11 +10844,24 @@ class TransactionBuilder {
         }
     }
     /**
+    * Returns object the body of the new transaction
+    * Auxiliary data itself is not included
+    * You can use `get_auxiliary_data` or `build_tx`
     * @returns {TransactionBody}
     */
     build() {
         var ret = wasm.transactionbuilder_build(this.ptr);
         return TransactionBody.__wrap(ret);
+    }
+    /**
+    * Returns full Transaction object with the body and the auxiliary data
+    * NOTE: witness_set will contain all mint_scripts if any been added or set
+    * NOTE: is_valid set to true
+    * @returns {Transaction}
+    */
+    build_tx() {
+        var ret = wasm.transactionbuilder_build_tx(this.ptr);
+        return Transaction.__wrap(ret);
     }
     /**
     * warning: sum of all parts of a transaction must equal 0. You cannot just set the fee to the min value and forget about it
@@ -10499,8 +10873,164 @@ class TransactionBuilder {
         var ret = wasm.transactionbuilder_min_fee(this.ptr);
         return BigNum.__wrap(ret);
     }
+    /**
+    * @returns {Redeemers}
+    */
+    redeemers() {
+        var ret = wasm.transactionbuilder_redeemers(this.ptr);
+        return Redeemers.__wrap(ret);
+    }
 }
 module.exports.TransactionBuilder = TransactionBuilder;
+/**
+*/
+class TransactionBuilderConfig {
+
+    static __wrap(ptr) {
+        const obj = Object.create(TransactionBuilderConfig.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_transactionbuilderconfig_free(ptr);
+    }
+}
+module.exports.TransactionBuilderConfig = TransactionBuilderConfig;
+/**
+*/
+class TransactionBuilderConfigBuilder {
+
+    static __wrap(ptr) {
+        const obj = Object.create(TransactionBuilderConfigBuilder.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_transactionbuilderconfigbuilder_free(ptr);
+    }
+    /**
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    static new() {
+        var ret = wasm.transactionbuilderconfigbuilder_new();
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {LinearFee} fee_algo
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    fee_algo(fee_algo) {
+        _assertClass(fee_algo, LinearFee);
+        var ret = wasm.transactionbuilderconfigbuilder_fee_algo(this.ptr, fee_algo.ptr);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {BigNum} coins_per_utxo_word
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    coins_per_utxo_word(coins_per_utxo_word) {
+        _assertClass(coins_per_utxo_word, BigNum);
+        var ret = wasm.transactionbuilderconfigbuilder_coins_per_utxo_word(this.ptr, coins_per_utxo_word.ptr);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {BigNum} pool_deposit
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    pool_deposit(pool_deposit) {
+        _assertClass(pool_deposit, BigNum);
+        var ret = wasm.transactionbuilderconfigbuilder_pool_deposit(this.ptr, pool_deposit.ptr);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {BigNum} key_deposit
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    key_deposit(key_deposit) {
+        _assertClass(key_deposit, BigNum);
+        var ret = wasm.transactionbuilderconfigbuilder_key_deposit(this.ptr, key_deposit.ptr);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {number} max_value_size
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    max_value_size(max_value_size) {
+        var ret = wasm.transactionbuilderconfigbuilder_max_value_size(this.ptr, max_value_size);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {number} max_tx_size
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    max_tx_size(max_tx_size) {
+        var ret = wasm.transactionbuilderconfigbuilder_max_tx_size(this.ptr, max_tx_size);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {number} price_mem
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    price_mem(price_mem) {
+        var ret = wasm.transactionbuilderconfigbuilder_price_mem(this.ptr, price_mem);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {number} price_step
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    price_step(price_step) {
+        var ret = wasm.transactionbuilderconfigbuilder_price_step(this.ptr, price_step);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {Costmdls} costmdls
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    costmdls(costmdls) {
+        _assertClass(costmdls, Costmdls);
+        var ptr0 = costmdls.ptr;
+        costmdls.ptr = 0;
+        var ret = wasm.transactionbuilderconfigbuilder_costmdls(this.ptr, ptr0);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @param {boolean} prefer_pure_change
+    * @returns {TransactionBuilderConfigBuilder}
+    */
+    prefer_pure_change(prefer_pure_change) {
+        var ret = wasm.transactionbuilderconfigbuilder_prefer_pure_change(this.ptr, prefer_pure_change);
+        return TransactionBuilderConfigBuilder.__wrap(ret);
+    }
+    /**
+    * @returns {TransactionBuilderConfig}
+    */
+    build() {
+        var ret = wasm.transactionbuilderconfigbuilder_build(this.ptr);
+        return TransactionBuilderConfig.__wrap(ret);
+    }
+}
+module.exports.TransactionBuilderConfigBuilder = TransactionBuilderConfigBuilder;
 /**
 */
 class TransactionHash {
@@ -11058,6 +11588,138 @@ class TransactionOutput {
 module.exports.TransactionOutput = TransactionOutput;
 /**
 */
+class TransactionOutputAmountBuilder {
+
+    static __wrap(ptr) {
+        const obj = Object.create(TransactionOutputAmountBuilder.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_transactionoutputamountbuilder_free(ptr);
+    }
+    /**
+    * @param {Value} amount
+    * @returns {TransactionOutputAmountBuilder}
+    */
+    with_value(amount) {
+        _assertClass(amount, Value);
+        var ret = wasm.transactionoutputamountbuilder_with_value(this.ptr, amount.ptr);
+        return TransactionOutputAmountBuilder.__wrap(ret);
+    }
+    /**
+    * @param {BigNum} coin
+    * @returns {TransactionOutputAmountBuilder}
+    */
+    with_coin(coin) {
+        _assertClass(coin, BigNum);
+        var ret = wasm.transactionoutputamountbuilder_with_coin(this.ptr, coin.ptr);
+        return TransactionOutputAmountBuilder.__wrap(ret);
+    }
+    /**
+    * @param {BigNum} coin
+    * @param {MultiAsset} multiasset
+    * @returns {TransactionOutputAmountBuilder}
+    */
+    with_coin_and_asset(coin, multiasset) {
+        _assertClass(coin, BigNum);
+        _assertClass(multiasset, MultiAsset);
+        var ret = wasm.transactionoutputamountbuilder_with_coin_and_asset(this.ptr, coin.ptr, multiasset.ptr);
+        return TransactionOutputAmountBuilder.__wrap(ret);
+    }
+    /**
+    * @param {MultiAsset} multiasset
+    * @param {BigNum} coins_per_utxo_word
+    * @returns {TransactionOutputAmountBuilder}
+    */
+    with_asset_and_min_required_coin(multiasset, coins_per_utxo_word) {
+        _assertClass(multiasset, MultiAsset);
+        _assertClass(coins_per_utxo_word, BigNum);
+        var ret = wasm.transactionoutputamountbuilder_with_asset_and_min_required_coin(this.ptr, multiasset.ptr, coins_per_utxo_word.ptr);
+        return TransactionOutputAmountBuilder.__wrap(ret);
+    }
+    /**
+    * @returns {TransactionOutput}
+    */
+    build() {
+        var ret = wasm.transactionoutputamountbuilder_build(this.ptr);
+        return TransactionOutput.__wrap(ret);
+    }
+}
+module.exports.TransactionOutputAmountBuilder = TransactionOutputAmountBuilder;
+/**
+* We introduce a builder-pattern format for creating transaction outputs
+* This is because:
+* 1. Some fields (i.e. data hash) are optional, and we can't easily expose Option<> in WASM
+* 2. Some fields like amounts have many ways it could be set (some depending on other field values being known)
+* 3. Easier to adapt as the output format gets more complicated in future Cardano releases
+*/
+class TransactionOutputBuilder {
+
+    static __wrap(ptr) {
+        const obj = Object.create(TransactionOutputBuilder.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_transactionoutputbuilder_free(ptr);
+    }
+    /**
+    * @returns {TransactionOutputBuilder}
+    */
+    static new() {
+        var ret = wasm.transactionoutputbuilder_new();
+        return TransactionOutputBuilder.__wrap(ret);
+    }
+    /**
+    * @param {Address} address
+    * @returns {TransactionOutputBuilder}
+    */
+    with_address(address) {
+        _assertClass(address, Address);
+        var ret = wasm.transactionoutputbuilder_with_address(this.ptr, address.ptr);
+        return TransactionOutputBuilder.__wrap(ret);
+    }
+    /**
+    * @param {DataHash} data_hash
+    * @returns {TransactionOutputBuilder}
+    */
+    with_data_hash(data_hash) {
+        _assertClass(data_hash, DataHash);
+        var ret = wasm.transactionoutputbuilder_with_data_hash(this.ptr, data_hash.ptr);
+        return TransactionOutputBuilder.__wrap(ret);
+    }
+    /**
+    * @returns {TransactionOutputAmountBuilder}
+    */
+    next() {
+        var ret = wasm.transactionoutputbuilder_next(this.ptr);
+        return TransactionOutputAmountBuilder.__wrap(ret);
+    }
+}
+module.exports.TransactionOutputBuilder = TransactionOutputBuilder;
+/**
+*/
 class TransactionOutputs {
 
     static __wrap(ptr) {
@@ -11210,6 +11872,59 @@ class TransactionUnspentOutput {
     }
 }
 module.exports.TransactionUnspentOutput = TransactionUnspentOutput;
+/**
+*/
+class TransactionUnspentOutputs {
+
+    static __wrap(ptr) {
+        const obj = Object.create(TransactionUnspentOutputs.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_transactionunspentoutputs_free(ptr);
+    }
+    /**
+    * @returns {TransactionUnspentOutputs}
+    */
+    static new() {
+        var ret = wasm.transactionunspentoutputs_new();
+        return TransactionUnspentOutputs.__wrap(ret);
+    }
+    /**
+    * @returns {number}
+    */
+    len() {
+        var ret = wasm.transactionunspentoutputs_len(this.ptr);
+        return ret >>> 0;
+    }
+    /**
+    * @param {number} index
+    * @returns {TransactionUnspentOutput}
+    */
+    get(index) {
+        var ret = wasm.transactionunspentoutputs_get(this.ptr, index);
+        return TransactionUnspentOutput.__wrap(ret);
+    }
+    /**
+    * @param {TransactionUnspentOutput} elem
+    */
+    add(elem) {
+        _assertClass(elem, TransactionUnspentOutput);
+        wasm.transactionunspentoutputs_add(this.ptr, elem.ptr);
+    }
+}
+module.exports.TransactionUnspentOutputs = TransactionUnspentOutputs;
 /**
 */
 class TransactionWitnessSet {
@@ -11963,6 +12678,29 @@ class Value {
         return Value.__wrap(ret);
     }
     /**
+    * @param {MultiAsset} multiasset
+    * @returns {Value}
+    */
+    static new_from_assets(multiasset) {
+        _assertClass(multiasset, MultiAsset);
+        var ret = wasm.value_new_from_assets(multiasset.ptr);
+        return Value.__wrap(ret);
+    }
+    /**
+    * @returns {Value}
+    */
+    static zero() {
+        var ret = wasm.value_zero();
+        return Value.__wrap(ret);
+    }
+    /**
+    * @returns {boolean}
+    */
+    is_zero() {
+        var ret = wasm.value_is_zero(this.ptr);
+        return ret !== 0;
+    }
+    /**
     * @returns {BigNum}
     */
     coin() {
@@ -12377,6 +13115,133 @@ module.exports.__wbindgen_string_new = function(arg0, arg1) {
     return addHeapObject(ret);
 };
 
+module.exports.__wbindgen_string_get = function(arg0, arg1) {
+    const obj = getObject(arg1);
+    var ret = typeof(obj) === 'string' ? obj : undefined;
+    var ptr0 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    var len0 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len0;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr0;
+};
+
+module.exports.__wbg_getRandomValues_98117e9a7e993920 = function() { return handleError(function (arg0, arg1) {
+    getObject(arg0).getRandomValues(getObject(arg1));
+}, arguments) };
+
+module.exports.__wbg_randomFillSync_64cc7d048f228ca8 = function() { return handleError(function (arg0, arg1, arg2) {
+    getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
+}, arguments) };
+
+module.exports.__wbg_process_2f24d6544ea7b200 = function(arg0) {
+    var ret = getObject(arg0).process;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbindgen_is_object = function(arg0) {
+    const val = getObject(arg0);
+    var ret = typeof(val) === 'object' && val !== null;
+    return ret;
+};
+
+module.exports.__wbg_versions_6164651e75405d4a = function(arg0) {
+    var ret = getObject(arg0).versions;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_node_4b517d861cbcb3bc = function(arg0) {
+    var ret = getObject(arg0).node;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbindgen_is_string = function(arg0) {
+    var ret = typeof(getObject(arg0)) === 'string';
+    return ret;
+};
+
+module.exports.__wbg_modulerequire_3440a4bcf44437db = function() { return handleError(function (arg0, arg1) {
+    var ret = module.require(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_crypto_98fc271021c7d2ad = function(arg0) {
+    var ret = getObject(arg0).crypto;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_msCrypto_a2cdb043d2bfe57f = function(arg0) {
+    var ret = getObject(arg0).msCrypto;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_call_ba36642bd901572b = function() { return handleError(function (arg0, arg1) {
+    var ret = getObject(arg0).call(getObject(arg1));
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_newnoargs_9fdd8f3961dd1bee = function(arg0, arg1) {
+    var ret = new Function(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_self_bb69a836a72ec6e9 = function() { return handleError(function () {
+    var ret = self.self;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_window_3304fc4b414c9693 = function() { return handleError(function () {
+    var ret = window.window;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_globalThis_e0d21cabc6630763 = function() { return handleError(function () {
+    var ret = globalThis.globalThis;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbg_global_8463719227271676 = function() { return handleError(function () {
+    var ret = global.global;
+    return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbindgen_is_undefined = function(arg0) {
+    var ret = getObject(arg0) === undefined;
+    return ret;
+};
+
+module.exports.__wbg_buffer_9e184d6f785de5ed = function(arg0) {
+    var ret = getObject(arg0).buffer;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_new_e8101319e4cf95fc = function(arg0) {
+    var ret = new Uint8Array(getObject(arg0));
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_set_e8ae7b27314e8b98 = function(arg0, arg1, arg2) {
+    getObject(arg0).set(getObject(arg1), arg2 >>> 0);
+};
+
+module.exports.__wbg_length_2d56cb37075fcfb1 = function(arg0) {
+    var ret = getObject(arg0).length;
+    return ret;
+};
+
+module.exports.__wbg_newwithlength_a8d1dbcbe703a5c6 = function(arg0) {
+    var ret = new Uint8Array(arg0 >>> 0);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_subarray_901ede8318da52a6 = function(arg0, arg1, arg2) {
+    var ret = getObject(arg0).subarray(arg1 >>> 0, arg2 >>> 0);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbindgen_object_clone_ref = function(arg0) {
+    var ret = getObject(arg0);
+    return addHeapObject(ret);
+};
+
 module.exports.__wbg_new_3a746f2619705add = function(arg0, arg1) {
     var ret = new Function(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
@@ -12402,11 +13267,6 @@ module.exports.__wbg_crypto_1e4302b85d4f64a2 = function(arg0) {
     return addHeapObject(ret);
 };
 
-module.exports.__wbindgen_is_undefined = function(arg0) {
-    var ret = getObject(arg0) === undefined;
-    return ret;
-};
-
 module.exports.__wbg_getRandomValues_1b4ba144162a5c9e = function(arg0) {
     var ret = getObject(arg0).getRandomValues;
     return addHeapObject(ret);
@@ -12425,15 +13285,6 @@ module.exports.__wbg_getRandomValues_1ef11e888e5228e9 = function(arg0, arg1, arg
     getObject(arg0).getRandomValues(getArrayU8FromWasm0(arg1, arg2));
 };
 
-module.exports.__wbindgen_string_get = function(arg0, arg1) {
-    const obj = getObject(arg1);
-    var ret = typeof(obj) === 'string' ? obj : undefined;
-    var ptr0 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    var len0 = WASM_VECTOR_LEN;
-    getInt32Memory0()[arg0 / 4 + 1] = len0;
-    getInt32Memory0()[arg0 / 4 + 0] = ptr0;
-};
-
 module.exports.__wbindgen_debug_string = function(arg0, arg1) {
     var ret = debugString(getObject(arg1));
     var ptr0 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -12448,6 +13299,11 @@ module.exports.__wbindgen_throw = function(arg0, arg1) {
 
 module.exports.__wbindgen_rethrow = function(arg0) {
     throw takeObject(arg0);
+};
+
+module.exports.__wbindgen_memory = function() {
+    var ret = wasm.memory;
+    return addHeapObject(ret);
 };
 
 const path = require('path').join(__dirname, 'cardano_serialization_lib_bg.wasm');
