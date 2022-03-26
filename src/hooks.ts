@@ -1,17 +1,17 @@
 import * as React from "react";
 
-export const useIsIntersecting = (ref, rootMargin) => {
+export const useIsIntersecting = (ref: { current: any }, rootMargin: any) => {
   const [isIntersecting, setIntersecting] = React.useState(false);
-  const observer = new IntersectionObserver(
-    ([entry]: any) => setIntersecting(entry.isIntersecting),
-    { rootMargin }
-  );
   React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]: any) => setIntersecting(entry.isIntersecting),
+      { rootMargin }
+    );
     observer.observe(ref.current);
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [ref, rootMargin]);
   return isIntersecting;
 };
 
