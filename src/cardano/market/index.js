@@ -9,7 +9,7 @@ import {
   toHex,
   valueToAssets,
 } from "./utils.js";
-import { languageViews } from "./languageViews.js";
+import { costModel, languageViews } from "./languageViews.js";
 import { contract } from "./plutus.js";
 import CoinSelection from "./coinSelection.js";
 import {
@@ -37,7 +37,7 @@ const CONTRACT_ADDRESS = () =>
 const START_BID = () => {
   const datum = Loader.Cardano.PlutusData.new_constr_plutus_data(
     Loader.Cardano.ConstrPlutusData.new(
-      Loader.Cardano.Int.new_i32(DATUM_TYPE.StartBid),
+      Loader.Cardano.BigNum.from_str(DATUM_TYPE.StartBid.toString()),
       Loader.Cardano.PlutusList.new()
     )
   );
@@ -56,14 +56,14 @@ const BID = ({ tradeOwner, budId }) => {
   tradeDetails.add(
     Loader.Cardano.PlutusData.new_constr_plutus_data(
       Loader.Cardano.ConstrPlutusData.new(
-        Loader.Cardano.Int.new_i32(0),
+        Loader.Cardano.BigNum.from_str("0"),
         fieldsInner
       )
     )
   );
   const datum = Loader.Cardano.PlutusData.new_constr_plutus_data(
     Loader.Cardano.ConstrPlutusData.new(
-      Loader.Cardano.Int.new_i32(DATUM_TYPE.Bid),
+      Loader.Cardano.BigNum.from_str(DATUM_TYPE.Bid.toString()),
       tradeDetails
     )
   );
@@ -84,14 +84,14 @@ const OFFER = ({ tradeOwner, budId, requestedAmount }) => {
   tradeDetails.add(
     Loader.Cardano.PlutusData.new_constr_plutus_data(
       Loader.Cardano.ConstrPlutusData.new(
-        Loader.Cardano.Int.new_i32(0),
+        Loader.Cardano.BigNum.from_str("0"),
         fieldsInner
       )
     )
   );
   const datum = Loader.Cardano.PlutusData.new_constr_plutus_data(
     Loader.Cardano.ConstrPlutusData.new(
-      Loader.Cardano.Int.new_i32(DATUM_TYPE.Offer),
+      Loader.Cardano.BigNum.from_str(DATUM_TYPE.Offer.toString()),
       tradeDetails
     )
   );
@@ -108,7 +108,7 @@ const DATUM_TYPE = {
 const BUY = (index) => {
   const redeemerData = Loader.Cardano.PlutusData.new_constr_plutus_data(
     Loader.Cardano.ConstrPlutusData.new(
-      Loader.Cardano.Int.new_i32(0),
+      Loader.Cardano.BigNum.from_str("0"),
       Loader.Cardano.PlutusList.new()
     )
   );
@@ -126,7 +126,7 @@ const BUY = (index) => {
 const SELL = (index) => {
   const redeemerData = Loader.Cardano.PlutusData.new_constr_plutus_data(
     Loader.Cardano.ConstrPlutusData.new(
-      Loader.Cardano.Int.new_i32(1),
+      Loader.Cardano.BigNum.from_str("1"),
       Loader.Cardano.PlutusList.new()
     )
   );
@@ -144,7 +144,7 @@ const SELL = (index) => {
 const BID_HIGHER = (index) => {
   const redeemerData = Loader.Cardano.PlutusData.new_constr_plutus_data(
     Loader.Cardano.ConstrPlutusData.new(
-      Loader.Cardano.Int.new_i32(2),
+      Loader.Cardano.BigNum.from_str("2"),
       Loader.Cardano.PlutusList.new()
     )
   );
@@ -162,7 +162,7 @@ const BID_HIGHER = (index) => {
 const CANCEL = (index) => {
   const redeemerData = Loader.Cardano.PlutusData.new_constr_plutus_data(
     Loader.Cardano.ConstrPlutusData.new(
-      Loader.Cardano.Int.new_i32(3),
+      Loader.Cardano.BigNum.from_str("3"),
       Loader.Cardano.PlutusList.new()
     )
   );
@@ -233,7 +233,11 @@ class SpaceBudzMarket {
           datum = metadata
             .find((m) => m.label == DATUM_LABEL)
             .json_metadata[utxo.output_index].slice(2);
-          if (datum != toHex(START_BID().to_bytes()))
+          datum = Loader.Cardano.PlutusData.from_bytes(fromHex(datum));
+          if (
+            datum.as_constr_plutus_data().alternative().to_str() !==
+            START_BID().as_constr_plutus_data().alternative().to_str()
+          )
             //STARTBID doesn't have a tradeOwner
             tradeOwnerAddress = metadata
               .find((m) => m.label == ADDRESS_LABEL)
@@ -241,7 +245,7 @@ class SpaceBudzMarket {
         } catch (e) {
           throw new Error("Some required metadata entries were not found");
         }
-        datum = Loader.Cardano.PlutusData.from_bytes(fromHex(datum));
+
         if (
           toHex(Loader.Cardano.hash_plutus_data(datum).to_bytes()) !==
           utxo.data_hash
@@ -273,24 +277,41 @@ class SpaceBudzMarket {
    *@private
    */
   async initTx() {
-    const txBuilder = Loader.Cardano.TransactionBuilder.new(
-      Loader.Cardano.LinearFee.new(
-        Loader.Cardano.BigNum.from_str(
-          this.protocolParameters.linearFee.minFeeA
-        ),
-        Loader.Cardano.BigNum.from_str(
-          this.protocolParameters.linearFee.minFeeB
+    const costmdls = Loader.Cardano.Costmdls.new();
+    const costmdl = Loader.Cardano.CostModel.new();
+    costModel.cost.forEach((cost, index) => {
+      costmdl.set(index, Loader.Cardano.Int.new_i32(cost));
+    });
+    costmdls.insert(Loader.Cardano.Language.new_plutus_v1(), costmdl);
+
+    const txBuilderConfig = Loader.Cardano.TransactionBuilderConfigBuilder.new()
+      .coins_per_utxo_word(
+        Loader.Cardano.BigNum.from_str(this.protocolParameters.coinsPerUtxoWord)
+      )
+      .fee_algo(
+        Loader.Cardano.LinearFee.new(
+          Loader.Cardano.BigNum.from_str(
+            this.protocolParameters.linearFee.minFeeA
+          ),
+          Loader.Cardano.BigNum.from_str(
+            this.protocolParameters.linearFee.minFeeB
+          )
         )
-      ),
-      Loader.Cardano.BigNum.from_str(this.protocolParameters.minUtxo),
-      Loader.Cardano.BigNum.from_str(this.protocolParameters.poolDeposit),
-      Loader.Cardano.BigNum.from_str(this.protocolParameters.keyDeposit),
-      this.protocolParameters.maxValSize,
-      this.protocolParameters.maxTxSize,
-      this.protocolParameters.priceMem,
-      this.protocolParameters.priceStep,
-      Loader.Cardano.LanguageViews.new(Buffer.from(languageViews, "hex"))
-    );
+      )
+      .key_deposit(
+        Loader.Cardano.BigNum.from_str(this.protocolParameters.keyDeposit)
+      )
+      .pool_deposit(
+        Loader.Cardano.BigNum.from_str(this.protocolParameters.poolDeposit)
+      )
+      .max_tx_size(this.protocolParameters.maxTxSize)
+      .max_value_size(this.protocolParameters.maxValSize)
+      .price_mem(this.protocolParameters.priceMem)
+      .price_step(this.protocolParameters.priceStep)
+      .costmdls(costmdls)
+      .prefer_pure_change(false)
+      .build();
+    const txBuilder = Loader.Cardano.TransactionBuilder.new(txBuilderConfig);
     const datums = Loader.Cardano.PlutusList.new();
     const metadata = { [DATUM_LABEL]: {}, [ADDRESS_LABEL]: {} };
     const outputs = Loader.Cardano.TransactionOutputs.new();
@@ -337,8 +358,8 @@ class SpaceBudzMarket {
     const v = value;
     const minAda = Loader.Cardano.min_ada_required(
       v,
-      Loader.Cardano.BigNum.from_str(this.protocolParameters.minUtxo),
-      datum && Loader.Cardano.hash_plutus_data(datum)
+      Boolean(datum),
+      Loader.Cardano.BigNum.from_str(this.protocolParameters.coinsPerUtxoWord)
     );
     if (minAda.compare(v.coin()) == 1) v.set_coin(minAda);
     const output = Loader.Cardano.TransactionOutput.new(address, v);
@@ -379,10 +400,10 @@ class SpaceBudzMarket {
     action,
   }) {
     const transactionWitnessSet = Loader.Cardano.TransactionWitnessSet.new();
-    let { input, change } = CoinSelection.randomImprove(
+    let { input } = CoinSelection.randomImprove(
       utxos,
       outputs,
-      8,
+      100,
       scriptUtxo ? [scriptUtxo] : []
     );
     input.forEach((utxo) => {
@@ -438,78 +459,62 @@ class SpaceBudzMarket {
       txBuilder.set_auxiliary_data(aux_data);
     }
 
-    const changeMultiAssets = change.multiasset();
-
-    // check if change value is too big for single output
-    if (
-      changeMultiAssets &&
-      change.to_bytes().length * 2 > this.protocolParameters.maxValSize
-    ) {
-      const partialChange = Loader.Cardano.Value.new(
-        Loader.Cardano.BigNum.from_str("0")
-      );
-
-      const partialMultiAssets = Loader.Cardano.MultiAsset.new();
-      const policies = changeMultiAssets.keys();
-      const makeSplit = () => {
-        for (let j = 0; j < changeMultiAssets.len(); j++) {
-          const policy = policies.get(j);
-          const policyAssets = changeMultiAssets.get(policy);
-          const assetNames = policyAssets.keys();
-          const assets = Loader.Cardano.Assets.new();
-          for (let k = 0; k < assetNames.len(); k++) {
-            const policyAsset = assetNames.get(k);
-            const quantity = policyAssets.get(policyAsset);
-            assets.insert(policyAsset, quantity);
-            //check size
-            const checkMultiAssets = Loader.Cardano.MultiAsset.from_bytes(
-              partialMultiAssets.to_bytes()
-            );
-            checkMultiAssets.insert(policy, assets);
-            const checkValue = Loader.Cardano.Value.new(
-              Loader.Cardano.BigNum.from_str("0")
-            );
-            checkValue.set_multiasset(checkMultiAssets);
-            if (
-              checkValue.to_bytes().length * 2 >=
-              this.protocolParameters.maxValSize
-            ) {
-              partialMultiAssets.insert(policy, assets);
-              return;
-            }
-          }
-          partialMultiAssets.insert(policy, assets);
-        }
-      };
-      makeSplit();
-      partialChange.set_multiasset(partialMultiAssets);
-      const minAda = Loader.Cardano.min_ada_required(
-        partialChange,
-        Loader.Cardano.BigNum.from_str(this.protocolParameters.minUtxo)
-      );
-      partialChange.set_coin(minAda);
-
-      txBuilder.add_output(
-        Loader.Cardano.TransactionOutput.new(
-          changeAddress.to_address(),
-          partialChange
-        )
-      );
-    }
-
     txBuilder.add_change_if_needed(changeAddress.to_address());
-    const txBody = txBuilder.build();
-    const tx = Loader.Cardano.Transaction.new(
-      txBody,
+
+    let tx = Loader.Cardano.Transaction.new(
+      txBuilder.build(),
       Loader.Cardano.TransactionWitnessSet.from_bytes(
         transactionWitnessSet.to_bytes()
       ),
       aux_data
     );
-    const size = tx.to_bytes().length * 2;
-    console.log(size);
-    if (size > this.protocolParameters.maxTxSize)
-      throw new Error("MAX_SIZE_REACHED");
+
+    if (scriptUtxo) {
+      const exUnitsResult = await this.blockfrostRequest(
+        "/utils/txs/evaluate",
+        { "Content-Type": "application/cbor" },
+        Buffer.from(tx.to_bytes()).toString("hex")
+      );
+
+      const exUnitsRedeemers = exUnitsResult?.result?.EvaluationResult;
+      if (!exUnitsRedeemers)
+        throw new Error("Ex units could not be calculated");
+
+      const updatedRedeemers = Loader.Cardano.Redeemers.new();
+      const txBuilderRedeemers = txBuilder.redeemers();
+      for (let i = 0; i < txBuilderRedeemers.len(); i++) {
+        const txBuilderRedeemer = txBuilderRedeemers.get(i);
+
+        const type = Object.keys(exUnitsRedeemers).find(
+          (type) => type.split(":")[1] == txBuilderRedeemer.index().to_str()
+        );
+        const exUnits = exUnitsRedeemers[type];
+
+        updatedRedeemers.add(
+          Loader.Cardano.Redeemer.new(
+            Loader.Cardano.RedeemerTag.new_spend(),
+            txBuilderRedeemer.index(),
+            txBuilderRedeemer.data(),
+            Loader.Cardano.ExUnits.new(
+              Loader.Cardano.BigNum.from_str(exUnits.memory.toString()),
+              Loader.Cardano.BigNum.from_str(exUnits.steps.toString())
+            )
+          )
+        );
+      }
+      txBuilder.set_redeemers(updatedRedeemers);
+      transactionWitnessSet.set_redeemers(updatedRedeemers);
+
+      // update tx fees with new ex units
+      txBuilder.add_change_if_needed(changeAddress.to_address());
+
+      tx = Loader.Cardano.Transaction.new(
+        txBuilder.build(),
+        transactionWitnessSet,
+        tx.auxiliary_data()
+      );
+    }
+
     let txVkeyWitnesses = await window.cardano.selectedWallet.signTx(
       toHex(tx.to_bytes()),
       true
@@ -618,6 +623,7 @@ class SpaceBudzMarket {
         minFeeB: p.min_fee_b.toString(),
       },
       minUtxo: "1000000",
+      coinsPerUtxoWord: p.coins_per_utxo_word,
       poolDeposit: p.pool_deposit,
       keyDeposit: p.key_deposit,
       maxValSize: parseInt(p.max_val_size),
@@ -625,20 +631,6 @@ class SpaceBudzMarket {
       priceMem: parseFloat(p.price_mem),
       priceStep: parseFloat(p.price_step),
     };
-    //TODO: wait for blockfrost fix
-    // this.protocolParameters = {
-    //   linearFee: {
-    //     minFeeA: p.min_fee_a.toString(),
-    //     minFeeB: p.min_fee_b.toString(),
-    //   },
-    //   minUtxo: "1000000",
-    //   poolDeposit: "500000000",
-    //   keyDeposit: "2000000",
-    //   maxValSize: "5000",
-    //   maxTxSize: 16384,
-    //   priceMem: 5.77e-2,
-    //   priceStep: 7.21e-5,
-    // };
 
     this.contractInfo = {
       policySpaceBudz:
@@ -668,7 +660,7 @@ class SpaceBudzMarket {
     );
 
     CoinSelection.setProtocolParameters(
-      this.protocolParameters.minUtxo,
+      this.protocolParameters.coinsPerUtxoWord,
       this.protocolParameters.linearFee.minFeeA,
       this.protocolParameters.linearFee.minFeeB,
       this.protocolParameters.maxTxSize.toString()
@@ -771,7 +763,9 @@ class SpaceBudzMarket {
       budId,
     });
 
-    const datumType = bidUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    const datumType = parseInt(
+      bidUtxo.datum.as_constr_plutus_data().alternative().to_str()
+    );
     const value = bidUtxo.utxo.output().amount();
     if (datumType === DATUM_TYPE.StartBid) {
       if (
@@ -912,7 +906,9 @@ class SpaceBudzMarket {
     );
     datums.add(bidUtxo.datum);
 
-    const datumType = bidUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    const datumType = parseInt(
+      bidUtxo.datum.as_constr_plutus_data().alternative().to_str()
+    );
     const value = bidUtxo.utxo.output().amount();
     if (datumType !== DATUM_TYPE.Bid) throw new Error("Datum needs to be Bid");
     outputs.add(
@@ -1036,7 +1032,9 @@ class SpaceBudzMarket {
     );
     datums.add(offerUtxo.datum);
 
-    const datumType = offerUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    const datumType = parseInt(
+      offerUtxo.datum.as_constr_plutus_data().alternative().to_str()
+    );
     const tradeDetails = getTradeDetails(offerUtxo.datum);
     const value = offerUtxo.utxo.output().amount();
     const lovelaceAmount = tradeDetails.requestedAmount;
@@ -1076,7 +1074,9 @@ class SpaceBudzMarket {
     );
     datums.add(offerUtxo.datum);
 
-    const datumType = offerUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    const datumType = parseInt(
+      offerUtxo.datum.as_constr_plutus_data().alternative().to_str()
+    );
     const value = offerUtxo.utxo.output().amount();
     if (datumType !== DATUM_TYPE.Offer)
       throw new Error("Datum needs to be Offer");
@@ -1110,7 +1110,9 @@ class SpaceBudzMarket {
     );
     datums.add(bidUtxo.datum);
 
-    const datumType = bidUtxo.datum.as_constr_plutus_data().tag().as_i32();
+    const datumType = parseInt(
+      bidUtxo.datum.as_constr_plutus_data().alternative().to_str()
+    );
     const value = bidUtxo.utxo.output().amount();
     if (datumType !== DATUM_TYPE.Bid) throw new Error("Datum needs to be Bid");
     outputs.add(

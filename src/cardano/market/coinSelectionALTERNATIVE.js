@@ -204,7 +204,7 @@ let protocolParameters = null;
 const CoinSelection = {
   /**
    * Set protocol parameters required by the algorithm
-   * @param {string} minUTxO
+   * @param {string} coinsPerUtxoWord
    * @param {string} minFeeA
    * @param {string} minFeeB
    * @param {string} maxTxSize
@@ -225,13 +225,11 @@ const CoinSelection = {
    * @param {UTxOList} [preset=[]]] - The pre-selection of inputs that will be added.
    * @return {SelectionResult} - Coin Selection algorithm return
    */
-  randomImprove: (inputs, outputs, limit, preset = []) => {
+  randomImprove: (inputs, outputs, limit, preset) => {
     if (!protocolParameters)
       throw new Error(
         "Protocol parameters not set. Use setProtocolParameters()."
       );
-
-    const _minUTxOValue = BigInt(outputs.len()) * BigInt("1000000");
 
     let amount = Loader.Cardano.Value.new(Loader.Cardano.BigNum.from_str("0"));
 
@@ -241,10 +239,10 @@ const CoinSelection = {
 
     /** @type {UTxOSelection} */
     let utxoSelection = {
-      selection: [...preset], // Shallow copy
+      selection: [...preset],
       remaining: [...inputs], // Shallow copy
       subset: [],
-      amount: amount,
+      amount,
     };
 
     let mergedOutputsAmounts = mergeOutputsAmounts(outputs);
@@ -256,12 +254,7 @@ const CoinSelection = {
     for (let i = 0; i < splitOutputsAmounts.length; i++) {
       createSubSet(utxoSelection, splitOutputsAmounts[i]); // Narrow down for NatToken UTxO
 
-      utxoSelection = select(
-        utxoSelection,
-        splitOutputsAmounts[i],
-        limit,
-        _minUTxOValue
-      );
+      utxoSelection = select(utxoSelection, splitOutputsAmounts[i], limit);
     }
 
     // Phase 2: Improve
@@ -302,17 +295,6 @@ const CoinSelection = {
         )
       );
 
-      let maxFee =
-        BigInt(protocolParameters.minFeeA) *
-          BigInt(protocolParameters.maxTxSize) +
-        BigInt(protocolParameters.minFeeB);
-
-      maxFee = Loader.Cardano.Value.new(
-        Loader.Cardano.BigNum.from_str(maxFee.toString())
-      );
-
-      minAmount = minAmount.checked_add(maxFee);
-
       if (compare(change, minAmount) < 0) {
         // Not enough, add missing amount and run select one last time
         const minAda = minAmount
@@ -320,7 +302,7 @@ const CoinSelection = {
           .checked_add(Loader.Cardano.Value.new(utxoSelection.amount.coin()));
 
         createSubSet(utxoSelection, minAda);
-        utxoSelection = select(utxoSelection, minAda, limit, _minUTxOValue);
+        utxoSelection = select(utxoSelection, minAda, limit);
       }
     }
 
@@ -332,6 +314,8 @@ const CoinSelection = {
       change: utxoSelection.amount.checked_sub(mergedOutputsAmounts),
     };
   },
+  splitAmounts: splitAmounts,
+  compare: compare,
 };
 
 /**
@@ -339,29 +323,21 @@ const CoinSelection = {
  * @param {UTxOSelection} utxoSelection - The set of selected/available inputs.
  * @param {Value} outputAmount - Single compiled output qty requested for payment.
  * @param {int} limit - A limit on the number of inputs that can be selected.
- * @param {int} minUTxOValue - Network protocol 'minUTxOValue' current value.
  * @throws INPUT_LIMIT_EXCEEDED if the number of randomly picked inputs exceed 'limit' parameter.
  * @throws INPUTS_EXHAUSTED if all UTxO doesn't hold enough funds to pay for output.
- * @throws MIN_UTXO_ERROR if lovelace change is under 'minUTxOValue' parameter.
  * @return {UTxOSelection} - Successful random utxo selection.
  */
-function select(utxoSelection, outputAmount, limit, minUTxOValue) {
+function select(utxoSelection, outputAmount, limit) {
   try {
     utxoSelection = randomSelect(
       cloneUTxOSelection(utxoSelection), // Deep copy in case of fallback needed
       outputAmount,
-      limit - utxoSelection.selection.length,
-      minUTxOValue
+      limit - utxoSelection.selection.length
     );
   } catch (e) {
     if (e.message === "INPUT_LIMIT_EXCEEDED") {
       // Limit reached : Fallback on DescOrdAlgo
-      utxoSelection = descSelect(
-        utxoSelection,
-        outputAmount,
-        limit - utxoSelection.selection.length,
-        minUTxOValue
-      );
+      utxoSelection = descSelect(utxoSelection, outputAmount);
     } else {
       throw e;
     }
@@ -375,18 +351,14 @@ function select(utxoSelection, outputAmount, limit, minUTxOValue) {
  * @param {UTxOSelection} utxoSelection - The set of selected/available inputs.
  * @param {Value} outputAmount - Single compiled output qty requested for payment.
  * @param {int} limit - A limit on the number of inputs that can be selected.
- * @param {int} minUTxOValue - Network protocol 'minUTxOValue' current value.
  * @throws INPUT_LIMIT_EXCEEDED if the number of randomly picked inputs exceed 'limit' parameter.
  * @throws INPUTS_EXHAUSTED if all UTxO doesn't hold enough funds to pay for output.
- * @throws MIN_UTXO_ERROR if lovelace change is under 'minUTxOValue' parameter.
  * @return {UTxOSelection} - Successful random utxo selection.
  */
-function randomSelect(utxoSelection, outputAmount, limit, minUTxOValue) {
+function randomSelect(utxoSelection, outputAmount, limit) {
   let nbFreeUTxO = utxoSelection.subset.length;
   // If quantity is met, return subset into remaining list and exit
-  if (
-    isQtyFulfilled(outputAmount, utxoSelection.amount, minUTxOValue, nbFreeUTxO)
-  ) {
+  if (isQtyFulfilled(outputAmount, utxoSelection.amount, nbFreeUTxO)) {
     utxoSelection.remaining = [
       ...utxoSelection.remaining,
       ...utxoSelection.subset,
@@ -400,9 +372,6 @@ function randomSelect(utxoSelection, outputAmount, limit, minUTxOValue) {
   }
 
   if (nbFreeUTxO <= 0) {
-    if (isQtyFulfilled(outputAmount, utxoSelection.amount, 0, 0)) {
-      throw new Error("MIN_UTXO_ERROR");
-    }
     throw new Error("INPUTS_EXHAUSTED");
   }
 
@@ -417,21 +386,17 @@ function randomSelect(utxoSelection, outputAmount, limit, minUTxOValue) {
     utxoSelection.amount
   );
 
-  return randomSelect(utxoSelection, outputAmount, limit - 1, minUTxOValue);
+  return randomSelect(utxoSelection, outputAmount, limit - 1);
 }
 
 /**
  * Select enough UTxO in DESC order to fulfill requested outputs
  * @param {UTxOSelection} utxoSelection - The set of selected/available inputs.
  * @param {Value} outputAmount - Single compiled output qty requested for payment.
- * @param {int} limit - A limit on the number of inputs that can be selected.
- * @param {int} minUTxOValue - Network protocol 'minUTxOValue' current value.
- * @throws INPUT_LIMIT_EXCEEDED if the number of randomly picked inputs exceed 'limit' parameter.
  * @throws INPUTS_EXHAUSTED if all UTxO doesn't hold enough funds to pay for output.
- * @throws MIN_UTXO_ERROR if lovelace change is under 'minUTxOValue' parameter.
  * @return {UTxOSelection} - Successful random utxo selection.
  */
-function descSelect(utxoSelection, outputAmount, limit, minUTxOValue) {
+function descSelect(utxoSelection, outputAmount) {
   // Sort UTxO subset in DESC order for required Output unit type
   utxoSelection.subset = utxoSelection.subset.sort((a, b) => {
     return Number(
@@ -441,14 +406,7 @@ function descSelect(utxoSelection, outputAmount, limit, minUTxOValue) {
   });
 
   do {
-    if (limit <= 0) {
-      throw new Error("INPUT_LIMIT_EXCEEDED");
-    }
-
     if (utxoSelection.subset.length <= 0) {
-      if (isQtyFulfilled(outputAmount, utxoSelection.amount, 0, 0)) {
-        throw new Error("MIN_UTXO_ERROR");
-      }
       throw new Error("INPUTS_EXHAUSTED");
     }
 
@@ -460,13 +418,10 @@ function descSelect(utxoSelection, outputAmount, limit, minUTxOValue) {
       utxo.output().amount(),
       utxoSelection.amount
     );
-
-    limit--;
   } while (
     !isQtyFulfilled(
       outputAmount,
       utxoSelection.amount,
-      minUTxOValue,
       utxoSelection.subset.length - 1
     )
   );
@@ -568,13 +523,12 @@ function addAmounts(amounts, compiledAmounts) {
 /**
  * Split amounts contained in a single {Value} object in separate {Value} objects
  * @param {Value} amounts - Set of amounts to be split.
- * @throws MIN_UTXO_ERROR if lovelace change is under 'minUTxOValue' parameter.
  * @return {AmountList}
  */
 function splitAmounts(amounts) {
   let splitAmounts = [];
 
-  if (amounts.multiasset()) {
+  if (amounts.multiasset() && amounts.multiasset().len() > 0) {
     let mA = amounts.multiasset();
 
     for (let i = 0; i < mA.keys().len(); i++) {
@@ -708,22 +662,16 @@ function createSubSet(utxoSelection, output) {
 }
 
 /**
- * Is Quantity Fulfilled Condition - Handle 'minUTxOValue' protocol parameter.
+ * Is Quantity Fulfilled Condition.
  * @param {Value} outputAmount - Single compiled output qty requested for payment.
  * @param {Value} cumulatedAmount - Single compiled accumulated UTxO qty.
- * @param {int} minUTxOValue - Network protocol 'minUTxOValue' current value.
  * @param {int} nbFreeUTxO - Number of free UTxO available.
  * @return {boolean}
  */
-function isQtyFulfilled(
-  outputAmount,
-  cumulatedAmount,
-  minUTxOValue,
-  nbFreeUTxO
-) {
+function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO) {
   let amount = outputAmount;
 
-  if (minUTxOValue && BigInt(outputAmount.coin().to_str()) > 0) {
+  if (!outputAmount.multiasset() || outputAmount.multiasset().len() <= 0) {
     let minAmount = Loader.Cardano.Value.new(
       Loader.Cardano.min_ada_required(
         cumulatedAmount,
@@ -734,15 +682,6 @@ function isQtyFulfilled(
 
     // Lovelace min amount to cover assets and number of output need to be met
     if (compare(cumulatedAmount, minAmount) < 0) return false;
-
-    // If requested Lovelace lower than minAmount, plan for change
-    if (compare(outputAmount, minAmount) < 0) {
-      amount = minAmount.checked_add(
-        Loader.Cardano.Value.new(
-          Loader.Cardano.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
-        )
-      );
-    }
 
     // Try covering the max fees
     if (nbFreeUTxO > 0) {
@@ -808,7 +747,7 @@ function compare(group, candidate) {
   let gQty = BigInt(group.coin().to_str());
   let cQty = BigInt(candidate.coin().to_str());
 
-  if (candidate.multiasset()) {
+  if (candidate.multiasset() && candidate.multiasset().len() > 0) {
     let cScriptHash = candidate.multiasset().keys().get(0);
     let cAssetName = candidate.multiasset().get(cScriptHash).keys().get(0);
 
@@ -832,6 +771,17 @@ function compare(group, candidate) {
   }
 
   return gQty >= cQty ? (gQty === cQty ? 0 : 1) : -1;
+}
+
+/**
+ * Initialise an empty Value with empty MultiAsset
+ * @return {Value} - Initialized empty value
+ */
+function createEmptyValue() {
+  const value = Loader.Cardano.Value.new(Loader.Cardano.BigNum.from_str("0"));
+  const multiasset = Loader.Cardano.MultiAsset.new();
+  value.set_multiasset(multiasset);
+  return value;
 }
 
 export default CoinSelection;

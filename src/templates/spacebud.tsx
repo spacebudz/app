@@ -104,7 +104,8 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     details.listing.listingUtxo = listingUtxo;
 
     if (
-      Buffer.from(bidUtxo.datum.to_bytes()).toString("hex") !== "d866820080"
+      // if not a StartBid
+      bidUtxo.datum.as_constr_plutus_data().alternative().to_str() !== "0"
     ) {
       if (isOwner(bidUtxo.tradeOwnerAddress.to_bech32())) {
         details.bid.owner = true;
