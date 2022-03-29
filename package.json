@@ -19,7 +19,6 @@
     "clean": "gatsby clean"
   },
   "dependencies": {
-    "@emurgo/cardano-serialization-lib-browser": "^9.1.4",
     "@headlessui/react": "0.0.0-dev.0ce63d8",
     "easy-peasy": "^5.0.4",
     "focus-visible": "^5.2.0",

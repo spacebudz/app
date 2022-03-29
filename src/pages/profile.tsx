@@ -213,7 +213,7 @@ const Profile = () => {
       if (isMounted.current) {
         setCategories([result[0].length, result[1].length, result[2].length]);
         if (lastAddress !== address) setIndex(0);
-        setBalance(lovelace || 0);
+        setBalance(lovelace || BigInt(0));
         setArray(result);
         setLoading(false);
       }
@@ -275,7 +275,7 @@ const Profile = () => {
                 )}
                 <div className="text-2xl font-bold mt-6 mb-2">Balance</div>
                 <div className="text-md text-xl font-semibold text-primary">
-                  {fromLovelaceDisplay(BigInt(balance))}
+                  {fromLovelaceDisplay(balance)}
                 </div>
                 <div className="mb-8" />
                 <div className="w-full place-self-center max-w-sm">
