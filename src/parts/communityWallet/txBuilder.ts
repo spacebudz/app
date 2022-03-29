@@ -23,21 +23,13 @@ type MultiSig = {
 const coSigners = [
   "d52e11f3e48436dd42dbec6d88c239732e503b8b7a32af58e5f87625",
   "2b460b47836d9dd1bda529872e493a657a08486a6c93f424f90f0cbe",
+  "1a2512fe8ca23d60a04276888ca3c1754e9a47ab26ef050459887e1f",
+  "a0ae344dc1d71200347bd6304195b1807961f206505f51ff9a83cdf3",
+  "1447eed2459229d971a4681351e0936f4b7e5b48da9cc5c8384850b8",
+  "a4e16597fe0242865c7b86bc2c597b8b09a69ceaedea6193779b168d",
 ];
 
 export const createMultisig = (): MultiSig => {
-  //   const a = Buffer.from(
-  //     S.BaseAddress.from_address(
-  //       S.Address.from_bech32(
-  //         "addr1qy45vz68sdkem5da555cwtjf8fjh5zzgdfkf8apyly8se0nct2q9rqwlxgs7w2y5mzy8tpsfglacaajjzu7cqjshrl9szeeend"
-  //       )
-  //     )
-  //       .payment_cred()
-  //       .to_keyhash()
-  //       .to_bytes()
-  //   ).toString("hex");
-  //   console.log(a);
-
   const coSignersScripts = S.NativeScripts.new();
   coSigners.forEach((coSigner) => {
     coSignersScripts.add(
