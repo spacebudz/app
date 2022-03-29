@@ -18,6 +18,7 @@ const elementThemes = {
   orange: "bg-orange-500 border-orange-600 placeholder:text-orange-300",
   rose: "bg-rose-500 border-rose-600 placeholder:text-rose-300",
   space: "bg-slate-800 border-slate-900 placeholder:text-slate-500",
+  white: "!text-black",
 };
 
 const elementSizes = {

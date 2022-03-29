@@ -4,7 +4,6 @@ import { Ellipsis, Image, Spinner } from "../components";
 import {
   CONTRACT_ADDRESS,
   EXTRA_RECEIVING_ADDRESS,
-  IPFS_GATEWAY,
   POLICY_ID,
   TYPES_GADGETS_COUNT,
 } from "../config";
