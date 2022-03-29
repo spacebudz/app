@@ -275,7 +275,7 @@ const Profile = () => {
                 )}
                 <div className="text-2xl font-bold mt-6 mb-2">Balance</div>
                 <div className="text-md text-xl font-semibold text-primary">
-                  {fromLovelaceDisplay(balance)}
+                  {fromLovelaceDisplay(BigInt(balance))}
                 </div>
                 <div className="mb-8" />
                 <div className="w-full place-self-center max-w-sm">
