@@ -139,16 +139,24 @@ export const createTransaction = async (
   auxData.set_metadata(metadata);
   txBuilder.set_auxiliary_data(auxData);
 
-  // populate fake witnesses for multisig (at least 3 signatures necessary => add 3 extra witnesses)
-  [...Array(3)].forEach(() =>
-    txBuilder.add_address_witness(S.Address.from_bech32(multisig.address))
+  // // populate fake witnesses for multisig (at least 3 signatures necessary => add 3 extra witnesses)
+  [
+    "addr1q80f9lhqmz96w523y5tjuxe6kxx7c6439ne8tmsth9ecv8c6kuka7j952zs29d40lxved9f7yz6jnsuxnpp05pms2uesl5ym97",
+    "addr1qy7uczyqryp970t90s9dafcyk876923c2kprpe8m3de626q6kuka7j952zs29d40lxved9f7yz6jnsuxnpp05pms2uesx4akkn",
+    "addr1qx75k7gjynax6djrq52jx7nsfs8c9g3cdnwfswzrkap3c3c6kuka7j952zs29d40lxved9f7yz6jnsuxnpp05pms2uesnyu0mj",
+  ].forEach((addr) =>
+    txBuilder.add_address_witness(S.Address.from_bech32(addr))
   );
+
+  const nativeScripts = S.NativeScripts.new();
+  nativeScripts.add(multisig.script);
+
+  txBuilder.set_native_scripts(nativeScripts);
 
   txBuilder.add_change_if_needed(S.Address.from_bech32(multisig.address));
 
   const txWitnessSet = S.TransactionWitnessSet.new();
-  const nativeScripts = S.NativeScripts.new();
-  nativeScripts.add(multisig.script);
+
   txWitnessSet.set_native_scripts(nativeScripts);
 
   const tx = S.Transaction.new(txBuilder.build(), txWitnessSet, auxData);
@@ -215,6 +223,7 @@ export const signTransaction = async (
   const mergedTxWitnesses = S.TransactionWitnessSet.new();
   const mergedVkeyWitnesses = S.Vkeywitnesses.new();
   mergedVkeyWitnesses.add(parsedWitness.vkeys().get(0));
+
   parsedWitnesses.forEach((w) => {
     mergedVkeyWitnesses.add(w.vkeys().get(0));
   });

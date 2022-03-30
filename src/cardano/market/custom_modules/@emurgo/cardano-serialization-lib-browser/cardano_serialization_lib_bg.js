@@ -11091,6 +11091,13 @@ export class TransactionBuilder {
     );
   }
   /**
+   * @param {NativeScripts} native_scripts
+   */
+  set_native_scripts(native_scripts) {
+    _assertClass(native_scripts, NativeScripts);
+    wasm.transactionbuilder_set_native_scripts(this.ptr, native_scripts.ptr);
+  }
+  /**
    * @param {TransactionInput} input
    * @returns {number}
    */

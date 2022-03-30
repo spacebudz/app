@@ -730,6 +730,7 @@ export function transactionbuilder_set_plutus_data(a: number, b: number): void;
 export function transactionbuilder_set_redeemers(a: number, b: number): void;
 export function transactionbuilder_set_plutus_scripts(a: number, b: number): void;
 export function transactionbuilder_set_required_signers(a: number, b: number): void;
+export function transactionbuilder_set_native_scripts(a: number, b: number): void;
 export function transactionbuilder_index_of_input(a: number, b: number): number;
 export function transactionbuilder_add_address_witness(a: number, b: number): void;
 export function transactionbuilder_new(a: number): number;

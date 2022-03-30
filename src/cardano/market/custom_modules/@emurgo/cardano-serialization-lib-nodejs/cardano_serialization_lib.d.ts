@@ -4339,6 +4339,10 @@ export class TransactionBuilder {
 */
   set_required_signers(required_signers: Ed25519KeyHashes): void;
 /**
+* @param {NativeScripts} native_scripts
+*/
+  set_native_scripts(native_scripts: NativeScripts): void;
+/**
 * @param {TransactionInput} input
 * @returns {number}
 */

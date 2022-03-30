@@ -10737,6 +10737,13 @@ class TransactionBuilder {
         wasm.transactionbuilder_set_required_signers(this.ptr, required_signers.ptr);
     }
     /**
+    * @param {NativeScripts} native_scripts
+    */
+    set_native_scripts(native_scripts) {
+        _assertClass(native_scripts, NativeScripts);
+        wasm.transactionbuilder_set_native_scripts(this.ptr, native_scripts.ptr);
+    }
+    /**
     * @param {TransactionInput} input
     * @returns {number}
     */
