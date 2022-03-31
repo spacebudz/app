@@ -154,8 +154,7 @@ const CommunityWallet = () => {
                       setLoadingTx(true);
                       const action = await signTransaction(
                         session,
-                        sessionDetails.tx,
-                        sessionDetails.witnesses
+                        sessionDetails.tx
                       ).catch((e) => setError(e.message));
                       if (!action) {
                         setLoadingTx(false);

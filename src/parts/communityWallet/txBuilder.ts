@@ -1,6 +1,7 @@
 import {
   addWitnessToMultisigSession,
   createMultisigSession,
+  getMultisigSession,
   getProtocolParameters,
   getUTxOs,
 } from "../../api";
@@ -153,6 +154,36 @@ export const createTransaction = async (
 
   txBuilder.set_native_scripts(nativeScripts);
 
+  // Delegate to stake pool
+  // const certs = S.Certificates.new();
+  // certs.add(
+  //   S.Certificate.new_stake_registration(
+  //     S.StakeRegistration.new(
+  //       S.StakeCredential.from_scripthash(
+  //         multisig.script.hash(S.ScriptHashNamespace.NativeScript)
+  //       )
+  //     )
+  //   )
+  // );
+
+  // certs.add(
+  //   S.Certificate.new_stake_delegation(
+  //     S.StakeDelegation.new(
+  //       S.StakeCredential.from_scripthash(
+  //         multisig.script.hash(S.ScriptHashNamespace.NativeScript)
+  //       ),
+  //       S.Ed25519KeyHash.from_bytes(
+  //         Buffer.from(
+  //           "2a748e3885f6f73320ad16a8331247b81fe01b8d39f57eec9caa5091",
+  //           "hex"
+  //         )
+  //       )
+  //     )
+  //   )
+  // );
+
+  // txBuilder.set_certs(certs);
+
   txBuilder.add_change_if_needed(S.Address.from_bech32(multisig.address));
 
   const txWitnessSet = S.TransactionWitnessSet.new();
@@ -171,18 +202,19 @@ type Action = "Signed" | { Submitted: string } | undefined;
 
 export const signTransaction = async (
   session: string,
-  tx: string,
-  witnesses: string[]
+  tx: string
 ): Promise<Action> => {
   const selectedWallet = await getSelectedWallet();
-
-  const parsedWitnesses = witnesses.map((w) =>
-    S.TransactionWitnessSet.from_bytes(Buffer.from(w, "hex"))
-  );
 
   const witness = await selectedWallet.signTx(tx, true).catch((e) => {
     throw new Error("Transaction signature refused");
   });
+
+  const { witnesses } = await getMultisigSession(session);
+
+  const parsedWitnesses = witnesses.map((w) =>
+    S.TransactionWitnessSet.from_bytes(Buffer.from(w, "hex"))
+  );
 
   const parsedWitness = S.TransactionWitnessSet.from_bytes(
     Buffer.from(witness, "hex")
