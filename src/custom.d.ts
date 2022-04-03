@@ -5,4 +5,7 @@ declare module "*.gif";
 declare module "*.svg";
 declare interface Window {
   cardano: any;
+  ethereum: any;
+  contract: any;
+  web3: any;
 }

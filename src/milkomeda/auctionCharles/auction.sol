@@ -16,12 +16,10 @@ contract Auction {
     }
 
     struct Bid {
-        string receivingAddress; // Cardano shelley address in bech32, where NFT will be minted at
+        string receivingAddress; // Cardano shelley address in bech32, where NFT will be sent to
         uint256 bidAmount;
         address payable owner;
     }
-
-    mapping(uint256 => Bid) bids;
 
     Bid bid =
         Bid({receivingAddress: "", bidAmount: 0, owner: payable(address(0))});
@@ -45,7 +43,7 @@ contract Auction {
         require(block.timestamp < deadline, "Auction has ended");
         uint256 bidAmount = msg.value;
         require(
-            bidAmount > bid.bidAmount,
+            bidAmount >= bid.bidAmount + 100 ether,
             "Amount must be greater than current bid"
         );
         if (bid.owner != address(0)) {

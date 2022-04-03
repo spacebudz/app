@@ -14,6 +14,9 @@ exports.onCreateWebpackConfig = ({ stage, actions }) => {
       new webpack.ProvidePlugin({
         process: "process/browser",
       }),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^electron$/,
+      }),
     ],
     resolve: {
       fallback: {
@@ -22,7 +25,7 @@ exports.onCreateWebpackConfig = ({ stage, actions }) => {
         assert: false,
         util: false,
         http: false,
-        https: false,
+        https: require.resolve("agent-base"),
         os: false,
         url: false,
       },

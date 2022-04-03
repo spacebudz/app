@@ -4,6 +4,7 @@ import { Footer, Header } from "../components";
 import { Helmet } from "react-helmet";
 import Icon from "../images/icon.png";
 import { RehydrationContext } from "./storeProvider";
+import { Link } from "gatsby";
 
 type MainLayoutProps = {
   landing?: boolean; // different behaviour on landing page
@@ -38,7 +39,19 @@ export const MainLayout = (props: MainLayoutProps) => {
               props.landing ? "text-white" : "text-black"
             } min-h-screen w-full h-full flex flex-col`}
           >
-            <Header landing={props.landing} />
+            {/* {props.landing && (
+              <Link
+                to="/auctionCharles"
+                className="w-full h-10 bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600"
+              >
+                <div>
+                  <b>SpaceBud #1421</b> auction live
+                </div>
+              </Link>
+            )} */}
+            <div className="relative">
+              <Header landing={props.landing} />
+            </div>
             <div className={`${props.landing ? "h-0" : "h-24 md:h-32"}`} />
             {props.children}
           </div>
