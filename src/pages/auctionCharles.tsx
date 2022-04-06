@@ -211,7 +211,7 @@ const AuctionCharles = () => {
           </div>
           <div className="mb-2">
             After you installed MetaMask, click <b>Connect MetaMask</b>. This
-            will connect the wallet to the website and switch it to the
+            will connect the wallet to the website and switches it to the
             Milkomeda network.
           </div>
           <div className="mb-2">
@@ -242,7 +242,7 @@ const AuctionCharles = () => {
             one until the auction is over.
           </div>
           <div>
-            The current bidder is automtically refunded when a higher bid
+            The current bidder is automatically refunded when a higher bid
             occurs.
           </div>
         </div>

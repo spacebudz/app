@@ -4,8 +4,8 @@ const S = await import(
   "../../cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser"
 );
 
-// export const contractAddress = "0x4bc2a3F35FAa316f190fAa95602639003c1e9A09"; // mainnet
-export const contractAddress = "0xD98f4cce917DF99F914EE3534d68E90e5CAaAfA3";
+export const contractAddress = "0x5aC412aD608A0D7022AB534219Ba68D265b7FA97"; // mainnet
+// export const contractAddress = "0xD98f4cce917DF99F914EE3534d68E90e5CAaAfA3";
 
 export const checkCompatible = async () => {
   // Modern dapp browsers...
@@ -28,8 +28,8 @@ export const checkCompatible = async () => {
   return true;
 };
 
-// export const NETWORK_ID = 2001; // mainnet
-export let NETWORK_ID = 200101;
+export const NETWORK_ID = 2001; // mainnet
+// export let NETWORK_ID = 200101;
 
 export const loadContract = async () => {
   let web3;
