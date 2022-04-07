@@ -41,6 +41,7 @@ contract Auction {
     function makeBid(string memory receivingAddress) external payable {
         require(hasStarted, "Auction not started yet");
         require(block.timestamp < deadline, "Auction has ended");
+        require(msg.sender == tx.origin, "Sender is not correct");
         uint256 bidAmount = msg.value;
         require(
             bidAmount >= bid.bidAmount + 100 ether,
