@@ -241,9 +241,13 @@ const AuctionCharles = () => {
             <b>SpaceBud #1421</b> in case your bid remains the last and highest
             one until the auction is over.
           </div>
-          <div>
+          <div className="mb-2">
             The current bidder is automatically refunded when a higher bid
             occurs.
+          </div>
+          <div>
+            The deadline is extended by 15 minutes everytime a bid occurs in the
+            last 15 minutes.
           </div>
         </div>
       </div>

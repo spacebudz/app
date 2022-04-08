@@ -93,8 +93,10 @@ export const toWei = (ada: string): BigInt =>
   BigInt(Web3.utils.toWei(ada, "ether"));
 
 export const fromWei = (lovelace: BigInt | string) =>
-  parseFloat(Web3.utils.fromWei(lovelace.toString(), "ether")).toFixed(2) +
-  " ₳";
+  parseFloat(Web3.utils.fromWei(lovelace.toString(), "ether")).toLocaleString(
+    "en-EN",
+    { maximumFractionDigits: 2 }
+  ) + " ₳";
 
 export const isValidCardanoAddress = (address: string): boolean => {
   try {
