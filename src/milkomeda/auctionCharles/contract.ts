@@ -4,7 +4,7 @@ const S = await import(
   "../../cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser"
 );
 
-export const contractAddress = "0xeDEAD134049EacAe05512F5ff4dD6f918262db6e"; // mainnet
+export const contractAddress = "0x26e1Da497060a795bdD6dab792769f02A53ae952"; // mainnet
 // export const contractAddress = "0xD98f4cce917DF99F914EE3534d68E90e5CAaAfA3";
 
 export const checkCompatible = async () => {

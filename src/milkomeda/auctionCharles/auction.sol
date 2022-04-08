@@ -51,6 +51,10 @@ contract Auction {
             bid.owner.transfer(bid.bidAmount);
         }
 
+        if (deadline - block.timestamp < 15 minutes) {
+            deadline += 15 minutes;
+        }
+
         bid = Bid({
             receivingAddress: receivingAddress,
             bidAmount: bidAmount,
