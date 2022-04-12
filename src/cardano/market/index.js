@@ -435,7 +435,7 @@ class SpaceBudzMarket {
         Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
       );
       if (collateral.length <= 0) throw new Error("NO_COLLATERAL");
-      this.setCollateral(txBuilder, collateral);
+      this.setCollateral(txBuilder, collateral.slice(0, 2));
 
       transactionWitnessSet.set_plutus_scripts(CONTRACT());
       transactionWitnessSet.set_plutus_data(datums);
