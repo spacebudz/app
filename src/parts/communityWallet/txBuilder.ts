@@ -127,7 +127,6 @@ export const createTransaction = async (
     txBuilder.add_output(outputs.get(i));
   }
 
-  txBuilder.set_ttl(protocolParameters.slot + 21600);
   const auxData = S.AuxiliaryData.new();
   const metadata = S.GeneralTransactionMetadata.new();
   metadata.insert(
