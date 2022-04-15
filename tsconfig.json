@@ -1,7 +1,7 @@
 {
   "include": ["./src/**/*", "src/custom.d.ts"],
   "compilerOptions": {
-    "target": "ES2018" /* or at least ES2015 */,
+    "target": "ES2020" /* or at least ES2015 */,
     "module": "ESNext" /* or at least ES2015 */,
     "lib": ["dom"] /* <-- required! */,
     "jsx": "preserve" /* <-- required! */,
