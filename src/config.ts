@@ -72,6 +72,6 @@ export const EXTRA_RECEIVING_ADDRESS =
 export const CONTRACT_ADDRESS =
   "addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq";
 
-export const DISCORD_LINK = "https://discord.gg/spacebudz";
+export const DISCORD_LINK = "https://discord.com/invite/vtmm6RG2Bv";
 export const TWITTER_LINK = "https://twitter.com/spacebudzNFT";
 export const TELEGRAM_LINK = "https://t.me/spacebudz";
