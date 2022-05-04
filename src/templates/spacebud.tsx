@@ -1,6 +1,6 @@
 import * as React from "react";
 import { graphql, Link } from "gatsby";
-import { Ellipsis, Image, Spinner } from "../components";
+import { Button, Ellipsis, Image, Spinner } from "../components";
 import {
   CONTRACT_ADDRESS,
   EXTRA_RECEIVING_ADDRESS,
@@ -22,6 +22,7 @@ import secrets from "../../secrets";
 import { SpecialButton } from "../parts/spacebud/SpecialButton";
 import { getLastSale, getOwners, getPriceUSD } from "../api";
 import { checkTx, ConfirmDialog, TradeDialog } from "../parts/spacebud/Dialog";
+import { downloadPFP } from "../parts/spacebud/utils";
 
 const SpaceBud = ({ data, pageContext: { budId } }) => {
   const { name, traits, image, type } = data.allMetadataJson.edges[0].node;
@@ -207,6 +208,16 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                   </div>
                 </div>
               </div>
+              <Button
+                className="absolute bottom-3 right-3"
+                theme="space"
+                size="sm"
+                onClick={() => {
+                  downloadPFP(budId, imageLink);
+                }}
+              >
+                PFP
+              </Button>
             </div>
           </div>
           <div className="w-full lg:w-2/4 px-8 lg:px-10 flex flex-col">
