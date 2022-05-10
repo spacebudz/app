@@ -3,6 +3,9 @@ import secrets from "../secrets";
 import { ActivityType } from "./parts/explore/RecentActivity";
 import { Asset } from "./utils";
 
+export const projectId = secrets.PROJECT_ID;
+export const baseUrl = "https://cardano-mainnet.blockfrost.io/api/v0";
+
 type Bid = {
   budId: number;
   amount: BigInt;
@@ -76,10 +79,9 @@ export const getListingsMap = async (): Promise<Map<number, Listing>> => {
 };
 
 export const getBalance = async (address: string): Promise<Asset[]> => {
-  const result = await fetch(
-    `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${address}`,
-    { headers: { project_id: secrets.PROJECT_ID } }
-  )
+  const result = await fetch(`${baseUrl}/addresses/${address}`, {
+    headers: { project_id: secrets.PROJECT_ID },
+  })
     .then((res) => res.json())
     .then((res) => res.amount);
   return result
@@ -88,10 +90,9 @@ export const getBalance = async (address: string): Promise<Asset[]> => {
 };
 
 export const getOwners = async (unit: string): Promise<string[]> => {
-  const result = await fetch(
-    `https://cardano-mainnet.blockfrost.io/api/v0/assets/${unit}/addresses`,
-    { headers: { project_id: secrets.PROJECT_ID } }
-  ).then((res) => res.json());
+  const result = await fetch(`${baseUrl}/assets/${unit}/addresses`, {
+    headers: { project_id: secrets.PROJECT_ID },
+  }).then((res) => res.json());
   return result.map((address) => address.address);
 };
 
@@ -145,14 +146,12 @@ type ProtocolParameters = {
 };
 
 export const getProtocolParameters = async (): Promise<ProtocolParameters> => {
-  const result = await fetch(
-    `https://cardano-mainnet.blockfrost.io/api/v0/epochs/latest/parameters`,
-    { headers: { project_id: secrets.PROJECT_ID } }
-  ).then((res) => res.json());
-  const slot = await fetch(
-    `https://cardano-mainnet.blockfrost.io/api/v0/blocks/latest`,
-    { headers: { project_id: secrets.PROJECT_ID } }
-  )
+  const result = await fetch(`${baseUrl}/epochs/latest/parameters`, {
+    headers: { project_id: secrets.PROJECT_ID },
+  }).then((res) => res.json());
+  const slot = await fetch(`${baseUrl}/blocks/latest`, {
+    headers: { project_id: secrets.PROJECT_ID },
+  })
     .then((res) => res.json())
     .then((res) => res.slot);
   return {
@@ -183,7 +182,7 @@ export const getUTxOs = async (address: string): Promise<UTxO[]> => {
   let page = 1;
   while (true) {
     let pageResult = await fetch(
-      `https://cardano-mainnet.blockfrost.io/api/v0/addresses/${address}/utxos?page=${page}`,
+      `${baseUrl}/addresses/${address}/utxos?page=${page}`,
       { headers: { project_id: secrets.PROJECT_ID } }
     ).then((res) => res.json());
     if (pageResult.error) {

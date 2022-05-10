@@ -64,6 +64,7 @@ export type CardanoAPI = {
 
 type Cardano = {
   [key: string]: {
+    walletName: string; //we add this extra for now
     name: string;
     icon: string;
     version: string;

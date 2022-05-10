@@ -1,23 +1,18 @@
 import {
   addWitnessToMultisigSession,
+  baseUrl,
   createMultisigSession,
   getMultisigSession,
-  getProtocolParameters,
-  getUTxOs,
+  projectId,
 } from "../../api";
-import CoinSelection from "../../cardano/market/coinSelection";
-import {
-  TransactionOutputs,
-  NativeScript,
-} from "../../cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib";
-import { getSelectedWallet, toHex, utxoToCSLFormat } from "../../utils";
-const S = await import(
-  "../../cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser"
-);
-import Loader from "../../cardano/market/loader";
+import { getSelectedWallet, toHex } from "../../utils";
+import { Blockfrost, C, fromHex, Lucid, Tx, TxComplete } from "lucid-cardano";
+
+typeof window !== "undefined" &&
+  (await Lucid.initialize(new Blockfrost(baseUrl, projectId), "Mainnet"));
 
 type MultiSig = {
-  script: NativeScript;
+  script: string;
   address: string;
 };
 
@@ -31,35 +26,35 @@ const coSigners = [
 ];
 
 export const createMultisig = (): MultiSig => {
-  const coSignersScripts = S.NativeScripts.new();
+  const coSignersScripts = C.NativeScripts.new();
   coSigners.forEach((coSigner) => {
     coSignersScripts.add(
-      S.NativeScript.new_script_pubkey(
-        S.ScriptPubkey.new(
-          S.Ed25519KeyHash.from_bytes(Buffer.from(coSigner, "hex"))
+      C.NativeScript.new_script_pubkey(
+        C.ScriptPubkey.new(
+          C.Ed25519KeyHash.from_bytes(Buffer.from(coSigner, "hex"))
         )
       )
     );
   });
 
-  const multisig = S.NativeScript.new_script_n_of_k(
-    S.ScriptNOfK.new(3, coSignersScripts)
+  const multisig = C.NativeScript.new_script_n_of_k(
+    C.ScriptNOfK.new(3, coSignersScripts)
   );
 
-  const address = S.BaseAddress.new(
-    S.NetworkInfo.mainnet().network_id(),
-    S.StakeCredential.from_scripthash(
-      multisig.hash(S.ScriptHashNamespace.NativeScript)
+  const address = C.BaseAddress.new(
+    C.NetworkInfo.mainnet().network_id(),
+    C.StakeCredential.from_scripthash(
+      multisig.hash(C.ScriptHashNamespace.NativeScript)
     ),
-    S.StakeCredential.from_scripthash(
-      multisig.hash(S.ScriptHashNamespace.NativeScript)
+    C.StakeCredential.from_scripthash(
+      multisig.hash(C.ScriptHashNamespace.NativeScript)
     )
   )
     .to_address()
     .to_bech32();
 
   return {
-    script: multisig,
+    script: toHex(multisig.to_bytes()),
     address,
   };
 };
@@ -70,129 +65,23 @@ export const createTransaction = async (
   recipients: Recipient[],
   message: string
 ): Promise<string> => {
-  await Loader.load();
-  const protocolParameters = await getProtocolParameters();
   const multisig = createMultisig();
+  await Lucid.selectWalletFromUtxos({ address: multisig.address });
 
-  const txBuilderConfig = S.TransactionBuilderConfigBuilder.new()
-    .coins_per_utxo_word(
-      S.BigNum.from_str(protocolParameters.coinsPerUtxoWord.toString())
-    )
-    .fee_algo(
-      S.LinearFee.new(
-        S.BigNum.from_str(protocolParameters.minFeeA.toString()),
-        S.BigNum.from_str(protocolParameters.minFeeB.toString())
-      )
-    )
-    .key_deposit(S.BigNum.from_str(protocolParameters.keyDeposit.toString()))
-    .pool_deposit(S.BigNum.from_str(protocolParameters.poolDeposit.toString()))
-    .max_tx_size(protocolParameters.maxTxSize)
-    .max_value_size(protocolParameters.maxValSize)
-    .price_mem(protocolParameters.priceMem)
-    .price_step(protocolParameters.priceStep)
-    .prefer_pure_change(true)
-    .build();
-  const txBuilder = S.TransactionBuilder.new(txBuilderConfig);
-
-  const utxos = (await getUTxOs(multisig.address)).map((utxo) =>
-    utxoToCSLFormat(utxo)
-  );
-
-  const outputs: TransactionOutputs = S.TransactionOutputs.new();
+  const tx = Tx.new();
   recipients.forEach((recipient) => {
-    outputs.add(
-      S.TransactionOutput.new(
-        S.Address.from_bech32(recipient.address),
-        S.Value.new(S.BigNum.from_str(recipient.amount.toString()))
-      )
-    );
+    tx.payToAddress(recipient.address, { lovelace: recipient.amount });
+  });
+  tx.attachMetadata(674, { msg: chunkSubstr(message, 64) });
+  tx.validTo(Date.now() + 256000000000);
+  tx.attachSpendingValidator({
+    type: "Native",
+    script: multisig.script,
   });
 
-  CoinSelection.setProtocolParameters(
-    protocolParameters.coinsPerUtxoWord.toString(),
-    protocolParameters.minFeeA.toString(),
-    protocolParameters.minFeeB.toString(),
-    protocolParameters.maxTxSize.toString()
-  );
-  const { input: inputs } = CoinSelection.randomImprove(utxos, outputs, 50);
+  const txComplete = await tx.complete();
 
-  inputs.forEach((input) => {
-    txBuilder.add_input(
-      input.output().address(),
-      input.input(),
-      input.output().amount()
-    );
-  });
-  for (let i = 0; i < outputs.len(); i++) {
-    txBuilder.add_output(outputs.get(i));
-  }
-
-  txBuilder.set_ttl(protocolParameters.slot + 5256000);
-  const auxData = S.AuxiliaryData.new();
-  const metadata = S.GeneralTransactionMetadata.new();
-  metadata.insert(
-    S.BigNum.from_str("674"),
-    S.encode_json_str_to_metadatum(
-      JSON.stringify({ msg: chunkSubstr(message, 64) }),
-      S.MetadataJsonSchema.BasicConversions
-    )
-  );
-  auxData.set_metadata(metadata);
-  txBuilder.set_auxiliary_data(auxData);
-
-  // // populate fake witnesses for multisig (at least 3 signatures necessary => add 3 extra witnesses)
-  [
-    "addr1q80f9lhqmz96w523y5tjuxe6kxx7c6439ne8tmsth9ecv8c6kuka7j952zs29d40lxved9f7yz6jnsuxnpp05pms2uesl5ym97",
-    "addr1qy7uczyqryp970t90s9dafcyk876923c2kprpe8m3de626q6kuka7j952zs29d40lxved9f7yz6jnsuxnpp05pms2uesx4akkn",
-    "addr1qx75k7gjynax6djrq52jx7nsfs8c9g3cdnwfswzrkap3c3c6kuka7j952zs29d40lxved9f7yz6jnsuxnpp05pms2uesnyu0mj",
-  ].forEach((addr) =>
-    txBuilder.add_address_witness(S.Address.from_bech32(addr))
-  );
-
-  const nativeScripts = S.NativeScripts.new();
-  nativeScripts.add(multisig.script);
-
-  txBuilder.set_native_scripts(nativeScripts);
-
-  // Delegate to stake pool
-  // const certs = S.Certificates.new();
-  // certs.add(
-  //   S.Certificate.new_stake_registration(
-  //     S.StakeRegistration.new(
-  //       S.StakeCredential.from_scripthash(
-  //         multisig.script.hash(S.ScriptHashNamespace.NativeScript)
-  //       )
-  //     )
-  //   )
-  // );
-
-  // certs.add(
-  //   S.Certificate.new_stake_delegation(
-  //     S.StakeDelegation.new(
-  //       S.StakeCredential.from_scripthash(
-  //         multisig.script.hash(S.ScriptHashNamespace.NativeScript)
-  //       ),
-  //       S.Ed25519KeyHash.from_bytes(
-  //         Buffer.from(
-  //           "2a748e3885f6f73320ad16a8331247b81fe01b8d39f57eec9caa5091",
-  //           "hex"
-  //         )
-  //       )
-  //     )
-  //   )
-  // );
-
-  // txBuilder.set_certs(certs);
-
-  txBuilder.add_change_if_needed(S.Address.from_bech32(multisig.address));
-
-  const txWitnessSet = S.TransactionWitnessSet.new();
-
-  txWitnessSet.set_native_scripts(nativeScripts);
-
-  const tx = S.Transaction.new(txBuilder.build(), txWitnessSet, auxData);
-
-  const txHex = toHex(tx.to_bytes());
+  const txHex = toHex(txComplete.txComplete.to_bytes());
   const session = await createMultisigSession(txHex);
 
   return session;
@@ -205,22 +94,23 @@ export const signTransaction = async (
   tx: string
 ): Promise<Action> => {
   const selectedWallet = await getSelectedWallet();
+  await Lucid.selectWallet((selectedWallet as any).walletName);
 
-  const witness = await selectedWallet.signTx(tx, true).catch((e) => {
+  const txComplete = new TxComplete(C.Transaction.from_bytes(fromHex(tx)));
+
+  const partiallySignedTx = await txComplete.sign().catch((e) => {
     throw new Error("Transaction signature refused");
   });
+
+  const witness = partiallySignedTx.witnessSetBuilder.build();
 
   const { witnesses } = await getMultisigSession(session);
 
   const parsedWitnesses = witnesses.map((w) =>
-    S.TransactionWitnessSet.from_bytes(Buffer.from(w, "hex"))
+    C.TransactionWitnessSet.from_bytes(Buffer.from(w, "hex"))
   );
 
-  const parsedWitness = S.TransactionWitnessSet.from_bytes(
-    Buffer.from(witness, "hex")
-  );
-
-  if (parsedWitness.vkeys().len() <= 0)
+  if (witness.vkeys().len() <= 0)
     throw new Error("Transaction could not be signed");
 
   if (
@@ -230,7 +120,7 @@ export const signTransaction = async (
           w.vkeys().get(0).vkey().public_key().hash().to_bytes()
         ).toString("hex") ===
         Buffer.from(
-          parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes()
+          witness.vkeys().get(0).vkey().public_key().hash().to_bytes()
         ).toString("hex")
     )
   )
@@ -241,7 +131,7 @@ export const signTransaction = async (
       (cosigner) =>
         cosigner ===
         Buffer.from(
-          parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes()
+          witness.vkeys().get(0).vkey().public_key().hash().to_bytes()
         ).toString("hex")
     )
   )
@@ -251,25 +141,14 @@ export const signTransaction = async (
 
   if (witnesses.length < 2) return "Signed";
 
-  const parsedTx = S.Transaction.from_bytes(Buffer.from(tx, "hex"));
-  const mergedTxWitnesses = S.TransactionWitnessSet.new();
-  const mergedVkeyWitnesses = S.Vkeywitnesses.new();
-  mergedVkeyWitnesses.add(parsedWitness.vkeys().get(0));
-
-  parsedWitnesses.forEach((w) => {
-    mergedVkeyWitnesses.add(w.vkeys().get(0));
+  parsedWitnesses.forEach((witness) => {
+    partiallySignedTx.witnessSetBuilder.add_existing(witness);
   });
-  mergedTxWitnesses.set_vkeys(mergedVkeyWitnesses);
-  mergedTxWitnesses.set_native_scripts(parsedTx.witness_set().native_scripts());
 
-  const signedTx = S.Transaction.new(
-    parsedTx.body(),
-    mergedTxWitnesses,
-    parsedTx.auxiliary_data()
-  );
+  const signedTx = partiallySignedTx.complete();
 
-  const txHash = await selectedWallet
-    .submitTx(toHex(signedTx.to_bytes()))
+  const txHash = await Lucid.wallet
+    .submitTx(signedTx)
     .catch((e) => console.error(e));
 
   if (txHash) return { Submitted: txHash };

@@ -8,6 +8,7 @@ export const setSelectedWallet = async (
   const api = await cardano[walletName].enable().catch((e) => {});
   if (!api) return;
   cardano.selectedWallet = {
+    walletName,
     ...cardano[walletName],
     ...api,
   };
