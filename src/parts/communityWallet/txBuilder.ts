@@ -98,11 +98,11 @@ export const signTransaction = async (
 
   const txComplete = new TxComplete(C.Transaction.from_bytes(fromHex(tx)));
 
-  const partiallySignedTx = await txComplete.sign().catch((e) => {
+  const witness = await txComplete.partialSign().catch((e) => {
     throw new Error("Transaction signature refused");
   });
 
-  const witness = partiallySignedTx.witnessSetBuilder.build();
+  const parsedWitness = C.TransactionWitnessSet.from_bytes(fromHex(witness));
 
   const { witnesses } = await getMultisigSession(session);
 
@@ -110,7 +110,7 @@ export const signTransaction = async (
     C.TransactionWitnessSet.from_bytes(Buffer.from(w, "hex"))
   );
 
-  if (witness.vkeys().len() <= 0)
+  if (parsedWitness.vkeys().len() <= 0)
     throw new Error("Transaction could not be signed");
 
   if (
@@ -120,7 +120,7 @@ export const signTransaction = async (
           w.vkeys().get(0).vkey().public_key().hash().to_bytes()
         ).toString("hex") ===
         Buffer.from(
-          witness.vkeys().get(0).vkey().public_key().hash().to_bytes()
+          parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes()
         ).toString("hex")
     )
   )
@@ -131,7 +131,7 @@ export const signTransaction = async (
       (cosigner) =>
         cosigner ===
         Buffer.from(
-          witness.vkeys().get(0).vkey().public_key().hash().to_bytes()
+          parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes()
         ).toString("hex")
     )
   )
@@ -141,11 +141,8 @@ export const signTransaction = async (
 
   if (witnesses.length < 2) return "Signed";
 
-  parsedWitnesses.forEach((witness) => {
-    partiallySignedTx.witnessSetBuilder.add_existing(witness);
-  });
-
-  const signedTx = partiallySignedTx.complete();
+  txComplete.assemble(witnesses);
+  const signedTx = await txComplete.complete();
 
   const txHash = await Lucid.wallet
     .submitTx(signedTx)

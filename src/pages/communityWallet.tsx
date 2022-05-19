@@ -5,15 +5,13 @@ import { Button, Ellipsis, Input, Spinner } from "../components";
 import { MainLayout } from "../layouts/mainLayout";
 import { fromLovelaceDisplay, toLovelace } from "../utils";
 import { useQueryParam } from "use-query-params";
-import {
-  createMultisig,
-  createTransaction,
-  signTransaction,
-} from "../parts/communityWallet/txBuilder";
 import { FlatButton } from "../components/Button/FlatButton";
 import { ArrowRightShort } from "@styled-icons/bootstrap/ArrowRightShort";
 import { getBalance, getMultisigSession } from "../api";
 import { useStoreState } from "easy-peasy";
+const { createMultisig, createTransaction, signTransaction } =
+  typeof window !== "undefined" &&
+  (await import("../parts/communityWallet/txBuilder"));
 const S = await import(
   "../cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser"
 );
@@ -38,7 +36,7 @@ const CommunityWallet = () => {
     witnesses: [],
   });
 
-  const { address } = createMultisig();
+  const { address } = typeof window !== "undefined" && createMultisig();
   const wallet = useStoreState<any>((state) => state.wallet.wallet);
 
   const init = async () => {

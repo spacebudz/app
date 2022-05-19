@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { Toaster } from 'react-hot-toast';
-import { Footer, Header } from '../components';
-import { Helmet } from 'react-helmet';
-import Icon from '../images/icon.png';
-import { RehydrationContext } from './storeProvider';
-import { Link } from 'gatsby';
+import * as React from "react";
+import { Toaster } from "react-hot-toast";
+import { Footer, Header } from "../components";
+import { Helmet } from "react-helmet";
+import Icon from "../images/icon.png";
+import { RehydrationContext } from "./storeProvider";
+import { Link } from "gatsby";
 
 type MainLayoutProps = {
   landing?: boolean; // different behaviour on landing page
@@ -36,7 +36,7 @@ export const MainLayout = (props: MainLayoutProps) => {
         <div className="w-full">
           <div
             className={`${
-              props.landing ? 'text-white' : 'text-black'
+              props.landing ? "text-white" : "text-black"
             } min-h-screen w-full h-full flex flex-col`}
           >
             {/* {props.landing && (
@@ -52,7 +52,7 @@ export const MainLayout = (props: MainLayoutProps) => {
             <div className="relative">
               <Header landing={props.landing} />
             </div>
-            <div className={`${props.landing ? 'h-0' : 'h-24 md:h-32'}`} />
+            <div className={`${props.landing ? "h-0" : "h-24 md:h-32"}`} />
             {props.children}
           </div>
           <Footer />
@@ -64,7 +64,7 @@ export const MainLayout = (props: MainLayoutProps) => {
 };
 
 MainLayout.defaultProps = {
-  title: 'SpaceBudz',
-  titleTwitter: 'SpaceBudz',
+  title: "SpaceBudz",
+  titleTwitter: "SpaceBudz",
   description: "Let's go on an adventure, where will your SpaceBudz take you?",
 };

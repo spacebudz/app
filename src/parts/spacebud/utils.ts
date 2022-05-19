@@ -1,4 +1,8 @@
-export const downloadPFP = async (budId: number, url: string) => {
+export const downloadPFP = async (
+  budId: number,
+  url: string,
+  color?: string
+) => {
   const download = (dataurl: string, filename: string) => {
     const link = document.createElement("a");
     link.href = dataurl;
@@ -18,12 +22,14 @@ export const downloadPFP = async (budId: number, url: string) => {
   canvas.width = 1500;
 
   const ctx = canvas.getContext("2d");
-  ctx.translate(-341, -163);
-  // not relevant right now, but in case we want a border around the image we can do it with this arc
-  // ctx.beginPath();
-  // ctx.fillStyle = theme.colors.primary;
-  // ctx.arc(784, 606, 443, 0, Math.PI * 2);
-  // ctx.fill();
+  color ? ctx.translate(-304, -126) : ctx.translate(-341, -162);
+
+  if (color) {
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.rect(784 - 480, 606 - 480, 960, 960);
+    ctx.fill();
+  }
   ctx.beginPath();
   ctx.arc(784, 606, 443, 0, Math.PI * 2);
   ctx.clip();
@@ -32,8 +38,8 @@ export const downloadPFP = async (budId: number, url: string) => {
 
   const tempCanvas = document.createElement("canvas"),
     tCtx = tempCanvas.getContext("2d");
-  tempCanvas.width = 886;
-  tempCanvas.height = 886;
+  tempCanvas.width = color ? 960 : 886;
+  tempCanvas.height = color ? 960 : 886;
   tCtx.drawImage(canvas, 0, 0);
 
   const png = tempCanvas.toDataURL("image/png");

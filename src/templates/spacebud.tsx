@@ -20,9 +20,23 @@ import { useStoreState } from "easy-peasy";
 import Market from "../cardano/market";
 import secrets from "../../secrets";
 import { SpecialButton } from "../parts/spacebud/SpecialButton";
-import { getLastSale, getOwners, getPriceUSD } from "../api";
+import {
+  baseUrl,
+  getLastSale,
+  getOwners,
+  getPriceUSD,
+  projectId,
+} from "../api";
 import { checkTx, ConfirmDialog, TradeDialog } from "../parts/spacebud/Dialog";
 import { downloadPFP } from "../parts/spacebud/utils";
+import { Sigil } from "../parts/spacebud/Sigil";
+import { Discord } from "@styled-icons/bootstrap/Discord";
+import { Mail } from "@styled-icons/ionicons-solid/Mail";
+const { checkTxIdentity, IdentityDialog } =
+  typeof window !== "undefined" && (await import("../parts/spacebud/Identity"));
+const { Lucid, Blockfrost, getIdentity } =
+  typeof window !== "undefined" &&
+  (await import("@spacebudz/spacebudz-identity"));
 
 const SpaceBud = ({ data, pageContext: { budId } }) => {
   const { name, traits, image, type } = data.allMetadataJson.edges[0].node;
@@ -38,13 +52,27 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
 
   const [details, setDetails] = React.useState(defaultDetails);
   const [owners, setOwners] = React.useState([]);
+  const [identity, setIdentity] = React.useState<{
+    nickname?: string;
+    color?: string;
+    urbit?: string[];
+    discord?: string[];
+    email?: string[];
+    colorTW?: string; // same as color, but compatible with TailwindCSS
+  }>({});
 
   const confirmRef = React.useRef<any>();
   const tradeRef = React.useRef<any>();
+  const identityRef = React.useRef<any>();
 
   const loadData = async () => {
     isMounted.current && setLoading(true);
     const selectedWallet = await getSelectedWallet();
+
+    if (!Lucid.txBuilderConfig) {
+      await Lucid.initialize(new Blockfrost(baseUrl, projectId));
+    }
+
     const walletAddresses = wallet.address
       ? (await selectedWallet.getUsedAddresses()).map((address) =>
           getAddressBech32(address)
@@ -153,6 +181,13 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       delete owners[1];
     }
 
+    /* Check identity */
+    const identity = await getIdentity(budId);
+    setIdentity({
+      ...identity,
+      colorTW: identity?.color ? `text-[${identity.color}]` : undefined,
+    });
+
     if (isMounted.current) {
       setDetails(details);
       setOwners(owners);
@@ -213,7 +248,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                 theme="space"
                 size="sm"
                 onClick={() => {
-                  downloadPFP(budId, imageLink);
+                  downloadPFP(budId, imageLink, identity?.color);
                 }}
               >
                 PFP
@@ -236,6 +271,15 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               </div>
             ) : (
               <>
+                {identity?.nickname && (
+                  <div
+                    className={`text-3xl font-bold font-title mt-4 ${
+                      identity?.colorTW || ""
+                    }`}
+                  >
+                    {identity?.nickname}
+                  </div>
+                )}
                 <div className="h-10" />
                 <div className="flex flex-wrap">
                   <div className="mr-8 mb-6">
@@ -424,6 +468,49 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                     ))
                   )}
                 </div>
+                {(identity?.urbit ||
+                  identity?.discord ||
+                  identity?.email ||
+                  details.listing.owner) && (
+                  <>
+                    <div className="h-10" />
+                    <div className="text-2xl font-semibold mb-2">Identity</div>
+                    <div className="w-full max-w-3xl flex items-center flex-wrap">
+                      {identity?.urbit &&
+                        identity?.urbit.map((patp) => (
+                          <div className="flex flex-row justify-center items-center pr-6 py-4">
+                            <Sigil patp={patp} size={30} />
+                            <div className="ml-3 font-semibold">{patp}</div>
+                          </div>
+                        ))}
+                      {identity?.discord &&
+                        identity?.discord.map((username) => (
+                          <div className="flex flex-row justify-center items-center pr-6 py-4">
+                            <Discord size={30} />
+                            <div className="ml-3 font-semibold">{username}</div>
+                          </div>
+                        ))}
+                      {identity?.email &&
+                        identity?.email.map((email) => (
+                          <div className="flex flex-row justify-center items-center pr-6 py-4">
+                            <Mail size={30} />
+                            <div className="ml-3 font-semibold">{email}</div>
+                          </div>
+                        ))}
+                    </div>
+                    {details.listing.owner && (
+                      <div className="mt-6">
+                        <Button
+                          onClick={() => identityRef.current.open()}
+                          size="sm"
+                          theme="white"
+                        >
+                          Update identity
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </div>
@@ -449,6 +536,16 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
             checkTx({
               txHash,
               market,
+            })
+          }
+        />
+        <IdentityDialog
+          ref={identityRef}
+          identity={identity}
+          budId={budId}
+          checkTx={({ txHash }) =>
+            checkTxIdentity({
+              txHash,
             })
           }
         />

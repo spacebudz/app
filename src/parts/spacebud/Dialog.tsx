@@ -269,7 +269,7 @@ const failedTxToast = (error: string) => {
   });
 };
 
-const pendingTxToast = () => {
+export const pendingTxToast = () => {
   return createToast({
     children: (
       <div className="w-full h-full flex justify-between items-center">
@@ -282,7 +282,7 @@ const pendingTxToast = () => {
   });
 };
 
-const successTxToast = (txHash: string) => {
+export const successTxToast = (txHash: string) => {
   return createToast({
     children: (
       <div className="w-full h-full flex justify-between items-center">
@@ -312,7 +312,7 @@ export const checkTx = async ({ txHash, market }) => {
   window.dispatchEvent(event);
 };
 
-const tradeErrorHandler = (e) => {
+export const tradeErrorHandler = (e) => {
   console.log(e);
   if (e.message) {
     if (e.message.includes("budget was overspent"))
