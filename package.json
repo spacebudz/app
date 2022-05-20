@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@headlessui/react": "0.0.0-dev.0ce63d8",
-    "@spacebudz/spacebudz-identity": "^1.0.2",
+    "@spacebudz/spacebudz-identity": "^1.0.3",
     "@tlon/sigil-js": "^1.4.5",
     "agent-base": "^6.0.2",
     "easy-peasy": "^5.0.4",

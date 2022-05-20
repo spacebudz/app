@@ -58,7 +58,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     urbit?: string[];
     discord?: string[];
     email?: string[];
-    colorTW?: string; // same as color, but compatible with TailwindCSS
   }>({});
 
   const confirmRef = React.useRef<any>();
@@ -81,7 +80,10 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
 
     const unit = POLICY_ID + Buffer.from(`SpaceBud${budId}`).toString("hex");
     const owners = await getOwners(unit);
-    const usdPrice = await getPriceUSD();
+    let usdPrice = 0;
+    try {
+      usdPrice = await getPriceUSD();
+    } catch (e) {}
     const lastSale = await getLastSale(budId);
 
     const bidUtxo = await market.getBid(budId);
@@ -185,7 +187,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     const identity = await getIdentity(budId);
     setIdentity({
       ...identity,
-      colorTW: identity?.color ? `text-[${identity.color}]` : undefined,
     });
 
     if (isMounted.current) {
@@ -273,9 +274,8 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               <>
                 {identity?.nickname && (
                   <div
-                    className={`text-3xl font-bold font-title mt-4 ${
-                      identity?.colorTW || ""
-                    }`}
+                    className={`text-3xl font-bold font-title mt-4`}
+                    style={{ color: identity?.color }}
                   >
                     {identity?.nickname}
                   </div>
