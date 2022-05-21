@@ -1,19 +1,23 @@
 <p align="center">
-  <a href="https://spacebudz.io">
-    <img alt="Gatsby" src="./src/images/brand/logo.png" width="80" />
-  </a>
-</p>
-<h1 align="center">
-  SpaceBudz
-</h1>
-
-SpaceBudz is an NFT collection on Cardano consisting of 10,000 unique little astronauts. We make use of Cardano's multi asset ledger for the NFTs and Plutus validators for the marketplace.
+  <img width="100px" src="./src/images/brand/logo.png" align="center" />
+  <h1 align="center">SpaceBudz</h1>
+  <p align="center">SpaceBudz is an NFT collection on Cardano consisting of 10,000 unique little astronauts. We make use of Cardano's multi asset ledger for the NFTs and Plutus validators for the marketplace.
 This repository contains the full marketplace implementation including the frontend interface.
-Our official website: [spacebudz.io](https://spacebudz.io)
+Our official website: <a href="https://spacebudz.io">spacebudz.io</a></p>
+
+  <p align="center">
+    <img src="https://img.shields.io/github/commit-activity/m/SpaceBudz/spacebudz?style=for-the-badge" />
+    <img src="https://img.shields.io/github/license/SpaceBudz/spacebudz?style=for-the-badge" />
+    <a href="https://twitter.com/spacebudzNFT">
+      <img src="https://img.shields.io/twitter/follow/spacebudzNFT?style=for-the-badge&logo=twitter" />
+    </a>
+  </p>
+
+</p>
 
 ### Validity
 
-To make sure you have a real SpaceBud the Policy ID must match the following:
+To make sure you have a real SpaceBud the policy id must match the following:
 **`d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc`**
 
 You can find the according policy script in `./collection_data/minting_policy.json`
