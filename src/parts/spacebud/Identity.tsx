@@ -23,12 +23,14 @@ export const IdentityDialog = React.forwardRef(
       nickname?: string;
       color?: string;
       urbit?: string;
+      twitter?: string;
       discord?: string;
       email?: string;
     }>({
       nickname: "",
       color: "",
       urbit: "",
+      twitter: "",
       discord: "",
       email: "",
     });
@@ -45,6 +47,7 @@ export const IdentityDialog = React.forwardRef(
           nickname: identity.nickname || "",
           color: identity.color || "",
           urbit: identity.urbit?.[0] || "",
+          twitter: identity.twitter?.[0] || "",
           discord: identity.discord?.[0] || "",
           email: identity.email?.[0] || "",
         });
@@ -69,6 +72,7 @@ export const IdentityDialog = React.forwardRef(
         if (input.nickname) metadata.nickname = input.nickname;
         if (input.color) metadata.color = input.color;
         if (input.urbit) metadata.urbit = [input.urbit];
+        if (input.twitter) metadata.twitter = [input.twitter];
         if (input.discord) metadata.discord = [input.discord];
         if (input.email) metadata.email = [input.email];
       }
@@ -130,6 +134,16 @@ export const IdentityDialog = React.forwardRef(
               }
               classNameContainer="mb-4"
               placeholder="Urbit"
+              theme="space"
+            />
+            <Input
+              value={input.twitter}
+              onChange={(e) =>
+                e.target.value.length <= 64 &&
+                setInput((i) => ({ ...i, twitter: e.target.value }))
+              }
+              classNameContainer="mb-4"
+              placeholder="Twitter (@profile)"
               theme="space"
             />
             <Input

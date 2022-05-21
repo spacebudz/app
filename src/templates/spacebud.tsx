@@ -32,6 +32,7 @@ import { downloadPFP } from "../parts/spacebud/utils";
 import { Sigil } from "../parts/spacebud/Sigil";
 import { Discord } from "@styled-icons/bootstrap/Discord";
 import { Mail } from "@styled-icons/ionicons-solid/Mail";
+import { TwitterSquare } from "@styled-icons/fa-brands/TwitterSquare";
 const { checkTxIdentity, IdentityDialog } =
   typeof window !== "undefined" && (await import("../parts/spacebud/Identity"));
 const { Lucid, Blockfrost, getIdentity } =
@@ -56,6 +57,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     nickname?: string;
     color?: string;
     urbit?: string[];
+    twitter?: string[];
     discord?: string[];
     email?: string[];
   }>({});
@@ -469,6 +471,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                   )}
                 </div>
                 {(identity?.urbit ||
+                  identity?.twitter ||
                   identity?.discord ||
                   identity?.email ||
                   details.listing.owner) && (
@@ -481,6 +484,13 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                           <div className="flex flex-row justify-center items-center pr-6 py-4">
                             <Sigil patp={patp} size={30} />
                             <div className="ml-3 font-semibold">{patp}</div>
+                          </div>
+                        ))}
+                      {identity?.twitter &&
+                        identity?.twitter.map((profile) => (
+                          <div className="flex flex-row justify-center items-center pr-6 py-4">
+                            <TwitterSquare size={30} />
+                            <div className="ml-3 font-semibold">{profile}</div>
                           </div>
                         ))}
                       {identity?.discord &&
