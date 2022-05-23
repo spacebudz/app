@@ -33,11 +33,8 @@ import { Sigil } from "../parts/spacebud/Sigil";
 import { Discord } from "@styled-icons/bootstrap/Discord";
 import { Mail } from "@styled-icons/ionicons-solid/Mail";
 import { TwitterSquare } from "@styled-icons/fa-brands/TwitterSquare";
-const { checkTxIdentity, IdentityDialog } =
-  typeof window !== "undefined" && (await import("../parts/spacebud/Identity"));
-const { Lucid, Blockfrost, getIdentity } =
-  typeof window !== "undefined" &&
-  (await import("@spacebudz/spacebudz-identity"));
+import { checkTxIdentity, IdentityDialog } from "../parts/spacebud/Identity";
+import { Lucid, Blockfrost, getIdentity } from "@spacebudz/spacebudz-identity";
 
 const SpaceBud = ({ data, pageContext: { budId } }) => {
   const { name, traits, image, type } = data.allMetadataJson.edges[0].node;

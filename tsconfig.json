@@ -1,11 +1,13 @@
 {
   "include": ["./src/**/*", "src/custom.d.ts"],
   "compilerOptions": {
-    "target": "ES2020" /* or at least ES2015 */,
-    "module": "ESNext" /* or at least ES2015 */,
-    "lib": ["dom"] /* <-- required! */,
-    "jsx": "preserve" /* <-- required! */,
+    "target": "esnext" /* or at least ES2015 */,
+    "module": "esnext" /* or at least ES2015 */,
+    "lib": ["dom", "esnext"] /* <-- required! */,
+    "jsx": "react" /* <-- required! */,
     "moduleResolution": "node" /* <-- required! */,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
 
     /* for mixed ts/js codebase */
     "allowJs": true,

@@ -21,9 +21,10 @@ const About = () => {
           <div className="w-full flex flex-col sm:flex-row">
             <div className="m-4">
               <StaticImage
+                alt="team"
                 draggable={false}
                 src={TeamImage}
-                placeholder="TRACED_SVG"
+                placeholder="tracedSVG"
                 className="w-full"
               />
             </div>
