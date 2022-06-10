@@ -145,7 +145,7 @@ export const signTransaction = async (
   const signedTx = await txComplete.complete();
 
   const txHash = await Lucid.wallet
-    .submitTx(signedTx)
+    .submitTx(signedTx.txSigned)
     .catch((e) => console.error(e));
 
   if (txHash) return { Submitted: txHash };
