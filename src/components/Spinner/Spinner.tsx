@@ -32,7 +32,13 @@ export const Spinner = (props: SpinnerProps) => {
           props.className || ""
         }`}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 357.68 405.41">
+        <svg
+          className="translate-x-0 translate-y-0"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 357.68 405.41"
+          width="100"
+          height="100"
+        >
           <g id="Layer_2" data-name="Layer 2">
             <g id="Layer_1-2" data-name="Layer 1">
               <circle cx="178.84" cy="202.7" r="65.53" />
