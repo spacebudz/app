@@ -1,13 +1,41 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* @param {Transaction} tx
-* @param {LinearFee} linear_fee
-* @param {number} mem_price
-* @param {number} step_price
-* @returns {BigNum}
+* @param {Uint8Array} bytes
+* @returns {TransactionMetadatum}
 */
-export function min_fee(tx: Transaction, linear_fee: LinearFee, mem_price: number, step_price: number): BigNum;
+export function encode_arbitrary_bytes_as_metadatum(bytes: Uint8Array): TransactionMetadatum;
+/**
+* @param {TransactionMetadatum} metadata
+* @returns {Uint8Array}
+*/
+export function decode_arbitrary_bytes_from_metadatum(metadata: TransactionMetadatum): Uint8Array;
+/**
+* @param {string} json
+* @param {number} schema
+* @returns {TransactionMetadatum}
+*/
+export function encode_json_str_to_metadatum(json: string, schema: number): TransactionMetadatum;
+/**
+* @param {TransactionMetadatum} metadatum
+* @param {number} schema
+* @returns {string}
+*/
+export function decode_metadatum_to_json_str(metadatum: TransactionMetadatum, schema: number): string;
+/**
+* @param {string} password
+* @param {string} salt
+* @param {string} nonce
+* @param {string} data
+* @returns {string}
+*/
+export function encrypt_with_password(password: string, salt: string, nonce: string, data: string): string;
+/**
+* @param {string} password
+* @param {string} data
+* @returns {string}
+*/
+export function decrypt_with_password(password: string, data: string): string;
 /**
 * @param {TransactionHash} tx_body_hash
 * @param {ByronAddress} addr
@@ -44,6 +72,16 @@ export function hash_transaction(tx_body: TransactionBody): TransactionHash;
 */
 export function hash_plutus_data(plutus_data: PlutusData): DataHash;
 /**
+* @param {Uint8Array} data
+* @returns {Uint8Array}
+*/
+export function hash_blake2b256(data: Uint8Array): Uint8Array;
+/**
+* @param {Uint8Array} data
+* @returns {Uint8Array}
+*/
+export function hash_blake2b224(data: Uint8Array): Uint8Array;
+/**
 * @param {Redeemers} redeemers
 * @param {Costmdls} cost_models
 * @param {PlutusList | undefined} datums
@@ -65,12 +103,11 @@ export function get_implicit_input(txbody: TransactionBody, pool_deposit: BigNum
 */
 export function get_deposit(txbody: TransactionBody, pool_deposit: BigNum, key_deposit: BigNum): BigNum;
 /**
-* @param {Value} assets
-* @param {boolean} has_data_hash
-* @param {BigNum} coins_per_utxo_word
+* @param {TransactionOutput} output
+* @param {BigNum} coins_per_utxo_byte
 * @returns {BigNum}
 */
-export function min_ada_required(assets: Value, has_data_hash: boolean, coins_per_utxo_word: BigNum): BigNum;
+export function min_ada_required(output: TransactionOutput, coins_per_utxo_byte: BigNum): BigNum;
 /**
 * Receives a script JSON string
 * and returns a NativeScript.
@@ -87,41 +124,24 @@ export function min_ada_required(assets: Value, has_data_hash: boolean, coins_pe
 */
 export function encode_json_str_to_native_script(json: string, self_xpub: string, schema: number): NativeScript;
 /**
-* @param {Uint8Array} bytes
-* @returns {TransactionMetadatum}
-*/
-export function encode_arbitrary_bytes_as_metadatum(bytes: Uint8Array): TransactionMetadatum;
-/**
-* @param {TransactionMetadatum} metadata
-* @returns {Uint8Array}
-*/
-export function decode_arbitrary_bytes_from_metadatum(metadata: TransactionMetadatum): Uint8Array;
-/**
 * @param {string} json
 * @param {number} schema
-* @returns {TransactionMetadatum}
+* @returns {PlutusData}
 */
-export function encode_json_str_to_metadatum(json: string, schema: number): TransactionMetadatum;
+export function encode_json_str_to_plutus_datum(json: string, schema: number): PlutusData;
 /**
-* @param {TransactionMetadatum} metadatum
+* @param {PlutusData} datum
 * @param {number} schema
 * @returns {string}
 */
-export function decode_metadatum_to_json_str(metadatum: TransactionMetadatum, schema: number): string;
+export function decode_plutus_datum_to_json_str(datum: PlutusData, schema: number): string;
 /**
-* @param {string} password
-* @param {string} salt
-* @param {string} nonce
-* @param {string} data
-* @returns {string}
+* @param {Transaction} tx
+* @param {LinearFee} linear_fee
+* @param {ExUnitPrices} ex_unit_prices
+* @returns {BigNum}
 */
-export function encrypt_with_password(password: string, salt: string, nonce: string, data: string): string;
-/**
-* @param {string} password
-* @param {string} data
-* @returns {string}
-*/
-export function decrypt_with_password(password: string, data: string): string;
+export function min_fee(tx: Transaction, linear_fee: LinearFee, ex_unit_prices: ExUnitPrices): BigNum;
 /**
 */
 export enum CertificateKind {
@@ -163,26 +183,10 @@ export enum NativeScriptKind {
   TimelockExpiry,
 }
 /**
-* Each new language uses a different namespace for hashing its script
-* This is because you could have a language where the same bytes have different semantics
-* So this avoids scripts in different languages mapping to the same hash
-* Note that the enum value here is different than the enum value for deciding the cost model of a script
-*/
-export enum ScriptHashNamespace {
-  NativeScript,
-}
-/**
 */
 export enum NetworkIdKind {
   Testnet,
   Mainnet,
-}
-/**
-* Used to choosed the schema for a script JSON string
-*/
-export enum ScriptSchema {
-  Wallet,
-  Node,
 }
 /**
 */
@@ -202,34 +206,40 @@ export enum MetadataJsonSchema {
 }
 /**
 */
-export enum CoinSelectionStrategyCIP2 {
-/**
-* Performs CIP2's Largest First ada-only selection. Will error if outputs contain non-ADA assets.
-*/
-  LargestFirst,
-/**
-* Performs CIP2's Random Improve ada-only selection. Will error if outputs contain non-ADA assets.
-*/
-  RandomImprove,
-/**
-* Same as LargestFirst, but before adding ADA, will insert by largest-first for each asset type.
-*/
-  LargestFirstMultiAsset,
-/**
-* Same as RandomImprove, but before adding ADA, will insert by random-improve for each asset type.
-*/
-  RandomImproveMultiAsset,
-}
-/**
-*/
 export enum StakeCredKind {
   Key,
   Script,
 }
 /**
 */
+export enum ScriptWitnessKind {
+  NativeWitness,
+  PlutusWitness,
+}
+/**
+* Each new language uses a different namespace for hashing its script
+* This is because you could have a language where the same bytes have different semantics
+* So this avoids scripts in different languages mapping to the same hash
+* Note that the enum value here is different than the enum value for deciding the cost model of a script
+* https://github.com/input-output-hk/cardano-ledger/blob/9c3b4737b13b30f71529e76c5330f403165e28a6/eras/alonzo/impl/src/Cardano/Ledger/Alonzo.hs#L127
+*/
+export enum ScriptHashNamespace {
+  NativeScript,
+  PlutusV1,
+  PlutusV2,
+}
+/**
+* Used to choose the schema for a script JSON string
+*/
+export enum ScriptSchema {
+  Wallet,
+  Node,
+}
+/**
+*/
 export enum LanguageKind {
   PlutusV1,
+  PlutusV2,
 }
 /**
 */
@@ -249,6 +259,71 @@ export enum RedeemerTagKind {
   Reward,
 }
 /**
+* JSON <-> PlutusData conversion schemas.
+* Follows ScriptDataJsonSchema in cardano-cli defined at:
+* https://github.com/input-output-hk/cardano-node/blob/master/cardano-api/src/Cardano/Api/ScriptData.hs#L254
+*
+* All methods here have the following restrictions due to limitations on dependencies:
+* * JSON numbers above u64::MAX (positive) or below i64::MIN (negative) will throw errors
+* * Hex strings for bytes don't accept odd-length (half-byte) strings.
+*      cardano-cli seems to support these however but it seems to be different than just 0-padding
+*      on either side when tested so proceed with caution
+*/
+export enum PlutusDatumSchema {
+/**
+* ScriptDataJsonNoSchema in cardano-node.
+*
+* This is the format used by --script-data-value in cardano-cli
+* This tries to accept most JSON but does not support the full spectrum of Plutus datums.
+* From JSON:
+* * null/true/false/floats NOT supported
+* * strings starting with 0x are treated as hex bytes. All other strings are encoded as their utf8 bytes.
+* To JSON:
+* * ConstrPlutusData not supported in ANY FORM (neither keys nor values)
+* * Lists not supported in keys
+* * Maps not supported in keys
+*/
+  BasicConversions,
+/**
+* ScriptDataJsonDetailedSchema in cardano-node.
+*
+* This is the format used by --script-data-file in cardano-cli
+* This covers almost all (only minor exceptions) Plutus datums, but the JSON must conform to a strict schema.
+* The schema specifies that ALL keys and ALL values must be contained in a JSON map with 2 cases:
+* 1. For ConstrPlutusData there must be two fields "constructor" contianing a number and "fields" containing its fields
+*    e.g. { "constructor": 2, "fields": [{"int": 2}, {"list": [{"bytes": "CAFEF00D"}]}]}
+* 2. For all other cases there must be only one field named "int", "bytes", "list" or "map"
+*    Integer's value is a JSON number e.g. {"int": 100}
+*    Bytes' value is a hex string representing the bytes WITHOUT any prefix e.g. {"bytes": "CAFEF00D"}
+*    Lists' value is a JSON list of its elements encoded via the same schema e.g. {"list": [{"bytes": "CAFEF00D"}]}
+*    Maps' value is a JSON list of objects, one for each key-value pair in the map, with keys "k" and "v"
+*          respectively with their values being the plutus datum encoded via this same schema
+*          e.g. {"map": [
+*              {"k": {"int": 2}, "v": {"int": 5}},
+*              {"k": {"map": [{"k": {"list": [{"int": 1}]}, "v": {"bytes": "FF03"}}]}, "v": {"list": []}}
+*          ]}
+* From JSON:
+* * null/true/false/floats NOT supported
+* * the JSON must conform to a very specific schema
+* To JSON:
+* * all Plutus datums should be fully supported outside of the integer range limitations outlined above.
+*/
+  DetailedSchema,
+}
+/**
+*/
+export enum ScriptKind {
+  NativeScript,
+  PlutusScriptV1,
+  PlutusScriptV2,
+}
+/**
+*/
+export enum DatumKind {
+  Hash,
+  Data,
+}
+/**
 */
 export class Address {
   free(): void;
@@ -257,6 +332,19 @@ export class Address {
 * @returns {Address}
 */
   static from_bytes(data: Uint8Array): Address;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {AddressJSON}
+*/
+  to_js_value(): AddressJSON;
+/**
+* @param {string} json
+* @returns {Address}
+*/
+  static from_json(json: string): Address;
 /**
 * @returns {Uint8Array}
 */
@@ -275,6 +363,26 @@ export class Address {
 * @returns {number}
 */
   network_id(): number;
+/**
+* @returns {ByronAddress | undefined}
+*/
+  as_byron(): ByronAddress | undefined;
+/**
+* @returns {RewardAddress | undefined}
+*/
+  as_reward(): RewardAddress | undefined;
+/**
+* @returns {PointerAddress | undefined}
+*/
+  as_pointer(): PointerAddress | undefined;
+/**
+* @returns {EnterpriseAddress | undefined}
+*/
+  as_enterprise(): EnterpriseAddress | undefined;
+/**
+* @returns {BaseAddress | undefined}
+*/
+  as_base(): BaseAddress | undefined;
 }
 /**
 */
@@ -289,6 +397,19 @@ export class AssetName {
 * @returns {AssetName}
 */
   static from_bytes(bytes: Uint8Array): AssetName;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {AssetNameJSON}
+*/
+  to_js_value(): AssetNameJSON;
+/**
+* @param {string} json
+* @returns {AssetName}
+*/
+  static from_json(json: string): AssetName;
 /**
 * @param {Uint8Array} name
 * @returns {AssetName}
@@ -312,6 +433,19 @@ export class AssetNames {
 * @returns {AssetNames}
 */
   static from_bytes(bytes: Uint8Array): AssetNames;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {AssetNamesJSON}
+*/
+  to_js_value(): AssetNamesJSON;
+/**
+* @param {string} json
+* @returns {AssetNames}
+*/
+  static from_json(json: string): AssetNames;
 /**
 * @returns {AssetNames}
 */
@@ -343,6 +477,19 @@ export class Assets {
 * @returns {Assets}
 */
   static from_bytes(bytes: Uint8Array): Assets;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {AssetsJSON}
+*/
+  to_js_value(): AssetsJSON;
+/**
+* @param {string} json
+* @returns {Assets}
+*/
+  static from_json(json: string): Assets;
 /**
 * @returns {Assets}
 */
@@ -381,6 +528,19 @@ export class AuxiliaryData {
 */
   static from_bytes(bytes: Uint8Array): AuxiliaryData;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {AuxiliaryDataJSON}
+*/
+  to_js_value(): AuxiliaryDataJSON;
+/**
+* @param {string} json
+* @returns {AuxiliaryData}
+*/
+  static from_json(json: string): AuxiliaryData;
+/**
 * @returns {AuxiliaryData}
 */
   static new(): AuxiliaryData;
@@ -408,11 +568,20 @@ export class AuxiliaryData {
 * @param {PlutusScripts} plutus_scripts
 */
   set_plutus_scripts(plutus_scripts: PlutusScripts): void;
+/**
+* @param {PlutusScripts} plutus_scripts
+*/
+  set_plutus_v2_scripts(plutus_scripts: PlutusScripts): void;
 }
 /**
 */
 export class AuxiliaryDataHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {AuxiliaryDataHash}
+*/
+  static from_bytes(bytes: Uint8Array): AuxiliaryDataHash;
 /**
 * @returns {Uint8Array}
 */
@@ -428,10 +597,14 @@ export class AuxiliaryDataHash {
 */
   static from_bech32(bech_str: string): AuxiliaryDataHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {AuxiliaryDataHash}
 */
-  static from_bytes(bytes: Uint8Array): AuxiliaryDataHash;
+  static from_hex(hex: string): AuxiliaryDataHash;
 }
 /**
 */
@@ -446,20 +619,20 @@ export class AuxiliaryDataSet {
 */
   len(): number;
 /**
-* @param {number} tx_index
+* @param {BigNum} tx_index
 * @param {AuxiliaryData} data
 * @returns {AuxiliaryData | undefined}
 */
-  insert(tx_index: number, data: AuxiliaryData): AuxiliaryData | undefined;
+  insert(tx_index: BigNum, data: AuxiliaryData): AuxiliaryData | undefined;
 /**
-* @param {number} tx_index
+* @param {BigNum} tx_index
 * @returns {AuxiliaryData | undefined}
 */
-  get(tx_index: number): AuxiliaryData | undefined;
+  get(tx_index: BigNum): AuxiliaryData | undefined;
 /**
-* @returns {Uint32Array}
+* @returns {TransactionIndexes}
 */
-  indices(): Uint32Array;
+  indices(): TransactionIndexes;
 }
 /**
 */
@@ -507,6 +680,10 @@ export class BigInt {
 * @returns {BigNum | undefined}
 */
   as_u64(): BigNum | undefined;
+/**
+* @returns {Int | undefined}
+*/
+  as_int(): Int | undefined;
 /**
 * @param {string} text
 * @returns {BigInt}
@@ -567,6 +744,11 @@ export class BigNum {
 * @returns {BigNum}
 */
   checked_div(other: BigNum): BigNum;
+/**
+* @param {BigNum} other
+* @returns {BigNum}
+*/
+  checked_div_ceil(other: BigNum): BigNum;
 /**
 * returns 0 if it would otherwise underflow
 * @param {BigNum} other
@@ -738,6 +920,19 @@ export class Block {
 */
   static from_bytes(bytes: Uint8Array): Block;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {BlockJSON}
+*/
+  to_js_value(): BlockJSON;
+/**
+* @param {string} json
+* @returns {Block}
+*/
+  static from_json(json: string): Block;
+/**
 * @returns {Header}
 */
   header(): Header;
@@ -754,23 +949,28 @@ export class Block {
 */
   auxiliary_data_set(): AuxiliaryDataSet;
 /**
-* @returns {Uint32Array}
+* @returns {TransactionIndexes}
 */
-  invalid_transactions(): Uint32Array;
+  invalid_transactions(): TransactionIndexes;
 /**
 * @param {Header} header
 * @param {TransactionBodies} transaction_bodies
 * @param {TransactionWitnessSets} transaction_witness_sets
 * @param {AuxiliaryDataSet} auxiliary_data_set
-* @param {Uint32Array} invalid_transactions
+* @param {TransactionIndexes} invalid_transactions
 * @returns {Block}
 */
-  static new(header: Header, transaction_bodies: TransactionBodies, transaction_witness_sets: TransactionWitnessSets, auxiliary_data_set: AuxiliaryDataSet, invalid_transactions: Uint32Array): Block;
+  static new(header: Header, transaction_bodies: TransactionBodies, transaction_witness_sets: TransactionWitnessSets, auxiliary_data_set: AuxiliaryDataSet, invalid_transactions: TransactionIndexes): Block;
 }
 /**
 */
 export class BlockHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {BlockHash}
+*/
+  static from_bytes(bytes: Uint8Array): BlockHash;
 /**
 * @returns {Uint8Array}
 */
@@ -786,10 +986,33 @@ export class BlockHash {
 */
   static from_bech32(bech_str: string): BlockHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {BlockHash}
 */
-  static from_bytes(bytes: Uint8Array): BlockHash;
+  static from_hex(hex: string): BlockHash;
+}
+/**
+*/
+export class Blockfrost {
+  free(): void;
+/**
+* @param {string} url
+* @param {string} project_id
+* @returns {Blockfrost}
+*/
+  static new(url: string, project_id: string): Blockfrost;
+/**
+* @returns {string}
+*/
+  url(): string;
+/**
+* @returns {string}
+*/
+  project_id(): string;
 }
 /**
 */
@@ -804,6 +1027,19 @@ export class BootstrapWitness {
 * @returns {BootstrapWitness}
 */
   static from_bytes(bytes: Uint8Array): BootstrapWitness;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {BootstrapWitnessJSON}
+*/
+  to_js_value(): BootstrapWitnessJSON;
+/**
+* @param {string} json
+* @returns {BootstrapWitness}
+*/
+  static from_json(json: string): BootstrapWitness;
 /**
 * @returns {Vkey}
 */
@@ -922,6 +1158,19 @@ export class Certificate {
 */
   static from_bytes(bytes: Uint8Array): Certificate;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {CertificateJSON}
+*/
+  to_js_value(): CertificateJSON;
+/**
+* @param {string} json
+* @returns {Certificate}
+*/
+  static from_json(json: string): Certificate;
+/**
 * @param {StakeRegistration} stake_registration
 * @returns {Certificate}
 */
@@ -1003,6 +1252,19 @@ export class Certificates {
 */
   static from_bytes(bytes: Uint8Array): Certificates;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {CertificatesJSON}
+*/
+  to_js_value(): CertificatesJSON;
+/**
+* @param {string} json
+* @returns {Certificates}
+*/
+  static from_json(json: string): Certificates;
+/**
 * @returns {Certificates}
 */
   static new(): Certificates;
@@ -1066,6 +1328,10 @@ export class CostModel {
 */
   static new(): CostModel;
 /**
+* @returns {CostModel}
+*/
+  static new_plutus_v2(): CostModel;
+/**
 * @param {number} operation
 * @param {Int} cost
 * @returns {Int}
@@ -1076,6 +1342,10 @@ export class CostModel {
 * @returns {Int}
 */
   get(operation: number): Int;
+/**
+* @returns {number}
+*/
+  len(): number;
 }
 /**
 */
@@ -1162,8 +1432,49 @@ export class DNSRecordSRV {
 }
 /**
 */
+export class Data {
+  free(): void;
+/**
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
+/**
+* @param {Uint8Array} bytes
+* @returns {Data}
+*/
+  static from_bytes(bytes: Uint8Array): Data;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {DataJSON}
+*/
+  to_js_value(): DataJSON;
+/**
+* @param {string} json
+* @returns {Data}
+*/
+  static from_json(json: string): Data;
+/**
+* @param {PlutusData} plutus_data
+* @returns {Data}
+*/
+  static new(plutus_data: PlutusData): Data;
+/**
+* @returns {PlutusData}
+*/
+  get(): PlutusData;
+}
+/**
+*/
 export class DataHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {DataHash}
+*/
+  static from_bytes(bytes: Uint8Array): DataHash;
 /**
 * @returns {Uint8Array}
 */
@@ -1179,15 +1490,73 @@ export class DataHash {
 */
   static from_bech32(bech_str: string): DataHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {DataHash}
 */
-  static from_bytes(bytes: Uint8Array): DataHash;
+  static from_hex(hex: string): DataHash;
+}
+/**
+*/
+export class Datum {
+  free(): void;
+/**
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
+/**
+* @param {Uint8Array} bytes
+* @returns {Datum}
+*/
+  static from_bytes(bytes: Uint8Array): Datum;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {DatumJSON}
+*/
+  to_js_value(): DatumJSON;
+/**
+* @param {string} json
+* @returns {Datum}
+*/
+  static from_json(json: string): Datum;
+/**
+* @param {DataHash} data_hash
+* @returns {Datum}
+*/
+  static new_data_hash(data_hash: DataHash): Datum;
+/**
+* @param {Data} data
+* @returns {Datum}
+*/
+  static new_data(data: Data): Datum;
+/**
+* @returns {number}
+*/
+  kind(): number;
+/**
+* @returns {DataHash | undefined}
+*/
+  as_data_hash(): DataHash | undefined;
+/**
+* @returns {Data | undefined}
+*/
+  as_data(): Data | undefined;
 }
 /**
 */
 export class Ed25519KeyHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {Ed25519KeyHash}
+*/
+  static from_bytes(bytes: Uint8Array): Ed25519KeyHash;
 /**
 * @returns {Uint8Array}
 */
@@ -1203,10 +1572,14 @@ export class Ed25519KeyHash {
 */
   static from_bech32(bech_str: string): Ed25519KeyHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {Ed25519KeyHash}
 */
-  static from_bytes(bytes: Uint8Array): Ed25519KeyHash;
+  static from_hex(hex: string): Ed25519KeyHash;
 }
 /**
 */
@@ -1221,6 +1594,19 @@ export class Ed25519KeyHashes {
 * @returns {Ed25519KeyHashes}
 */
   static from_bytes(bytes: Uint8Array): Ed25519KeyHashes;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {Ed25519KeyHashesJSON}
+*/
+  to_js_value(): Ed25519KeyHashesJSON;
+/**
+* @param {string} json
+* @returns {Ed25519KeyHashes}
+*/
+  static from_json(json: string): Ed25519KeyHashes;
 /**
 * @returns {Ed25519KeyHashes}
 */
@@ -1322,6 +1708,12 @@ export class ExUnitPrices {
 * @returns {ExUnitPrices}
 */
   static new(mem_price: UnitInterval, step_price: UnitInterval): ExUnitPrices;
+/**
+* @param {number} mem_price
+* @param {number} step_price
+* @returns {ExUnitPrices}
+*/
+  static from_float(mem_price: number, step_price: number): ExUnitPrices;
 }
 /**
 */
@@ -1365,6 +1757,19 @@ export class GeneralTransactionMetadata {
 */
   static from_bytes(bytes: Uint8Array): GeneralTransactionMetadata;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {GeneralTransactionMetadataJSON}
+*/
+  to_js_value(): GeneralTransactionMetadataJSON;
+/**
+* @param {string} json
+* @returns {GeneralTransactionMetadata}
+*/
+  static from_json(json: string): GeneralTransactionMetadata;
+/**
 * @returns {GeneralTransactionMetadata}
 */
   static new(): GeneralTransactionMetadata;
@@ -1393,6 +1798,11 @@ export class GeneralTransactionMetadata {
 export class GenesisDelegateHash {
   free(): void;
 /**
+* @param {Uint8Array} bytes
+* @returns {GenesisDelegateHash}
+*/
+  static from_bytes(bytes: Uint8Array): GenesisDelegateHash;
+/**
 * @returns {Uint8Array}
 */
   to_bytes(): Uint8Array;
@@ -1407,15 +1817,24 @@ export class GenesisDelegateHash {
 */
   static from_bech32(bech_str: string): GenesisDelegateHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {GenesisDelegateHash}
 */
-  static from_bytes(bytes: Uint8Array): GenesisDelegateHash;
+  static from_hex(hex: string): GenesisDelegateHash;
 }
 /**
 */
 export class GenesisHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {GenesisHash}
+*/
+  static from_bytes(bytes: Uint8Array): GenesisHash;
 /**
 * @returns {Uint8Array}
 */
@@ -1431,10 +1850,14 @@ export class GenesisHash {
 */
   static from_bech32(bech_str: string): GenesisHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {GenesisHash}
 */
-  static from_bytes(bytes: Uint8Array): GenesisHash;
+  static from_hex(hex: string): GenesisHash;
 }
 /**
 */
@@ -1449,6 +1872,19 @@ export class GenesisHashes {
 * @returns {GenesisHashes}
 */
   static from_bytes(bytes: Uint8Array): GenesisHashes;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {GenesisHashesJSON}
+*/
+  to_js_value(): GenesisHashesJSON;
+/**
+* @param {string} json
+* @returns {GenesisHashes}
+*/
+  static from_json(json: string): GenesisHashes;
 /**
 * @returns {GenesisHashes}
 */
@@ -1480,6 +1916,19 @@ export class GenesisKeyDelegation {
 * @returns {GenesisKeyDelegation}
 */
   static from_bytes(bytes: Uint8Array): GenesisKeyDelegation;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {GenesisKeyDelegationJSON}
+*/
+  to_js_value(): GenesisKeyDelegationJSON;
+/**
+* @param {string} json
+* @returns {GenesisKeyDelegation}
+*/
+  static from_json(json: string): GenesisKeyDelegation;
 /**
 * @returns {GenesisHash}
 */
@@ -1514,6 +1963,19 @@ export class Header {
 */
   static from_bytes(bytes: Uint8Array): Header;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {HeaderJSON}
+*/
+  to_js_value(): HeaderJSON;
+/**
+* @param {string} json
+* @returns {Header}
+*/
+  static from_json(json: string): Header;
+/**
 * @returns {HeaderBody}
 */
   header_body(): HeaderBody;
@@ -1542,13 +2004,26 @@ export class HeaderBody {
 */
   static from_bytes(bytes: Uint8Array): HeaderBody;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {HeaderBodyJSON}
+*/
+  to_js_value(): HeaderBodyJSON;
+/**
+* @param {string} json
+* @returns {HeaderBody}
+*/
+  static from_json(json: string): HeaderBody;
+/**
 * @returns {number}
 */
   block_number(): number;
 /**
-* @returns {number}
+* @returns {BigNum}
 */
-  slot(): number;
+  slot(): BigNum;
 /**
 * @returns {BlockHash | undefined}
 */
@@ -1587,7 +2062,7 @@ export class HeaderBody {
   protocol_version(): ProtocolVersion;
 /**
 * @param {number} block_number
-* @param {number} slot
+* @param {BigNum} slot
 * @param {BlockHash | undefined} prev_hash
 * @param {Vkey} issuer_vkey
 * @param {VRFVKey} vrf_vkey
@@ -1599,12 +2074,21 @@ export class HeaderBody {
 * @param {ProtocolVersion} protocol_version
 * @returns {HeaderBody}
 */
-  static new(block_number: number, slot: number, prev_hash: BlockHash | undefined, issuer_vkey: Vkey, vrf_vkey: VRFVKey, nonce_vrf: VRFCert, leader_vrf: VRFCert, block_body_size: number, block_body_hash: BlockHash, operational_cert: OperationalCert, protocol_version: ProtocolVersion): HeaderBody;
+  static new(block_number: number, slot: BigNum, prev_hash: BlockHash | undefined, issuer_vkey: Vkey, vrf_vkey: VRFVKey, nonce_vrf: VRFCert, leader_vrf: VRFCert, block_body_size: number, block_body_hash: BlockHash, operational_cert: OperationalCert, protocol_version: ProtocolVersion): HeaderBody;
 }
 /**
 */
 export class Int {
   free(): void;
+/**
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
+/**
+* @param {Uint8Array} bytes
+* @returns {Int}
+*/
+  static from_bytes(bytes: Uint8Array): Int;
 /**
 * @param {BigNum} x
 * @returns {Int}
@@ -1669,6 +2153,11 @@ export class Int {
 * @returns {string}
 */
   to_str(): string;
+/**
+* @param {string} string
+* @returns {Int}
+*/
+  static from_str(string: string): Int;
 }
 /**
 */
@@ -1683,6 +2172,19 @@ export class Ipv4 {
 * @returns {Ipv4}
 */
   static from_bytes(bytes: Uint8Array): Ipv4;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {Ipv4JSON}
+*/
+  to_js_value(): Ipv4JSON;
+/**
+* @param {string} json
+* @returns {Ipv4}
+*/
+  static from_json(json: string): Ipv4;
 /**
 * @param {Uint8Array} data
 * @returns {Ipv4}
@@ -1706,6 +2208,19 @@ export class Ipv6 {
 * @returns {Ipv6}
 */
   static from_bytes(bytes: Uint8Array): Ipv6;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {Ipv6JSON}
+*/
+  to_js_value(): Ipv6JSON;
+/**
+* @param {string} json
+* @returns {Ipv6}
+*/
+  static from_json(json: string): Ipv6;
 /**
 * @param {Uint8Array} data
 * @returns {Ipv6}
@@ -1735,6 +2250,11 @@ export class KESSignature {
 export class KESVKey {
   free(): void;
 /**
+* @param {Uint8Array} bytes
+* @returns {KESVKey}
+*/
+  static from_bytes(bytes: Uint8Array): KESVKey;
+/**
 * @returns {Uint8Array}
 */
   to_bytes(): Uint8Array;
@@ -1749,10 +2269,14 @@ export class KESVKey {
 */
   static from_bech32(bech_str: string): KESVKey;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {KESVKey}
 */
-  static from_bytes(bytes: Uint8Array): KESVKey;
+  static from_hex(hex: string): KESVKey;
 }
 /**
 */
@@ -1771,6 +2295,10 @@ export class Language {
 * @returns {Language}
 */
   static new_plutus_v1(): Language;
+/**
+* @returns {Language}
+*/
+  static new_plutus_v2(): Language;
 /**
 * @returns {number}
 */
@@ -1848,6 +2376,19 @@ export class MIRToStakeCredentials {
 * @returns {MIRToStakeCredentials}
 */
   static from_bytes(bytes: Uint8Array): MIRToStakeCredentials;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {MIRToStakeCredentialsJSON}
+*/
+  to_js_value(): MIRToStakeCredentialsJSON;
+/**
+* @param {string} json
+* @returns {MIRToStakeCredentials}
+*/
+  static from_json(json: string): MIRToStakeCredentials;
 /**
 * @returns {MIRToStakeCredentials}
 */
@@ -1981,6 +2522,19 @@ export class Mint {
 */
   static from_bytes(bytes: Uint8Array): Mint;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {MintJSON}
+*/
+  to_js_value(): MintJSON;
+/**
+* @param {string} json
+* @returns {Mint}
+*/
+  static from_json(json: string): Mint;
+/**
 * @returns {Mint}
 */
   static new(): Mint;
@@ -2068,6 +2622,19 @@ export class MoveInstantaneousReward {
 */
   static from_bytes(bytes: Uint8Array): MoveInstantaneousReward;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {MoveInstantaneousRewardJSON}
+*/
+  to_js_value(): MoveInstantaneousRewardJSON;
+/**
+* @param {string} json
+* @returns {MoveInstantaneousReward}
+*/
+  static from_json(json: string): MoveInstantaneousReward;
+/**
 * @param {number} pot
 * @param {BigNum} amount
 * @returns {MoveInstantaneousReward}
@@ -2110,6 +2677,19 @@ export class MoveInstantaneousRewardsCert {
 */
   static from_bytes(bytes: Uint8Array): MoveInstantaneousRewardsCert;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {MoveInstantaneousRewardsCertJSON}
+*/
+  to_js_value(): MoveInstantaneousRewardsCertJSON;
+/**
+* @param {string} json
+* @returns {MoveInstantaneousRewardsCert}
+*/
+  static from_json(json: string): MoveInstantaneousRewardsCert;
+/**
 * @returns {MoveInstantaneousReward}
 */
   move_instantaneous_reward(): MoveInstantaneousReward;
@@ -2132,6 +2712,19 @@ export class MultiAsset {
 * @returns {MultiAsset}
 */
   static from_bytes(bytes: Uint8Array): MultiAsset;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {MultiAssetJSON}
+*/
+  to_js_value(): MultiAssetJSON;
+/**
+* @param {string} json
+* @returns {MultiAsset}
+*/
+  static from_json(json: string): MultiAsset;
 /**
 * @returns {MultiAsset}
 */
@@ -2198,6 +2791,19 @@ export class MultiHostName {
 */
   static from_bytes(bytes: Uint8Array): MultiHostName;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {MultiHostNameJSON}
+*/
+  to_js_value(): MultiHostNameJSON;
+/**
+* @param {string} json
+* @returns {MultiHostName}
+*/
+  static from_json(json: string): MultiHostName;
+/**
 * @returns {DNSRecordSRV}
 */
   dns_name(): DNSRecordSRV;
@@ -2220,6 +2826,19 @@ export class NativeScript {
 * @returns {NativeScript}
 */
   static from_bytes(bytes: Uint8Array): NativeScript;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {NativeScriptJSON}
+*/
+  to_js_value(): NativeScriptJSON;
+/**
+* @param {string} json
+* @returns {NativeScript}
+*/
+  static from_json(json: string): NativeScript;
 /**
 * @param {number} namespace
 * @returns {ScriptHash}
@@ -2327,6 +2946,19 @@ export class NetworkId {
 */
   static from_bytes(bytes: Uint8Array): NetworkId;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {NetworkIdJSON}
+*/
+  to_js_value(): NetworkIdJSON;
+/**
+* @param {string} json
+* @returns {NetworkId}
+*/
+  static from_json(json: string): NetworkId;
+/**
 * @returns {NetworkId}
 */
   static testnet(): NetworkId;
@@ -2406,6 +3038,19 @@ export class OperationalCert {
 * @returns {OperationalCert}
 */
   static from_bytes(bytes: Uint8Array): OperationalCert;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {OperationalCertJSON}
+*/
+  to_js_value(): OperationalCertJSON;
+/**
+* @param {string} json
+* @returns {OperationalCert}
+*/
+  static from_json(json: string): OperationalCert;
 /**
 * @returns {KESVKey}
 */
@@ -2576,6 +3221,11 @@ export class PlutusScript {
 */
   static from_bytes(bytes: Uint8Array): PlutusScript;
 /**
+* @param {number} namespace
+* @returns {ScriptHash}
+*/
+  hash(namespace: number): ScriptHash;
+/**
 *
 *     * Creates a new Plutus script from the RAW bytes of the compiled script.
 *     * This does NOT include any CBOR encoding around these bytes (e.g. from "cborBytes" in cardano-cli)
@@ -2627,27 +3277,63 @@ export class PlutusScripts {
 }
 /**
 */
+export class PlutusWitness {
+  free(): void;
+/**
+* Plutus V1 witness or witness where no script is attached and so version doesn't matter
+* @param {PlutusData} redeemer
+* @param {PlutusData | undefined} plutus_data
+* @param {PlutusScript | undefined} script
+* @returns {PlutusWitness}
+*/
+  static new(redeemer: PlutusData, plutus_data?: PlutusData, script?: PlutusScript): PlutusWitness;
+/**
+* @param {PlutusData} redeemer
+* @param {PlutusData | undefined} plutus_data
+* @param {PlutusScript | undefined} script
+* @returns {PlutusWitness}
+*/
+  static new_plutus_v2(redeemer: PlutusData, plutus_data?: PlutusData, script?: PlutusScript): PlutusWitness;
+/**
+* @returns {PlutusData | undefined}
+*/
+  plutus_data(): PlutusData | undefined;
+/**
+* @returns {PlutusData}
+*/
+  redeemer(): PlutusData;
+/**
+* @returns {PlutusScript | undefined}
+*/
+  script(): PlutusScript | undefined;
+/**
+* @returns {number}
+*/
+  version(): number;
+}
+/**
+*/
 export class Pointer {
   free(): void;
 /**
-* @param {number} slot
-* @param {number} tx_index
-* @param {number} cert_index
+* @param {BigNum} slot
+* @param {BigNum} tx_index
+* @param {BigNum} cert_index
 * @returns {Pointer}
 */
-  static new(slot: number, tx_index: number, cert_index: number): Pointer;
+  static new(slot: BigNum, tx_index: BigNum, cert_index: BigNum): Pointer;
 /**
-* @returns {number}
+* @returns {BigNum}
 */
-  slot(): number;
+  slot(): BigNum;
 /**
-* @returns {number}
+* @returns {BigNum}
 */
-  tx_index(): number;
+  tx_index(): BigNum;
 /**
-* @returns {number}
+* @returns {BigNum}
 */
-  cert_index(): number;
+  cert_index(): BigNum;
 }
 /**
 */
@@ -2692,6 +3378,19 @@ export class PoolMetadata {
 */
   static from_bytes(bytes: Uint8Array): PoolMetadata;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {PoolMetadataJSON}
+*/
+  to_js_value(): PoolMetadataJSON;
+/**
+* @param {string} json
+* @returns {PoolMetadata}
+*/
+  static from_json(json: string): PoolMetadata;
+/**
 * @returns {URL}
 */
   url(): URL;
@@ -2711,6 +3410,11 @@ export class PoolMetadata {
 export class PoolMetadataHash {
   free(): void;
 /**
+* @param {Uint8Array} bytes
+* @returns {PoolMetadataHash}
+*/
+  static from_bytes(bytes: Uint8Array): PoolMetadataHash;
+/**
 * @returns {Uint8Array}
 */
   to_bytes(): Uint8Array;
@@ -2725,10 +3429,14 @@ export class PoolMetadataHash {
 */
   static from_bech32(bech_str: string): PoolMetadataHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {PoolMetadataHash}
 */
-  static from_bytes(bytes: Uint8Array): PoolMetadataHash;
+  static from_hex(hex: string): PoolMetadataHash;
 }
 /**
 */
@@ -2743,6 +3451,19 @@ export class PoolParams {
 * @returns {PoolParams}
 */
   static from_bytes(bytes: Uint8Array): PoolParams;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {PoolParamsJSON}
+*/
+  to_js_value(): PoolParamsJSON;
+/**
+* @param {string} json
+* @returns {PoolParams}
+*/
+  static from_json(json: string): PoolParams;
 /**
 * @returns {Ed25519KeyHash}
 */
@@ -2807,6 +3528,19 @@ export class PoolRegistration {
 */
   static from_bytes(bytes: Uint8Array): PoolRegistration;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {PoolRegistrationJSON}
+*/
+  to_js_value(): PoolRegistrationJSON;
+/**
+* @param {string} json
+* @returns {PoolRegistration}
+*/
+  static from_json(json: string): PoolRegistration;
+/**
 * @returns {PoolParams}
 */
   pool_params(): PoolParams;
@@ -2815,6 +3549,10 @@ export class PoolRegistration {
 * @returns {PoolRegistration}
 */
   static new(pool_params: PoolParams): PoolRegistration;
+/**
+* @param {boolean} update
+*/
+  set_is_update(update: boolean): void;
 }
 /**
 */
@@ -2829,6 +3567,19 @@ export class PoolRetirement {
 * @returns {PoolRetirement}
 */
   static from_bytes(bytes: Uint8Array): PoolRetirement;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {PoolRetirementJSON}
+*/
+  to_js_value(): PoolRetirementJSON;
+/**
+* @param {string} json
+* @returns {PoolRetirement}
+*/
+  static from_json(json: string): PoolRetirement;
 /**
 * @returns {Ed25519KeyHash}
 */
@@ -2896,6 +3647,15 @@ export class PrivateKey {
 * @returns {Ed25519Signature}
 */
   sign(message: Uint8Array): Ed25519Signature;
+/**
+* @param {Uint8Array} bytes
+* @returns {PrivateKey}
+*/
+  static from_bytes(bytes: Uint8Array): PrivateKey;
+/**
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
 }
 /**
 */
@@ -2910,6 +3670,19 @@ export class ProposedProtocolParameterUpdates {
 * @returns {ProposedProtocolParameterUpdates}
 */
   static from_bytes(bytes: Uint8Array): ProposedProtocolParameterUpdates;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ProposedProtocolParameterUpdatesJSON}
+*/
+  to_js_value(): ProposedProtocolParameterUpdatesJSON;
+/**
+* @param {string} json
+* @returns {ProposedProtocolParameterUpdates}
+*/
+  static from_json(json: string): ProposedProtocolParameterUpdates;
 /**
 * @returns {ProposedProtocolParameterUpdates}
 */
@@ -2947,6 +3720,19 @@ export class ProtocolParamUpdate {
 * @returns {ProtocolParamUpdate}
 */
   static from_bytes(bytes: Uint8Array): ProtocolParamUpdate;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ProtocolParamUpdateJSON}
+*/
+  to_js_value(): ProtocolParamUpdateJSON;
+/**
+* @param {string} json
+* @returns {ProtocolParamUpdate}
+*/
+  static from_json(json: string): ProtocolParamUpdate;
 /**
 * @param {BigNum} minfee_a
 */
@@ -3060,13 +3846,13 @@ export class ProtocolParamUpdate {
 */
   extra_entropy(): Nonce | undefined;
 /**
-* @param {ProtocolVersions} protocol_version
+* @param {ProtocolVersion} protocol_version
 */
-  set_protocol_version(protocol_version: ProtocolVersions): void;
+  set_protocol_version(protocol_version: ProtocolVersion): void;
 /**
-* @returns {ProtocolVersions | undefined}
+* @returns {ProtocolVersion | undefined}
 */
-  protocol_version(): ProtocolVersions | undefined;
+  protocol_version(): ProtocolVersion | undefined;
 /**
 * @param {BigNum} min_pool_cost
 */
@@ -3158,6 +3944,19 @@ export class ProtocolVersion {
 */
   static from_bytes(bytes: Uint8Array): ProtocolVersion;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ProtocolVersionJSON}
+*/
+  to_js_value(): ProtocolVersionJSON;
+/**
+* @param {string} json
+* @returns {ProtocolVersion}
+*/
+  static from_json(json: string): ProtocolVersion;
+/**
 * @returns {number}
 */
   major(): number;
@@ -3171,37 +3970,6 @@ export class ProtocolVersion {
 * @returns {ProtocolVersion}
 */
   static new(major: number, minor: number): ProtocolVersion;
-}
-/**
-*/
-export class ProtocolVersions {
-  free(): void;
-/**
-* @returns {Uint8Array}
-*/
-  to_bytes(): Uint8Array;
-/**
-* @param {Uint8Array} bytes
-* @returns {ProtocolVersions}
-*/
-  static from_bytes(bytes: Uint8Array): ProtocolVersions;
-/**
-* @returns {ProtocolVersions}
-*/
-  static new(): ProtocolVersions;
-/**
-* @returns {number}
-*/
-  len(): number;
-/**
-* @param {number} index
-* @returns {ProtocolVersion}
-*/
-  get(index: number): ProtocolVersion;
-/**
-* @param {ProtocolVersion} elem
-*/
-  add(elem: ProtocolVersion): void;
 }
 /**
 * ED25519 key used as public key
@@ -3337,6 +4105,25 @@ export class RedeemerTag {
 }
 /**
 */
+export class RedeemerWitnessKey {
+  free(): void;
+/**
+* @returns {RedeemerTag}
+*/
+  tag(): RedeemerTag;
+/**
+* @returns {BigNum}
+*/
+  index(): BigNum;
+/**
+* @param {RedeemerTag} tag
+* @param {BigNum} index
+* @returns {RedeemerWitnessKey}
+*/
+  static new(tag: RedeemerTag, index: BigNum): RedeemerWitnessKey;
+}
+/**
+*/
 export class Redeemers {
   free(): void;
 /**
@@ -3379,6 +4166,19 @@ export class Relay {
 * @returns {Relay}
 */
   static from_bytes(bytes: Uint8Array): Relay;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {RelayJSON}
+*/
+  to_js_value(): RelayJSON;
+/**
+* @param {string} json
+* @returns {Relay}
+*/
+  static from_json(json: string): Relay;
 /**
 * @param {SingleHostAddr} single_host_addr
 * @returns {Relay}
@@ -3425,6 +4225,19 @@ export class Relays {
 */
   static from_bytes(bytes: Uint8Array): Relays;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {RelaysJSON}
+*/
+  to_js_value(): RelaysJSON;
+/**
+* @param {string} json
+* @returns {Relays}
+*/
+  static from_json(json: string): Relays;
+/**
 * @returns {Relays}
 */
   static new(): Relays;
@@ -3441,6 +4254,79 @@ export class Relays {
 * @param {Relay} elem
 */
   add(elem: Relay): void;
+}
+/**
+*/
+export class RequiredWitnessSet {
+  free(): void;
+/**
+* @param {Vkeywitness} vkey
+*/
+  add_vkey(vkey: Vkeywitness): void;
+/**
+* @param {Vkey} vkey
+*/
+  add_vkey_key(vkey: Vkey): void;
+/**
+* @param {Ed25519KeyHash} hash
+*/
+  add_vkey_key_hash(hash: Ed25519KeyHash): void;
+/**
+* @param {BootstrapWitness} bootstrap
+*/
+  add_bootstrap(bootstrap: BootstrapWitness): void;
+/**
+* @param {Vkey} bootstrap
+*/
+  add_bootstrap_key(bootstrap: Vkey): void;
+/**
+* @param {Ed25519KeyHash} hash
+*/
+  add_bootstrap_key_hash(hash: Ed25519KeyHash): void;
+/**
+* @param {NativeScript} native_script
+*/
+  add_native_script(native_script: NativeScript): void;
+/**
+* @param {ScriptHash} native_script
+*/
+  add_native_script_hash(native_script: ScriptHash): void;
+/**
+* @param {PlutusScript} plutus_script
+*/
+  add_plutus_script(plutus_script: PlutusScript): void;
+/**
+* @param {PlutusScript} plutus_script
+*/
+  add_plutus_v2_script(plutus_script: PlutusScript): void;
+/**
+* @param {ScriptHash} plutus_script
+*/
+  add_plutus_hash(plutus_script: ScriptHash): void;
+/**
+* @param {PlutusData} plutus_datum
+*/
+  add_plutus_datum(plutus_datum: PlutusData): void;
+/**
+* @param {DataHash} plutus_datum
+*/
+  add_plutus_datum_hash(plutus_datum: DataHash): void;
+/**
+* @param {Redeemer} redeemer
+*/
+  add_redeemer(redeemer: Redeemer): void;
+/**
+* @param {RedeemerWitnessKey} redeemer
+*/
+  add_redeemer_tag(redeemer: RedeemerWitnessKey): void;
+/**
+* @param {RequiredWitnessSet} requirements
+*/
+  add_all(requirements: RequiredWitnessSet): void;
+/**
+* @returns {RequiredWitnessSet}
+*/
+  static new(): RequiredWitnessSet;
 }
 /**
 */
@@ -3480,6 +4366,19 @@ export class RewardAddresses {
 */
   static from_bytes(bytes: Uint8Array): RewardAddresses;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {RewardAddressesJSON}
+*/
+  to_js_value(): RewardAddressesJSON;
+/**
+* @param {string} json
+* @returns {RewardAddresses}
+*/
+  static from_json(json: string): RewardAddresses;
+/**
 * @returns {RewardAddresses}
 */
   static new(): RewardAddresses;
@@ -3499,6 +4398,64 @@ export class RewardAddresses {
 }
 /**
 */
+export class Script {
+  free(): void;
+/**
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
+/**
+* @param {Uint8Array} bytes
+* @returns {Script}
+*/
+  static from_bytes(bytes: Uint8Array): Script;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptJSON}
+*/
+  to_js_value(): ScriptJSON;
+/**
+* @param {string} json
+* @returns {Script}
+*/
+  static from_json(json: string): Script;
+/**
+* @param {NativeScript} native_script
+* @returns {Script}
+*/
+  static new_native(native_script: NativeScript): Script;
+/**
+* @param {PlutusScript} plutus_script
+* @returns {Script}
+*/
+  static new_plutus_v1(plutus_script: PlutusScript): Script;
+/**
+* @param {PlutusScript} plutus_script
+* @returns {Script}
+*/
+  static new_plutus_v2(plutus_script: PlutusScript): Script;
+/**
+* @returns {number}
+*/
+  kind(): number;
+/**
+* @returns {NativeScript | undefined}
+*/
+  as_native(): NativeScript | undefined;
+/**
+* @returns {PlutusScript | undefined}
+*/
+  as_plutus_v1(): PlutusScript | undefined;
+/**
+* @returns {PlutusScript | undefined}
+*/
+  as_plutus_v2(): PlutusScript | undefined;
+}
+/**
+*/
 export class ScriptAll {
   free(): void;
 /**
@@ -3510,6 +4467,19 @@ export class ScriptAll {
 * @returns {ScriptAll}
 */
   static from_bytes(bytes: Uint8Array): ScriptAll;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptAllJSON}
+*/
+  to_js_value(): ScriptAllJSON;
+/**
+* @param {string} json
+* @returns {ScriptAll}
+*/
+  static from_json(json: string): ScriptAll;
 /**
 * @returns {NativeScripts}
 */
@@ -3534,6 +4504,19 @@ export class ScriptAny {
 */
   static from_bytes(bytes: Uint8Array): ScriptAny;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptAnyJSON}
+*/
+  to_js_value(): ScriptAnyJSON;
+/**
+* @param {string} json
+* @returns {ScriptAny}
+*/
+  static from_json(json: string): ScriptAny;
+/**
 * @returns {NativeScripts}
 */
   native_scripts(): NativeScripts;
@@ -3547,6 +4530,11 @@ export class ScriptAny {
 */
 export class ScriptDataHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {ScriptDataHash}
+*/
+  static from_bytes(bytes: Uint8Array): ScriptDataHash;
 /**
 * @returns {Uint8Array}
 */
@@ -3562,15 +4550,24 @@ export class ScriptDataHash {
 */
   static from_bech32(bech_str: string): ScriptDataHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {ScriptDataHash}
 */
-  static from_bytes(bytes: Uint8Array): ScriptDataHash;
+  static from_hex(hex: string): ScriptDataHash;
 }
 /**
 */
 export class ScriptHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {ScriptHash}
+*/
+  static from_bytes(bytes: Uint8Array): ScriptHash;
 /**
 * @returns {Uint8Array}
 */
@@ -3586,10 +4583,14 @@ export class ScriptHash {
 */
   static from_bech32(bech_str: string): ScriptHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {ScriptHash}
 */
-  static from_bytes(bytes: Uint8Array): ScriptHash;
+  static from_hex(hex: string): ScriptHash;
 }
 /**
 */
@@ -3604,6 +4605,19 @@ export class ScriptHashes {
 * @returns {ScriptHashes}
 */
   static from_bytes(bytes: Uint8Array): ScriptHashes;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptHashesJSON}
+*/
+  to_js_value(): ScriptHashesJSON;
+/**
+* @param {string} json
+* @returns {ScriptHashes}
+*/
+  static from_json(json: string): ScriptHashes;
 /**
 * @returns {ScriptHashes}
 */
@@ -3636,6 +4650,19 @@ export class ScriptNOfK {
 */
   static from_bytes(bytes: Uint8Array): ScriptNOfK;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptNOfKJSON}
+*/
+  to_js_value(): ScriptNOfKJSON;
+/**
+* @param {string} json
+* @returns {ScriptNOfK}
+*/
+  static from_json(json: string): ScriptNOfK;
+/**
 * @returns {number}
 */
   n(): number;
@@ -3664,6 +4691,19 @@ export class ScriptPubkey {
 */
   static from_bytes(bytes: Uint8Array): ScriptPubkey;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptPubkeyJSON}
+*/
+  to_js_value(): ScriptPubkeyJSON;
+/**
+* @param {string} json
+* @returns {ScriptPubkey}
+*/
+  static from_json(json: string): ScriptPubkey;
+/**
 * @returns {Ed25519KeyHash}
 */
   addr_keyhash(): Ed25519KeyHash;
@@ -3672,6 +4712,82 @@ export class ScriptPubkey {
 * @returns {ScriptPubkey}
 */
   static new(addr_keyhash: Ed25519KeyHash): ScriptPubkey;
+}
+/**
+*/
+export class ScriptRef {
+  free(): void;
+/**
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
+/**
+* @param {Uint8Array} bytes
+* @returns {ScriptRef}
+*/
+  static from_bytes(bytes: Uint8Array): ScriptRef;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptRefJSON}
+*/
+  to_js_value(): ScriptRefJSON;
+/**
+* @param {string} json
+* @returns {ScriptRef}
+*/
+  static from_json(json: string): ScriptRef;
+/**
+* @param {Script} script
+* @returns {ScriptRef}
+*/
+  static new(script: Script): ScriptRef;
+/**
+* @returns {Script}
+*/
+  get(): Script;
+}
+/**
+*/
+export class ScriptWitness {
+  free(): void;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ScriptWitnessJSON}
+*/
+  to_js_value(): ScriptWitnessJSON;
+/**
+* @param {string} json
+* @returns {ScriptWitness}
+*/
+  static from_json(json: string): ScriptWitness;
+/**
+* @param {NativeScript} native_script
+* @returns {ScriptWitness}
+*/
+  static new_native_witness(native_script: NativeScript): ScriptWitness;
+/**
+* @param {PlutusWitness} plutus_witness
+* @returns {ScriptWitness}
+*/
+  static new_plutus_witness(plutus_witness: PlutusWitness): ScriptWitness;
+/**
+* @returns {number}
+*/
+  kind(): number;
+/**
+* @returns {NativeScript | undefined}
+*/
+  as_native_witness(): NativeScript | undefined;
+/**
+* @returns {PlutusWitness | undefined}
+*/
+  as_plutus_witness(): PlutusWitness | undefined;
 }
 /**
 */
@@ -3686,6 +4802,19 @@ export class SingleHostAddr {
 * @returns {SingleHostAddr}
 */
   static from_bytes(bytes: Uint8Array): SingleHostAddr;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {SingleHostAddrJSON}
+*/
+  to_js_value(): SingleHostAddrJSON;
+/**
+* @param {string} json
+* @returns {SingleHostAddr}
+*/
+  static from_json(json: string): SingleHostAddr;
 /**
 * @returns {number | undefined}
 */
@@ -3719,6 +4848,19 @@ export class SingleHostName {
 * @returns {SingleHostName}
 */
   static from_bytes(bytes: Uint8Array): SingleHostName;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {SingleHostNameJSON}
+*/
+  to_js_value(): SingleHostNameJSON;
+/**
+* @param {string} json
+* @returns {SingleHostName}
+*/
+  static from_json(json: string): SingleHostName;
 /**
 * @returns {number | undefined}
 */
@@ -3769,6 +4911,19 @@ export class StakeCredential {
 * @returns {StakeCredential}
 */
   static from_bytes(bytes: Uint8Array): StakeCredential;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {StakeCredentialJSON}
+*/
+  to_js_value(): StakeCredentialJSON;
+/**
+* @param {string} json
+* @returns {StakeCredential}
+*/
+  static from_json(json: string): StakeCredential;
 }
 /**
 */
@@ -3783,6 +4938,19 @@ export class StakeCredentials {
 * @returns {StakeCredentials}
 */
   static from_bytes(bytes: Uint8Array): StakeCredentials;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {StakeCredentialsJSON}
+*/
+  to_js_value(): StakeCredentialsJSON;
+/**
+* @param {string} json
+* @returns {StakeCredentials}
+*/
+  static from_json(json: string): StakeCredentials;
 /**
 * @returns {StakeCredentials}
 */
@@ -3815,6 +4983,19 @@ export class StakeDelegation {
 */
   static from_bytes(bytes: Uint8Array): StakeDelegation;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {StakeDelegationJSON}
+*/
+  to_js_value(): StakeDelegationJSON;
+/**
+* @param {string} json
+* @returns {StakeDelegation}
+*/
+  static from_json(json: string): StakeDelegation;
+/**
 * @returns {StakeCredential}
 */
   stake_credential(): StakeCredential;
@@ -3843,6 +5024,19 @@ export class StakeDeregistration {
 */
   static from_bytes(bytes: Uint8Array): StakeDeregistration;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {StakeDeregistrationJSON}
+*/
+  to_js_value(): StakeDeregistrationJSON;
+/**
+* @param {string} json
+* @returns {StakeDeregistration}
+*/
+  static from_json(json: string): StakeDeregistration;
+/**
 * @returns {StakeCredential}
 */
   stake_credential(): StakeCredential;
@@ -3865,6 +5059,19 @@ export class StakeRegistration {
 * @returns {StakeRegistration}
 */
   static from_bytes(bytes: Uint8Array): StakeRegistration;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {StakeRegistrationJSON}
+*/
+  to_js_value(): StakeRegistrationJSON;
+/**
+* @param {string} json
+* @returns {StakeRegistration}
+*/
+  static from_json(json: string): StakeRegistration;
 /**
 * @returns {StakeCredential}
 */
@@ -3911,14 +5118,27 @@ export class TimelockExpiry {
 */
   static from_bytes(bytes: Uint8Array): TimelockExpiry;
 /**
-* @returns {number}
+* @returns {string}
 */
-  slot(): number;
+  to_json(): string;
 /**
-* @param {number} slot
+* @returns {TimelockExpiryJSON}
+*/
+  to_js_value(): TimelockExpiryJSON;
+/**
+* @param {string} json
 * @returns {TimelockExpiry}
 */
-  static new(slot: number): TimelockExpiry;
+  static from_json(json: string): TimelockExpiry;
+/**
+* @returns {BigNum}
+*/
+  slot(): BigNum;
+/**
+* @param {BigNum} slot
+* @returns {TimelockExpiry}
+*/
+  static new(slot: BigNum): TimelockExpiry;
 }
 /**
 */
@@ -3934,14 +5154,27 @@ export class TimelockStart {
 */
   static from_bytes(bytes: Uint8Array): TimelockStart;
 /**
-* @returns {number}
+* @returns {string}
 */
-  slot(): number;
+  to_json(): string;
 /**
-* @param {number} slot
+* @returns {TimelockStartJSON}
+*/
+  to_js_value(): TimelockStartJSON;
+/**
+* @param {string} json
 * @returns {TimelockStart}
 */
-  static new(slot: number): TimelockStart;
+  static from_json(json: string): TimelockStart;
+/**
+* @returns {BigNum}
+*/
+  slot(): BigNum;
+/**
+* @param {BigNum} slot
+* @returns {TimelockStart}
+*/
+  static new(slot: BigNum): TimelockStart;
 }
 /**
 */
@@ -3956,6 +5189,19 @@ export class Transaction {
 * @returns {Transaction}
 */
   static from_bytes(bytes: Uint8Array): Transaction;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionJSON}
+*/
+  to_js_value(): TransactionJSON;
+/**
+* @param {string} json
+* @returns {Transaction}
+*/
+  static from_json(json: string): Transaction;
 /**
 * @returns {TransactionBody}
 */
@@ -3998,6 +5244,19 @@ export class TransactionBodies {
 */
   static from_bytes(bytes: Uint8Array): TransactionBodies;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionBodiesJSON}
+*/
+  to_js_value(): TransactionBodiesJSON;
+/**
+* @param {string} json
+* @returns {TransactionBodies}
+*/
+  static from_json(json: string): TransactionBodies;
+/**
 * @returns {TransactionBodies}
 */
   static new(): TransactionBodies;
@@ -4029,6 +5288,19 @@ export class TransactionBody {
 */
   static from_bytes(bytes: Uint8Array): TransactionBody;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionBodyJSON}
+*/
+  to_js_value(): TransactionBodyJSON;
+/**
+* @param {string} json
+* @returns {TransactionBody}
+*/
+  static from_json(json: string): TransactionBody;
+/**
 * @returns {TransactionInputs}
 */
   inputs(): TransactionInputs;
@@ -4041,9 +5313,9 @@ export class TransactionBody {
 */
   fee(): BigNum;
 /**
-* @returns {number | undefined}
+* @returns {BigNum | undefined}
 */
-  ttl(): number | undefined;
+  ttl(): BigNum | undefined;
 /**
 * @param {Certificates} certs
 */
@@ -4077,13 +5349,13 @@ export class TransactionBody {
 */
   auxiliary_data_hash(): AuxiliaryDataHash | undefined;
 /**
-* @param {number} validity_start_interval
+* @param {BigNum} validity_start_interval
 */
-  set_validity_start_interval(validity_start_interval: number): void;
+  set_validity_start_interval(validity_start_interval: BigNum): void;
 /**
-* @returns {number | undefined}
+* @returns {BigNum | undefined}
 */
-  validity_start_interval(): number | undefined;
+  validity_start_interval(): BigNum | undefined;
 /**
 * @param {Mint} mint
 */
@@ -4092,12 +5364,6 @@ export class TransactionBody {
 * @returns {Mint | undefined}
 */
   mint(): Mint | undefined;
-/**
-* This function returns the mint value of the transaction
-* Use `.mint()` instead.
-* @returns {Mint | undefined}
-*/
-  multiassets(): Mint | undefined;
 /**
 * @param {ScriptDataHash} script_data_hash
 */
@@ -4131,13 +5397,41 @@ export class TransactionBody {
 */
   network_id(): NetworkId | undefined;
 /**
+* @param {TransactionOutput} collateral_return
+*/
+  set_collateral_return(collateral_return: TransactionOutput): void;
+/**
+* @returns {TransactionOutput | undefined}
+*/
+  collateral_return(): TransactionOutput | undefined;
+/**
+* @param {BigNum} total_collateral
+*/
+  set_total_collateral(total_collateral: BigNum): void;
+/**
+* @returns {BigNum | undefined}
+*/
+  total_collateral(): BigNum | undefined;
+/**
+* @param {TransactionInputs} reference_inputs
+*/
+  set_reference_inputs(reference_inputs: TransactionInputs): void;
+/**
+* @returns {TransactionInputs | undefined}
+*/
+  reference_inputs(): TransactionInputs | undefined;
+/**
 * @param {TransactionInputs} inputs
 * @param {TransactionOutputs} outputs
 * @param {BigNum} fee
-* @param {number | undefined} ttl
+* @param {BigNum | undefined} ttl
 * @returns {TransactionBody}
 */
-  static new(inputs: TransactionInputs, outputs: TransactionOutputs, fee: BigNum, ttl?: number): TransactionBody;
+  static new(inputs: TransactionInputs, outputs: TransactionOutputs, fee: BigNum, ttl?: BigNum): TransactionBody;
+/**
+* @returns {Uint8Array | undefined}
+*/
+  raw(): Uint8Array | undefined;
 }
 /**
 */
@@ -4147,41 +5441,23 @@ export class TransactionBuilder {
 * This automatically selects and adds inputs from {inputs} consisting of just enough to cover
 * the outputs that have already been added.
 * This should be called after adding all certs/outputs/etc and will be an error otherwise.
-* Uses CIP2: https://github.com/cardano-foundation/CIPs/blob/master/CIP-0002/CIP-0002.md
-* Adding a change output must be called after via TransactionBuilder::add_change_if_needed()
-* This function, diverging from CIP2, takes into account fees and will attempt to add additional
+* Adding a change output must be called after via TransactionBuilder::balance()
 * inputs to cover the minimum fees. This does not, however, set the txbuilder's fee.
+*
+* change_address is required here in order to determine the min ada requirement precisely
 * @param {TransactionUnspentOutputs} inputs
-* @param {number} strategy
+* @param {Address} change_address
 */
-  add_inputs_from(inputs: TransactionUnspentOutputs, strategy: number): void;
+  add_inputs_from(inputs: TransactionUnspentOutputs, change_address: Address): void;
 /**
-* We have to know what kind of inputs these are to know what kind of mock witnesses to create since
-* 1) mock witnesses have different lengths depending on the type which changes the expecting fee
-* 2) Witnesses are a set so we need to get rid of duplicates to avoid over-estimating the fee
-* @param {Ed25519KeyHash} hash
-* @param {TransactionInput} input
-* @param {Value} amount
+* @param {TransactionUnspentOutput} utxo
+* @param {ScriptWitness | undefined} script_witness
 */
-  add_key_input(hash: Ed25519KeyHash, input: TransactionInput, amount: Value): void;
+  add_input(utxo: TransactionUnspentOutput, script_witness?: ScriptWitness): void;
 /**
-* @param {ScriptHash} hash
-* @param {TransactionInput} input
-* @param {Value} amount
+* @param {TransactionUnspentOutput} utxo
 */
-  add_script_input(hash: ScriptHash, input: TransactionInput, amount: Value): void;
-/**
-* @param {ByronAddress} hash
-* @param {TransactionInput} input
-* @param {Value} amount
-*/
-  add_bootstrap_input(hash: ByronAddress, input: TransactionInput, amount: Value): void;
-/**
-* @param {Address} address
-* @param {TransactionInput} input
-* @param {Value} amount
-*/
-  add_input(address: Address, input: TransactionInput, amount: Value): void;
+  add_reference_input(utxo: TransactionUnspentOutput): void;
 /**
 * calculates how much the fee would increase if you added a given output
 * @param {Address} address
@@ -4196,35 +5472,55 @@ export class TransactionBuilder {
 */
   add_output(output: TransactionOutput): void;
 /**
+* Add plutus scripts via a PlutusScripts object
+* @param {PlutusScript} plutus_script
+*/
+  add_plutus_script(plutus_script: PlutusScript): void;
+/**
+* Add plutus v2 scripts via a PlutusScripts object
+* @param {PlutusScript} plutus_script
+*/
+  add_plutus_v2_script(plutus_script: PlutusScript): void;
+/**
+* Add plutus data via a PlutusData object
+* @param {PlutusData} plutus_data
+*/
+  add_plutus_data(plutus_data: PlutusData): void;
+/**
+* Add native scripts via a NativeScripts object
+* @param {NativeScript} native_script
+*/
+  add_native_script(native_script: NativeScript): void;
+/**
+* Add certificate via a Certificates object
+* @param {Certificate} certificate
+* @param {ScriptWitness | undefined} script_witness
+*/
+  add_certificate(certificate: Certificate, script_witness?: ScriptWitness): void;
+/**
 * calculates how much the fee would increase if you added a given output
 * @param {TransactionOutput} output
 * @returns {BigNum}
 */
   fee_for_output(output: TransactionOutput): BigNum;
 /**
-* @param {BigNum} fee
+* @param {BigNum} ttl
 */
-  set_fee(fee: BigNum): void;
+  set_ttl(ttl: BigNum): void;
 /**
-* @param {number} ttl
+* @param {BigNum} validity_start_interval
 */
-  set_ttl(ttl: number): void;
+  set_validity_start_interval(validity_start_interval: BigNum): void;
 /**
-* @param {number} validity_start_interval
+* @param {RewardAddress} reward_address
+* @param {BigNum} coin
+* @param {ScriptWitness | undefined} script_witness
 */
-  set_validity_start_interval(validity_start_interval: number): void;
-/**
-* @param {Certificates} certs
-*/
-  set_certs(certs: Certificates): void;
-/**
-* @param {Withdrawals} withdrawals
-*/
-  set_withdrawals(withdrawals: Withdrawals): void;
+  add_withdrawal(reward_address: RewardAddress, coin: BigNum, script_witness?: ScriptWitness): void;
 /**
 * @returns {AuxiliaryData | undefined}
 */
-  get_auxiliary_data(): AuxiliaryData | undefined;
+  auxiliary_data(): AuxiliaryData | undefined;
 /**
 * Set explicit auxiliary data via an AuxiliaryData object
 * It might contain some metadata plus native or Plutus scripts
@@ -4260,102 +5556,71 @@ export class TransactionBuilder {
 */
   add_json_metadatum_with_schema(key: BigNum, val: string, schema: number): void;
 /**
-* Set explicit Mint object and the required witnesses to this builder
-* it will replace any previously existing mint and mint scripts
-* NOTE! Error will be returned in case a mint policy does not have a matching script
-* @param {Mint} mint
-* @param {NativeScripts} mint_scripts
-*/
-  set_mint(mint: Mint, mint_scripts: NativeScripts): void;
-/**
 * Returns a copy of the current mint state in the builder
 * @returns {Mint | undefined}
 */
-  get_mint(): Mint | undefined;
+  mint(): Mint | undefined;
 /**
-* Returns a copy of the current mint witness scripts in the builder
+* @returns {Certificates | undefined}
+*/
+  certificates(): Certificates | undefined;
+/**
+* @returns {Withdrawals | undefined}
+*/
+  withdrawals(): Withdrawals | undefined;
+/**
+* Returns a copy of the current witness native scripts in the builder
 * @returns {NativeScripts | undefined}
 */
-  get_mint_scripts(): NativeScripts | undefined;
+  native_scripts(): NativeScripts | undefined;
 /**
 * Add a mint entry to this builder using a PolicyID and MintAssets object
 * It will be securely added to existing or new Mint in this builder
-* It will replace any existing mint assets with the same PolicyID
-* @param {NativeScript} policy_script
+* It will securely add assets to an existing PolicyID
+* But it will replace/overwrite any existing mint assets with the same PolicyID
+* first redeemer applied to a PolicyID is taken for all further assets added to the same PolicyID
+* @param {ScriptHash} policy_id
 * @param {MintAssets} mint_assets
+* @param {ScriptWitness | undefined} script_witness
 */
-  set_mint_asset(policy_script: NativeScript, mint_assets: MintAssets): void;
-/**
-* Add a mint entry to this builder using a PolicyID, AssetName, and Int object for amount
-* It will be securely added to existing or new Mint in this builder
-* It will replace any previous existing amount same PolicyID and AssetName
-* @param {NativeScript} policy_script
-* @param {AssetName} asset_name
-* @param {Int} amount
-*/
-  add_mint_asset(policy_script: NativeScript, asset_name: AssetName, amount: Int): void;
-/**
-* Add a mint entry together with an output to this builder
-* Using a PolicyID, AssetName, Int for amount, Address, and Coin (BigNum) objects
-* The asset will be securely added to existing or new Mint in this builder
-* A new output will be added with the specified Address, the Coin value, and the minted asset
-* @param {NativeScript} policy_script
-* @param {AssetName} asset_name
-* @param {Int} amount
-* @param {TransactionOutputAmountBuilder} output_builder
-* @param {BigNum} output_coin
-*/
-  add_mint_asset_and_output(policy_script: NativeScript, asset_name: AssetName, amount: Int, output_builder: TransactionOutputAmountBuilder, output_coin: BigNum): void;
-/**
-* Add a mint entry together with an output to this builder
-* Using a PolicyID, AssetName, Int for amount, and Address objects
-* The asset will be securely added to existing or new Mint in this builder
-* A new output will be added with the specified Address and the minted asset
-* The output will be set to contain the minimum required amount of Coin
-* @param {NativeScript} policy_script
-* @param {AssetName} asset_name
-* @param {Int} amount
-* @param {TransactionOutputAmountBuilder} output_builder
-*/
-  add_mint_asset_and_output_min_required_coin(policy_script: NativeScript, asset_name: AssetName, amount: Int, output_builder: TransactionOutputAmountBuilder): void;
-/**
-* @param {TransactionInputs} collateral
-*/
-  set_collateral(collateral: TransactionInputs): void;
-/**
-* @param {PlutusList} plutus_data
-*/
-  set_plutus_data(plutus_data: PlutusList): void;
-/**
-* @param {Redeemers} redeemers
-*/
-  set_redeemers(redeemers: Redeemers): void;
-/**
-* @param {PlutusScripts} plutus_scripts
-*/
-  set_plutus_scripts(plutus_scripts: PlutusScripts): void;
-/**
-* @param {Ed25519KeyHashes} required_signers
-*/
-  set_required_signers(required_signers: Ed25519KeyHashes): void;
-/**
-* @param {NativeScripts} native_scripts
-*/
-  set_native_scripts(native_scripts: NativeScripts): void;
-/**
-* @param {TransactionInput} input
-* @returns {number}
-*/
-  index_of_input(input: TransactionInput): number;
-/**
-* @param {Address} address
-*/
-  add_address_witness(address: Address): void;
+  add_mint(policy_id: ScriptHash, mint_assets: MintAssets, script_witness?: ScriptWitness): void;
 /**
 * @param {TransactionBuilderConfig} cfg
 * @returns {TransactionBuilder}
 */
   static new(cfg: TransactionBuilderConfig): TransactionBuilder;
+/**
+* @returns {ScriptDataHash | undefined}
+*/
+  script_data_hash(): ScriptDataHash | undefined;
+/**
+* @param {TransactionUnspentOutput} utxo
+*/
+  add_collateral(utxo: TransactionUnspentOutput): void;
+/**
+* @returns {TransactionInputs | undefined}
+*/
+  get_collateral(): TransactionInputs | undefined;
+/**
+* @param {Ed25519KeyHash} required_signer
+*/
+  add_required_signer(required_signer: Ed25519KeyHash): void;
+/**
+* @returns {Ed25519KeyHashes | undefined}
+*/
+  required_signers(): Ed25519KeyHashes | undefined;
+/**
+* @param {NetworkId} network_id
+*/
+  set_network_id(network_id: NetworkId): void;
+/**
+* @returns {NetworkId | undefined}
+*/
+  network_id(): NetworkId | undefined;
+/**
+* @returns {Redeemers | undefined}
+*/
+  redeemers(): Redeemers | undefined;
 /**
 * does not include refunds or withdrawals
 * @returns {Value}
@@ -4367,10 +5632,15 @@ export class TransactionBuilder {
 */
   get_implicit_input(): Value;
 /**
-* Return explicit input plus implicit input plus mint minus burn
+* Return explicit input plus implicit input plus mint
 * @returns {Value}
 */
   get_total_input(): Value;
+/**
+* Return explicit output plus implicit output plus burn (does not consider fee directly)
+* @returns {Value}
+*/
+  get_total_output(): Value;
 /**
 * does not include fee
 * @returns {Value}
@@ -4389,10 +5659,15 @@ export class TransactionBuilder {
 * Make sure to call this function last after setting all other tx-body properties
 * Editing inputs, outputs, mint, etc. after change been calculated
 * might cause a mismatch in calculated fee versus the required fee
-* @param {Address} address
-* @returns {boolean}
+* @param {Address} change_address
+* @param {Datum | undefined} datum
 */
-  add_change_if_needed(address: Address): boolean;
+  balance(change_address: Address, datum?: Datum): void;
+/**
+* Returns the TransactionBody.
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
 /**
 * @returns {number}
 */
@@ -4402,12 +5677,26 @@ export class TransactionBuilder {
 */
   output_sizes(): Uint32Array;
 /**
-* Returns object the body of the new transaction
-* Auxiliary data itself is not included
-* You can use `get_auxiliary_data` or `build_tx`
-* @returns {TransactionBody}
+* @returns {TransactionOutputs}
 */
-  build(): TransactionBody;
+  outputs(): TransactionOutputs;
+/**
+* Returns full Transaction object with the body and the auxiliary data
+*
+* NOTE: witness_set will contain all mint_scripts if any been added or set
+*
+* takes fetched ex units into consideration
+*
+* add collateral utxos and collateral change receiver in case you redeem from plutus script utxos
+*
+* async call
+*
+* NOTE: is_valid set to true
+* @param {TransactionUnspentOutputs | undefined} collateral_utxos
+* @param {Address | undefined} collateral_change_address
+* @returns {Promise<Transaction>}
+*/
+  construct(collateral_utxos?: TransactionUnspentOutputs, collateral_change_address?: Address): Promise<Transaction>;
 /**
 * Returns full Transaction object with the body and the auxiliary data
 * NOTE: witness_set will contain all mint_scripts if any been added or set
@@ -4422,10 +5711,6 @@ export class TransactionBuilder {
 * @returns {BigNum}
 */
   min_fee(): BigNum;
-/**
-* @returns {Redeemers}
-*/
-  redeemers(): Redeemers;
 }
 /**
 */
@@ -4446,10 +5731,10 @@ export class TransactionBuilderConfigBuilder {
 */
   fee_algo(fee_algo: LinearFee): TransactionBuilderConfigBuilder;
 /**
-* @param {BigNum} coins_per_utxo_word
+* @param {BigNum} coins_per_utxo_byte
 * @returns {TransactionBuilderConfigBuilder}
 */
-  coins_per_utxo_word(coins_per_utxo_word: BigNum): TransactionBuilderConfigBuilder;
+  coins_per_utxo_byte(coins_per_utxo_byte: BigNum): TransactionBuilderConfigBuilder;
 /**
 * @param {BigNum} pool_deposit
 * @returns {TransactionBuilderConfigBuilder}
@@ -4471,25 +5756,41 @@ export class TransactionBuilderConfigBuilder {
 */
   max_tx_size(max_tx_size: number): TransactionBuilderConfigBuilder;
 /**
-* @param {number} price_mem
+* @param {ExUnitPrices} ex_unit_prices
 * @returns {TransactionBuilderConfigBuilder}
 */
-  price_mem(price_mem: number): TransactionBuilderConfigBuilder;
+  ex_unit_prices(ex_unit_prices: ExUnitPrices): TransactionBuilderConfigBuilder;
 /**
-* @param {number} price_step
+* @param {ExUnits} max_tx_ex_units
 * @returns {TransactionBuilderConfigBuilder}
 */
-  price_step(price_step: number): TransactionBuilderConfigBuilder;
+  max_tx_ex_units(max_tx_ex_units: ExUnits): TransactionBuilderConfigBuilder;
 /**
 * @param {Costmdls} costmdls
 * @returns {TransactionBuilderConfigBuilder}
 */
   costmdls(costmdls: Costmdls): TransactionBuilderConfigBuilder;
 /**
-* @param {boolean} prefer_pure_change
+* @param {number} collateral_percentage
 * @returns {TransactionBuilderConfigBuilder}
 */
-  prefer_pure_change(prefer_pure_change: boolean): TransactionBuilderConfigBuilder;
+  collateral_percentage(collateral_percentage: number): TransactionBuilderConfigBuilder;
+/**
+* @param {number} max_collateral_inputs
+* @returns {TransactionBuilderConfigBuilder}
+*/
+  max_collateral_inputs(max_collateral_inputs: number): TransactionBuilderConfigBuilder;
+/**
+* @param {BigNum} zero_time
+* @param {number} slot_length
+* @returns {TransactionBuilderConfigBuilder}
+*/
+  slot_config(zero_time: BigNum, slot_length: number): TransactionBuilderConfigBuilder;
+/**
+* @param {Blockfrost} blockfrost
+* @returns {TransactionBuilderConfigBuilder}
+*/
+  blockfrost(blockfrost: Blockfrost): TransactionBuilderConfigBuilder;
 /**
 * @returns {TransactionBuilderConfig}
 */
@@ -4499,6 +5800,11 @@ export class TransactionBuilderConfigBuilder {
 */
 export class TransactionHash {
   free(): void;
+/**
+* @param {Uint8Array} bytes
+* @returns {TransactionHash}
+*/
+  static from_bytes(bytes: Uint8Array): TransactionHash;
 /**
 * @returns {Uint8Array}
 */
@@ -4514,10 +5820,45 @@ export class TransactionHash {
 */
   static from_bech32(bech_str: string): TransactionHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {TransactionHash}
 */
-  static from_bytes(bytes: Uint8Array): TransactionHash;
+  static from_hex(hex: string): TransactionHash;
+}
+/**
+*/
+export class TransactionIndexes {
+  free(): void;
+/**
+* @returns {Uint8Array}
+*/
+  to_bytes(): Uint8Array;
+/**
+* @param {Uint8Array} bytes
+* @returns {TransactionIndexes}
+*/
+  static from_bytes(bytes: Uint8Array): TransactionIndexes;
+/**
+* @returns {TransactionIndexes}
+*/
+  static new(): TransactionIndexes;
+/**
+* @returns {number}
+*/
+  len(): number;
+/**
+* @param {number} index
+* @returns {BigNum}
+*/
+  get(index: number): BigNum;
+/**
+* @param {BigNum} elem
+*/
+  add(elem: BigNum): void;
 }
 /**
 */
@@ -4533,19 +5874,32 @@ export class TransactionInput {
 */
   static from_bytes(bytes: Uint8Array): TransactionInput;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionInputJSON}
+*/
+  to_js_value(): TransactionInputJSON;
+/**
+* @param {string} json
+* @returns {TransactionInput}
+*/
+  static from_json(json: string): TransactionInput;
+/**
 * @returns {TransactionHash}
 */
   transaction_id(): TransactionHash;
 /**
-* @returns {number}
+* @returns {BigNum}
 */
-  index(): number;
+  index(): BigNum;
 /**
 * @param {TransactionHash} transaction_id
-* @param {number} index
+* @param {BigNum} index
 * @returns {TransactionInput}
 */
-  static new(transaction_id: TransactionHash, index: number): TransactionInput;
+  static new(transaction_id: TransactionHash, index: BigNum): TransactionInput;
 }
 /**
 */
@@ -4560,6 +5914,19 @@ export class TransactionInputs {
 * @returns {TransactionInputs}
 */
   static from_bytes(bytes: Uint8Array): TransactionInputs;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionInputsJSON}
+*/
+  to_js_value(): TransactionInputsJSON;
+/**
+* @param {string} json
+* @returns {TransactionInputs}
+*/
+  static from_json(json: string): TransactionInputs;
 /**
 * @returns {TransactionInputs}
 */
@@ -4686,6 +6053,19 @@ export class TransactionOutput {
 */
   static from_bytes(bytes: Uint8Array): TransactionOutput;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionOutputJSON}
+*/
+  to_js_value(): TransactionOutputJSON;
+/**
+* @param {string} json
+* @returns {TransactionOutput}
+*/
+  static from_json(json: string): TransactionOutput;
+/**
 * @returns {Address}
 */
   address(): Address;
@@ -4694,19 +6074,34 @@ export class TransactionOutput {
 */
   amount(): Value;
 /**
-* @returns {DataHash | undefined}
+* @returns {Datum | undefined}
 */
-  data_hash(): DataHash | undefined;
+  datum(): Datum | undefined;
 /**
-* @param {DataHash} data_hash
+* @returns {ScriptRef | undefined}
 */
-  set_data_hash(data_hash: DataHash): void;
+  script_ref(): ScriptRef | undefined;
+/**
+* @param {Datum} datum
+*/
+  set_datum(datum: Datum): void;
+/**
+* @param {ScriptRef} script_ref
+*/
+  set_script_ref(script_ref: ScriptRef): void;
 /**
 * @param {Address} address
 * @param {Value} amount
 * @returns {TransactionOutput}
 */
   static new(address: Address, amount: Value): TransactionOutput;
+/**
+* legacy support: serialize output as array array
+*
+* does not support inline datum and script_ref!
+* @returns {Uint8Array}
+*/
+  to_legacy_bytes(): Uint8Array;
 }
 /**
 */
@@ -4758,10 +6153,10 @@ export class TransactionOutputBuilder {
 */
   with_address(address: Address): TransactionOutputBuilder;
 /**
-* @param {DataHash} data_hash
+* @param {Datum} data_hash
 * @returns {TransactionOutputBuilder}
 */
-  with_data_hash(data_hash: DataHash): TransactionOutputBuilder;
+  with_datum(data_hash: Datum): TransactionOutputBuilder;
 /**
 * @returns {TransactionOutputAmountBuilder}
 */
@@ -4780,6 +6175,19 @@ export class TransactionOutputs {
 * @returns {TransactionOutputs}
 */
   static from_bytes(bytes: Uint8Array): TransactionOutputs;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionOutputsJSON}
+*/
+  to_js_value(): TransactionOutputsJSON;
+/**
+* @param {string} json
+* @returns {TransactionOutputs}
+*/
+  static from_json(json: string): TransactionOutputs;
 /**
 * @returns {TransactionOutputs}
 */
@@ -4825,6 +6233,10 @@ export class TransactionUnspentOutput {
 * @returns {TransactionOutput}
 */
   output(): TransactionOutput;
+/**
+* @returns {Uint8Array}
+*/
+  to_legacy_bytes(): Uint8Array;
 }
 /**
 */
@@ -4861,6 +6273,19 @@ export class TransactionWitnessSet {
 * @returns {TransactionWitnessSet}
 */
   static from_bytes(bytes: Uint8Array): TransactionWitnessSet;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionWitnessSetJSON}
+*/
+  to_js_value(): TransactionWitnessSetJSON;
+/**
+* @param {string} json
+* @returns {TransactionWitnessSet}
+*/
+  static from_json(json: string): TransactionWitnessSet;
 /**
 * @param {Vkeywitnesses} vkeys
 */
@@ -4906,13 +6331,71 @@ export class TransactionWitnessSet {
 */
   set_redeemers(redeemers: Redeemers): void;
 /**
+* @param {PlutusScripts} plutus_scripts
+*/
+  set_plutus_v2_scripts(plutus_scripts: PlutusScripts): void;
+/**
 * @returns {Redeemers | undefined}
 */
   redeemers(): Redeemers | undefined;
 /**
+* @returns {PlutusScripts | undefined}
+*/
+  plutus_v2_scripts(): PlutusScripts | undefined;
+/**
 * @returns {TransactionWitnessSet}
 */
   static new(): TransactionWitnessSet;
+}
+/**
+* Builder de-duplicates witnesses as they are added
+*/
+export class TransactionWitnessSetBuilder {
+  free(): void;
+/**
+* @param {Vkeywitness} vkey
+*/
+  add_vkey(vkey: Vkeywitness): void;
+/**
+* @param {BootstrapWitness} bootstrap
+*/
+  add_bootstrap(bootstrap: BootstrapWitness): void;
+/**
+* @param {NativeScript} native_script
+*/
+  add_native_script(native_script: NativeScript): void;
+/**
+* @param {PlutusScript} plutus_script
+*/
+  add_plutus_script(plutus_script: PlutusScript): void;
+/**
+* @param {PlutusScript} plutus_script
+*/
+  add_plutus_v2_script(plutus_script: PlutusScript): void;
+/**
+* @param {PlutusData} plutus_datum
+*/
+  add_plutus_datum(plutus_datum: PlutusData): void;
+/**
+* @param {Redeemer} redeemer
+*/
+  add_redeemer(redeemer: Redeemer): void;
+/**
+* @param {RequiredWitnessSet} required_wits
+*/
+  add_required_wits(required_wits: RequiredWitnessSet): void;
+/**
+* @returns {TransactionWitnessSetBuilder}
+*/
+  static new(): TransactionWitnessSetBuilder;
+/**
+* @param {TransactionWitnessSet} wit_set
+*/
+  add_existing(wit_set: TransactionWitnessSet): void;
+/**
+* @returns {TransactionWitnessSet}
+*/
+  build(): TransactionWitnessSet;
 }
 /**
 */
@@ -4927,6 +6410,19 @@ export class TransactionWitnessSets {
 * @returns {TransactionWitnessSets}
 */
   static from_bytes(bytes: Uint8Array): TransactionWitnessSets;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {TransactionWitnessSetsJSON}
+*/
+  to_js_value(): TransactionWitnessSetsJSON;
+/**
+* @param {string} json
+* @returns {TransactionWitnessSets}
+*/
+  static from_json(json: string): TransactionWitnessSets;
 /**
 * @returns {TransactionWitnessSets}
 */
@@ -4982,6 +6478,19 @@ export class UnitInterval {
 */
   static from_bytes(bytes: Uint8Array): UnitInterval;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {UnitIntervalJSON}
+*/
+  to_js_value(): UnitIntervalJSON;
+/**
+* @param {string} json
+* @returns {UnitInterval}
+*/
+  static from_json(json: string): UnitInterval;
+/**
 * @returns {BigNum}
 */
   numerator(): BigNum;
@@ -4995,6 +6504,11 @@ export class UnitInterval {
 * @returns {UnitInterval}
 */
   static new(numerator: BigNum, denominator: BigNum): UnitInterval;
+/**
+* @param {number} float_number
+* @returns {UnitInterval}
+*/
+  static from_float(float_number: number): UnitInterval;
 }
 /**
 */
@@ -5009,6 +6523,19 @@ export class Update {
 * @returns {Update}
 */
   static from_bytes(bytes: Uint8Array): Update;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {UpdateJSON}
+*/
+  to_js_value(): UpdateJSON;
+/**
+* @param {string} json
+* @returns {Update}
+*/
+  static from_json(json: string): Update;
 /**
 * @returns {ProposedProtocolParameterUpdates}
 */
@@ -5038,6 +6565,19 @@ export class VRFCert {
 */
   static from_bytes(bytes: Uint8Array): VRFCert;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {VRFCertJSON}
+*/
+  to_js_value(): VRFCertJSON;
+/**
+* @param {string} json
+* @returns {VRFCert}
+*/
+  static from_json(json: string): VRFCert;
+/**
 * @returns {Uint8Array}
 */
   output(): Uint8Array;
@@ -5057,6 +6597,11 @@ export class VRFCert {
 export class VRFKeyHash {
   free(): void;
 /**
+* @param {Uint8Array} bytes
+* @returns {VRFKeyHash}
+*/
+  static from_bytes(bytes: Uint8Array): VRFKeyHash;
+/**
 * @returns {Uint8Array}
 */
   to_bytes(): Uint8Array;
@@ -5071,10 +6616,14 @@ export class VRFKeyHash {
 */
   static from_bech32(bech_str: string): VRFKeyHash;
 /**
-* @param {Uint8Array} bytes
+* @returns {string}
+*/
+  to_hex(): string;
+/**
+* @param {string} hex
 * @returns {VRFKeyHash}
 */
-  static from_bytes(bytes: Uint8Array): VRFKeyHash;
+  static from_hex(hex: string): VRFKeyHash;
 }
 /**
 */
@@ -5085,20 +6634,18 @@ export class VRFVKey {
 */
   to_bytes(): Uint8Array;
 /**
-* @param {string} prefix
-* @returns {string}
-*/
-  to_bech32(prefix: string): string;
-/**
-* @param {string} bech_str
-* @returns {VRFVKey}
-*/
-  static from_bech32(bech_str: string): VRFVKey;
-/**
 * @param {Uint8Array} bytes
 * @returns {VRFVKey}
 */
   static from_bytes(bytes: Uint8Array): VRFVKey;
+/**
+* @returns {VRFKeyHash}
+*/
+  hash(): VRFKeyHash;
+/**
+* @returns {Uint8Array}
+*/
+  to_raw_key(): Uint8Array;
 }
 /**
 */
@@ -5113,6 +6660,19 @@ export class Value {
 * @returns {Value}
 */
   static from_bytes(bytes: Uint8Array): Value;
+/**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {ValueJSON}
+*/
+  to_js_value(): ValueJSON;
+/**
+* @param {string} json
+* @returns {Value}
+*/
+  static from_json(json: string): Value;
 /**
 * @param {BigNum} coin
 * @returns {Value}
@@ -5228,6 +6788,19 @@ export class Vkeywitness {
 */
   static from_bytes(bytes: Uint8Array): Vkeywitness;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {VkeywitnessJSON}
+*/
+  to_js_value(): VkeywitnessJSON;
+/**
+* @param {string} json
+* @returns {Vkeywitness}
+*/
+  static from_json(json: string): Vkeywitness;
+/**
 * @param {Vkey} vkey
 * @param {Ed25519Signature} signature
 * @returns {Vkeywitness}
@@ -5278,6 +6851,19 @@ export class Withdrawals {
 */
   static from_bytes(bytes: Uint8Array): Withdrawals;
 /**
+* @returns {string}
+*/
+  to_json(): string;
+/**
+* @returns {WithdrawalsJSON}
+*/
+  to_js_value(): WithdrawalsJSON;
+/**
+* @param {string} json
+* @returns {Withdrawals}
+*/
+  static from_json(json: string): Withdrawals;
+/**
 * @returns {Withdrawals}
 */
   static new(): Withdrawals;
@@ -5300,4 +6886,512 @@ export class Withdrawals {
 * @returns {RewardAddresses}
 */
   keys(): RewardAddresses;
+}
+
+export type AddressJSON = string;
+export type AssetNameJSON = string;
+export type AssetNamesJSON = string[];
+export interface AssetsJSON {
+  [k: string]: string;
+}
+export interface AuxiliaryDataJSON {
+  metadata?: {
+    [k: string]: string;
+  } | null;
+  native_scripts?: NativeScriptsJSON | null;
+  plutus_scripts?: PlutusScriptsJSON | null;
+  plutus_v2_scripts?: PlutusScriptsJSON | null;
+}
+export type AuxiliaryDataHashJSON = string;
+export interface AuxiliaryDataSetJSON {
+  [k: string]: AuxiliaryDataJSON;
+}
+export type BigIntJSON = string;
+export type BigNumJSON = string;
+export interface BlockJSON {
+  auxiliary_data_set: {
+    [k: string]: AuxiliaryDataJSON;
+  };
+  header: HeaderJSON;
+  invalid_transactions: TransactionIndexes;
+  transaction_bodies: TransactionBodiesJSON;
+  transaction_witness_sets: TransactionWitnessSetsJSON;
+}
+export type BlockHashJSON = string;
+export interface BootstrapWitnessJSON {
+  attributes: number[];
+  chain_code: number[];
+  signature: string;
+  vkey: VkeyJSON;
+}
+export type BootstrapWitnessesJSON = BootstrapWitnessJSON[];
+export type CertificateJSON = CertificateEnumJSON;
+export type CertificateEnumJSON =
+  | {
+      StakeRegistrationJSON: StakeRegistration;
+    }
+  | {
+      StakeDeregistrationJSON: StakeDeregistration;
+    }
+  | {
+      StakeDelegationJSON: StakeDelegation;
+    }
+  | {
+      PoolRegistrationJSON: PoolRegistration;
+    }
+  | {
+      PoolRetirementJSON: PoolRetirement;
+    }
+  | {
+      GenesisKeyDelegationJSON: GenesisKeyDelegation;
+    }
+  | {
+      MoveInstantaneousRewardsCertJSON: MoveInstantaneousRewardsCert;
+    };
+export type CertificatesJSON = CertificateJSON[];
+export interface ConstrPlutusDataJSON {
+  alternative: string;
+  data: PlutusListJSON;
+}
+export type CostModelJSON = string[];
+export interface CostmdlsJSON {
+  [k: string]: CostModelJSON;
+}
+export type DNSRecordAorAAAAJSON = string;
+export type DNSRecordSRVJSON = string;
+export type DataJSON = PlutusDataJSON;
+export type DataHashJSON = string;
+export type DatumJSON = DatumEnumJSON;
+export type DatumEnumJSON =
+  | {
+      Hash: string;
+    }
+  | {
+      DataJSON: Data;
+    };
+export type Ed25519KeyHashJSON = string;
+export type Ed25519KeyHashesJSON = string[];
+export type Ed25519SignatureJSON = string;
+export interface ExUnitPricesJSON {
+  mem_price: UnitIntervalJSON;
+  step_price: UnitIntervalJSON;
+}
+export interface ExUnitsJSON {
+  mem: string;
+  steps: string;
+}
+export interface GeneralTransactionMetadataJSON {
+  [k: string]: string;
+}
+export type GenesisDelegateHashJSON = string;
+export type GenesisHashJSON = string;
+export type GenesisHashesJSON = string[];
+export interface GenesisKeyDelegationJSON {
+  genesis_delegate_hash: string;
+  genesishash: string;
+  vrf_keyhash: string;
+}
+export interface HeaderJSON {
+  body_signature: string;
+  header_body: HeaderBodyJSON;
+}
+export interface HeaderBodyJSON {
+  block_body_hash: string;
+  block_body_size: number;
+  block_number: number;
+  issuer_vkey: VkeyJSON;
+  leader_vrf: VRFCertJSON;
+  nonce_vrf: VRFCertJSON;
+  operational_cert: OperationalCertJSON;
+  prev_hash?: string | null;
+  protocol_version: ProtocolVersionJSON;
+  slot: string;
+  vrf_vkey: VRFVKeyJSON;
+}
+export type IntJSON = string;
+export type Ipv4JSON = [number, number, number, number];
+export type Ipv6JSON = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number
+];
+export type KESVKeyJSON = string;
+export type LanguageJSON = LanguageKindJSON;
+export type LanguageKindJSON = "PlutusV1" | "PlutusV2";
+export type LanguagesJSON = LanguageJSON[];
+export type MIREnumJSON =
+  | {
+      ToOtherPot: string;
+    }
+  | {
+      ToStakeCredentials: {
+        [k: string]: ProtocolParamUpdateJSON;
+      };
+    };
+export type MIRPotJSON = "Reserves" | "Treasury";
+export interface MIRToStakeCredentialsJSON {
+  [k: string]: ProtocolParamUpdateJSON;
+}
+export interface MintJSON {
+  [k: string]: MintAssetsJSON;
+}
+export interface MintAssetsJSON {
+  [k: string]: string;
+}
+export interface MoveInstantaneousRewardJSON {
+  pot: MIRPotJSON;
+  variant: MIREnumJSON;
+}
+export interface MoveInstantaneousRewardsCertJSON {
+  move_instantaneous_reward: MoveInstantaneousRewardJSON;
+}
+export interface MultiAssetJSON {
+  [k: string]: AssetsJSON;
+}
+export interface MultiHostNameJSON {
+  dns_name: DNSRecordSRVJSON;
+}
+export type NativeScriptJSON = NativeScript1JSON;
+export type NativeScript1JSON =
+  | {
+      ScriptPubkeyJSON: ScriptPubkey;
+    }
+  | {
+      ScriptAllJSON: ScriptAll;
+    }
+  | {
+      ScriptAnyJSON: ScriptAny;
+    }
+  | {
+      ScriptNOfKJSON: ScriptNOfK;
+    }
+  | {
+      TimelockStartJSON: TimelockStart;
+    }
+  | {
+      TimelockExpiryJSON: TimelockExpiry;
+    };
+export type NativeScriptsJSON = NativeScriptJSON[];
+export type NetworkIdJSON = NetworkIdKindJSON;
+export type NetworkIdKindJSON = "Testnet" | "Mainnet";
+export interface NonceJSON {
+  hash?:
+    | [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number
+      ]
+    | null;
+}
+export interface OperationalCertJSON {
+  hot_vkey: string;
+  kes_period: number;
+  sequence_number: number;
+  sigma: string;
+}
+export interface PlutusDataJSON {
+  datum: PlutusDataEnumJSON;
+  original_bytes?: number[] | null;
+}
+export type PlutusDataEnumJSON =
+  | {
+      ConstrPlutusDataJSON: ConstrPlutusData;
+    }
+  | {
+      Map: PlutusMapJSON;
+    }
+  | {
+      List: PlutusListJSON;
+    }
+  | {
+      Integer: string;
+    }
+  | {
+      Bytes: number[];
+    };
+export interface PlutusListJSON {
+  definite_encoding?: boolean | null;
+  elems: PlutusDataJSON[];
+}
+export type PlutusMapJSON = [PlutusDataJSON, PlutusData][];
+export type PlutusScriptJSON = string;
+export type PlutusScriptsJSON = string[];
+export interface PoolMetadataJSON {
+  pool_metadata_hash: string;
+  url: URLJSON;
+}
+export type PoolMetadataHashJSON = string;
+export interface PoolParamsJSON {
+  cost: string;
+  margin: UnitIntervalJSON;
+  operator: string;
+  pledge: string;
+  pool_metadata?: PoolMetadataJSON | null;
+  pool_owners: Ed25519KeyHashesJSON;
+  relays: RelaysJSON;
+  reward_account: string;
+  vrf_keyhash: string;
+}
+export interface PoolRegistrationJSON {
+  /**
+   * We need this to figure out if someone registers a pool or only updates it. So that we know if we need to add the pool deposit or not.
+   */
+  is_update?: boolean | null;
+  pool_params: PoolParamsJSON;
+}
+export interface PoolRetirementJSON {
+  epoch: number;
+  pool_keyhash: string;
+}
+export interface ProposedProtocolParameterUpdatesJSON {
+  [k: string]: ProtocolParamUpdateJSON;
+}
+export interface ProtocolParamUpdateJSON {
+  ada_per_utxo_byte?: string | null;
+  collateral_percentage?: number | null;
+  cost_models?: CostmdlsJSON | null;
+  d?: UnitIntervalJSON | null;
+  execution_costs?: ExUnitPricesJSON | null;
+  expansion_rate?: UnitIntervalJSON | null;
+  extra_entropy?: NonceJSON | null;
+  key_deposit?: string | null;
+  max_block_body_size?: number | null;
+  max_block_ex_units?: ExUnitsJSON | null;
+  max_block_header_size?: number | null;
+  max_collateral_inputs?: number | null;
+  max_epoch?: number | null;
+  max_tx_ex_units?: ExUnitsJSON | null;
+  max_tx_size?: number | null;
+  max_value_size?: number | null;
+  min_pool_cost?: string | null;
+  minfee_a?: string | null;
+  minfee_b?: string | null;
+  n_opt?: number | null;
+  pool_deposit?: string | null;
+  pool_pledge_influence?: UnitIntervalJSON | null;
+  protocol_version?: ProtocolVersionJSON | null;
+  treasury_growth_rate?: UnitIntervalJSON | null;
+}
+export interface ProtocolVersionJSON {
+  major: number;
+  minor: number;
+}
+export type PublicKeyJSON = string;
+export interface RedeemerJSON {
+  data: PlutusDataJSON;
+  ex_units: ExUnitsJSON;
+  index: string;
+  tag: RedeemerTagJSON;
+}
+export type RedeemerTagJSON = RedeemerTagKindJSON;
+export type RedeemerTagKindJSON = "Spend" | "MintJSON" | "Cert" | "Reward";
+export type RedeemersJSON = RedeemerJSON[];
+export type RelayJSON = RelayEnumJSON;
+export type RelayEnumJSON =
+  | {
+      SingleHostAddrJSON: SingleHostAddr;
+    }
+  | {
+      SingleHostNameJSON: SingleHostName;
+    }
+  | {
+      MultiHostNameJSON: MultiHostName;
+    };
+export type RelaysJSON = RelayJSON[];
+export type RewardAddressJSON = string;
+export type RewardAddressesJSON = string[];
+export type ScriptJSON = ScriptEnumJSON;
+export type ScriptEnumJSON =
+  | {
+      NativeScriptJSON: NativeScript;
+    }
+  | {
+      PlutusScriptV1: string;
+    }
+  | {
+      PlutusScriptV2: string;
+    };
+export interface ScriptAllJSON {
+  native_scripts: NativeScriptsJSON;
+}
+export interface ScriptAnyJSON {
+  native_scripts: NativeScriptsJSON;
+}
+export type ScriptDataHashJSON = string;
+export type ScriptHashJSON = string;
+export type ScriptHashesJSON = string[];
+export interface ScriptNOfKJSON {
+  n: number;
+  native_scripts: NativeScriptsJSON;
+}
+export interface ScriptPubkeyJSON {
+  addr_keyhash: string;
+}
+export type ScriptRefJSON = ScriptJSON;
+export type ScriptWitnessJSON = ScriptWitnessEnumJSON;
+export type ScriptWitnessEnumJSON =
+  | {
+      NativeWitness: NativeScriptJSON;
+    }
+  | {
+      PlutusWitness: PlutusWitness;
+    };
+export interface SingleHostAddrJSON {
+  ipv4?: Ipv4JSON | null;
+  ipv6?: Ipv6JSON | null;
+  port?: number | null;
+}
+export interface SingleHostNameJSON {
+  dns_name: DNSRecordAorAAAAJSON;
+  port?: number | null;
+}
+export type StakeCredTypeJSON =
+  | {
+      Key: string;
+    }
+  | {
+      ScriptJSON: string;
+    };
+export type StakeCredentialJSON = StakeCredTypeJSON;
+export type StakeCredentialsJSON = StakeCredTypeJSON[];
+export interface StakeDelegationJSON {
+  pool_keyhash: string;
+  stake_credential: StakeCredTypeJSON;
+}
+export interface StakeDeregistrationJSON {
+  stake_credential: StakeCredTypeJSON;
+}
+export interface StakeRegistrationJSON {
+  stake_credential: StakeCredTypeJSON;
+}
+export interface TimelockExpiryJSON {
+  slot: string;
+}
+export interface TimelockStartJSON {
+  slot: string;
+}
+export interface TransactionJSON {
+  auxiliary_data?: AuxiliaryDataJSON | null;
+  body: TransactionBodyJSON;
+  is_valid: boolean;
+  witness_set: TransactionWitnessSetJSON;
+}
+export type TransactionBodiesJSON = TransactionBodyJSON[];
+export interface TransactionBodyJSON {
+  auxiliary_data_hash?: string | null;
+  certs?: CertificatesJSON | null;
+  collateral?: TransactionInputsJSON | null;
+  collateral_return?: TransactionOutputJSON | null;
+  fee: string;
+  inputs: TransactionInputsJSON;
+  mint?: MintJSON | null;
+  network_id?: NetworkIdJSON | null;
+  original_bytes?: number[] | null;
+  outputs: TransactionOutputsJSON;
+  reference_inputs?: TransactionInputsJSON | null;
+  required_signers?: Ed25519KeyHashesJSON | null;
+  script_data_hash?: string | null;
+  total_collateral?: string | null;
+  ttl?: string | null;
+  update?: UpdateJSON | null;
+  validity_start_interval?: string | null;
+  withdrawals?: {
+    [k: string]: ProtocolParamUpdateJSON;
+  } | null;
+}
+export type TransactionHashJSON = string;
+export interface TransactionInputJSON {
+  index: string;
+  transaction_id: string;
+}
+export type TransactionInputsJSON = TransactionInputJSON[];
+export type TransactionMetadatumJSON = string;
+export interface TransactionOutputJSON {
+  address: string;
+  amount: ValueJSON;
+  datum?: DatumJSON | null;
+  script_ref?: ScriptJSON | null;
+}
+export type TransactionOutputsJSON = TransactionOutputJSON[];
+export interface TransactionWitnessSetJSON {
+  bootstraps?: BootstrapWitnessesJSON | null;
+  native_scripts?: NativeScriptsJSON | null;
+  plutus_data?: PlutusListJSON | null;
+  plutus_scripts?: PlutusScriptsJSON | null;
+  plutus_v2_scripts?: PlutusScriptsJSON | null;
+  redeemers?: RedeemersJSON | null;
+  vkeys?: VkeywitnessesJSON | null;
+}
+export type TransactionWitnessSetsJSON = TransactionWitnessSetJSON[];
+export type URLJSON = string;
+export interface UnitIntervalJSON {
+  denominator: string;
+  numerator: string;
+}
+export interface UpdateJSON {
+  epoch: number;
+  proposed_protocol_parameter_updates: {
+    [k: string]: ProtocolParamUpdateJSON;
+  };
+}
+export interface VRFCertJSON {
+  output: number[];
+  proof: number[];
+}
+export type VRFKeyHashJSON = string;
+export type VRFVKeyJSON = number[];
+export interface ValueJSON {
+  coin: string;
+  multiasset?: MultiAssetJSON | null;
+}
+export type VkeyJSON = string;
+export interface VkeywitnessJSON {
+  signature: string;
+  vkey: VkeyJSON;
+}
+export type VkeywitnessesJSON = VkeywitnessJSON[];
+export interface WithdrawalsJSON {
+  [k: string]: ProtocolParamUpdateJSON;
 }
