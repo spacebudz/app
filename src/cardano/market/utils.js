@@ -1,8 +1,8 @@
 import { Buffer } from "buffer";
-import {
-  BigNum,
-  PlutusData,
-} from "./custom_modules/@emurgo/cardano-serialization-lib-browser";
+// import {
+//   BigNum,
+//   PlutusData,
+// } from "./custom_modules/@emurgo/cardano-multiplatform-lib-browser";
 import Loader from "./loader.js";
 
 export const fromHex = (hex) => Buffer.from(hex, "hex");

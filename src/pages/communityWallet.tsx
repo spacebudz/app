@@ -13,7 +13,7 @@ const { createMultisig, createTransaction, signTransaction } =
   typeof window !== "undefined" &&
   (await import("../parts/communityWallet/txBuilder"));
 const S = await import(
-  "../cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser"
+  "../cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-browser"
 );
 
 const CommunityWallet = () => {

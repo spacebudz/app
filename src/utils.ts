@@ -1,22 +1,22 @@
 import { UTxO } from "./api";
-import { TransactionUnspentOutput } from "./cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib";
-import { Value } from "./cardano/market/custom_modules/@emurgo/cardano-serialization-lib-nodejs/cardano_serialization_lib";
+import { TransactionUnspentOutput } from "./cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-browser/cardano_multiplatform_lib";
+import { Value } from "./cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-nodejs/cardano_multiplatform_lib";
 import { IPFS_GATEWAY } from "./config";
 const S = await import(
-  "./cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser"
+  "./cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-browser"
 );
 
 export const ipfsToHttps = (ipfs: string): string =>
   IPFS_GATEWAY + "/" + ipfs.split("ipfs://")[1];
 
 export const toLovelace = (
-  ada: string | number | BigInt
+  ada: string | number | BigInt,
 ): BigInt | undefined => {
   if (!ada) return;
   return BigInt(
     parseFloat(ada.toString().replace(/[,\s]/g, ""))
       .toLocaleString("en-EN", { minimumFractionDigits: 6 })
-      .replace(/[.,\s]/g, "")
+      .replace(/[.,\s]/g, ""),
   );
 };
 
@@ -27,7 +27,7 @@ type DisplayOptions = { compact?: boolean };
 
 export const fromLovelaceDisplay = (
   lovelace: BigInt,
-  displayOptions?: DisplayOptions
+  displayOptions?: DisplayOptions,
 ): string =>
   Intl.NumberFormat("en-EN", {
     notation: displayOptions?.compact ? "compact" : "standard",
@@ -51,7 +51,7 @@ export type CardanoAPI = {
   signTx: (tx: string, partialSign: boolean) => Promise<string>;
   signData: (
     address: string,
-    payload: string
+    payload: string,
   ) => Promise<{ signature: string; key: string }>;
   submitTx: (tx: string) => Promise<string>;
   getCollateral: () => Promise<string[]>;
@@ -106,8 +106,7 @@ export const valueToAssets = (value: string): Asset[] => {
       for (let k = 0; k < assetNames.len(); k++) {
         const policyAsset = assetNames.get(k);
         const quantity = policyAssets.get(policyAsset);
-        const asset =
-          Buffer.from(policy.to_bytes()).toString("hex") +
+        const asset = Buffer.from(policy.to_bytes()).toString("hex") +
           Buffer.from(policyAsset.name()).toString("hex");
         assets.push({
           unit: asset,
@@ -126,27 +125,27 @@ export const assetsToValue = (assets: Asset[]): Value => {
     ...new Set(
       assets
         .filter((asset) => asset.unit !== "lovelace")
-        .map((asset) => asset.unit.slice(0, 56))
+        .map((asset) => asset.unit.slice(0, 56)),
     ),
   ];
   policies.forEach((policy) => {
     const policyAssets = assets.filter(
-      (asset) => asset.unit.slice(0, 56) === policy
+      (asset) => asset.unit.slice(0, 56) === policy,
     );
     const assetsValue = S.Assets.new();
     policyAssets.forEach((asset) => {
       assetsValue.insert(
         S.AssetName.new(Buffer.from(asset.unit.slice(56), "hex")),
-        S.BigNum.from_str(asset.quantity.toString())
+        S.BigNum.from_str(asset.quantity.toString()),
       );
     });
     multiAsset.insert(
       S.ScriptHash.from_bytes(Buffer.from(policy, "hex")),
-      assetsValue
+      assetsValue,
     );
   });
   const value = S.Value.new(
-    S.BigNum.from_str(lovelace ? lovelace.quantity.toString() : "0")
+    S.BigNum.from_str(lovelace ? lovelace.quantity.toString() : "0"),
   );
   if (assets.length > 1 || !lovelace) value.set_multiasset(multiAsset);
   return value;
@@ -159,11 +158,11 @@ export const utxoToCSLFormat = (utxo: UTxO): TransactionUnspentOutput => {
   return TransactionUnspentOutput.new(
     S.TransactionInput.new(
       S.TransactionHash.from_bytes(Buffer.from(utxo.txHash, "hex")),
-      utxo.outputIndex
+      S.BigNum.from_str(utxo.outputIndex.toString()),
     ),
     S.TransactionOutput.new(
       S.Address.from_bech32(utxo.address),
-      assetsToValue(utxo.amount)
-    )
+      assetsToValue(utxo.amount),
+    ),
   );
 };

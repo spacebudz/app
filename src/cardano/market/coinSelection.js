@@ -2,7 +2,7 @@ import {
   TransactionUnspentOutput,
   TransactionOutputs,
   Value,
-} from "./custom_modules/@emurgo/cardano-serialization-lib-browser/cardano_serialization_lib";
+} from "./custom_modules/@emurgo/cardano-multiplatform-lib-browser/cardano_multiplatform_lib";
 import Loader from "./loader";
 const BigInt = typeof window !== "undefined" && window.BigInt;
 

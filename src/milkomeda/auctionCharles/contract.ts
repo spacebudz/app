@@ -1,7 +1,7 @@
 import { abi } from "./abi";
 import Web3 from "web3";
 const S = await import(
-  "../../cardano/market/custom_modules/@emurgo/cardano-serialization-lib-browser"
+  "../../cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-browser"
 );
 
 export const contractAddress = "0x26e1Da497060a795bdD6dab792769f02A53ae952"; // mainnet
@@ -17,11 +17,10 @@ export const checkCompatible = async () => {
     } catch (error) {
       // User denied account access...
     }
-  }
-  // Non-dapp browsers...
+  } // Non-dapp browsers...
   else {
     console.log(
-      "Non-Ethereum browser detected. You should consider trying MetaMask!"
+      "Non-Ethereum browser detected. You should consider trying MetaMask!",
     );
     return false;
   }
@@ -37,46 +36,46 @@ export const loadContract = async () => {
     window.ethereum &&
     window.ethereum.selectedAddress &&
     window.ethereum.networkVersion == NETWORK_ID
-  )
+  ) {
     web3 = new Web3((window.web3 || window.ethereum).currentProvider);
-  else
+  } else {
     web3 = new Web3(
       NETWORK_ID === 2001
         ? "https://rpc-mainnet-cardano-evm.c1.milkomeda.com"
-        : "https://rpc-devnet-cardano-evm.c1.milkomeda.com"
+        : "https://rpc-devnet-cardano-evm.c1.milkomeda.com",
     );
+  }
   window.contract = new web3.eth.Contract(abi, contractAddress);
 };
 
 export const addNetwork = async () => {
-  const params =
-    NETWORK_ID === 2001
-      ? {
-          chainId: "0x" + NETWORK_ID.toString(16), // A 0x-prefixed hexadecimal string
-          chainName: "Milkomeda",
-          nativeCurrency: {
-            name: "ADA",
-            symbol: "ADA", // 2-6 characters long
-            decimals: 18,
-          },
-          rpcUrls: ["https://rpc-mainnet-cardano-evm.c1.milkomeda.com"],
-          blockExplorerUrls: [
-            "https://explorer-mainnet-cardano-evm.c1.milkomeda.com",
-          ],
-        }
-      : {
-          chainId: "0x" + (NETWORK_ID as number).toString(16), // A 0x-prefixed hexadecimal string
-          chainName: "Milkomeda Testnet",
-          nativeCurrency: {
-            name: "tADA",
-            symbol: "tADA", // 2-6 characters long
-            decimals: 18,
-          },
-          rpcUrls: ["https://rpc-devnet-cardano-evm.c1.milkomeda.com"],
-          blockExplorerUrls: [
-            "https://explorer-devnet-cardano-evm.c1.milkomeda.com",
-          ],
-        };
+  const params = NETWORK_ID === 2001
+    ? {
+      chainId: "0x" + NETWORK_ID.toString(16), // A 0x-prefixed hexadecimal string
+      chainName: "Milkomeda",
+      nativeCurrency: {
+        name: "ADA",
+        symbol: "ADA", // 2-6 characters long
+        decimals: 18,
+      },
+      rpcUrls: ["https://rpc-mainnet-cardano-evm.c1.milkomeda.com"],
+      blockExplorerUrls: [
+        "https://explorer-mainnet-cardano-evm.c1.milkomeda.com",
+      ],
+    }
+    : {
+      chainId: "0x" + (NETWORK_ID as number).toString(16), // A 0x-prefixed hexadecimal string
+      chainName: "Milkomeda Testnet",
+      nativeCurrency: {
+        name: "tADA",
+        symbol: "tADA", // 2-6 characters long
+        decimals: 18,
+      },
+      rpcUrls: ["https://rpc-devnet-cardano-evm.c1.milkomeda.com"],
+      blockExplorerUrls: [
+        "https://explorer-devnet-cardano-evm.c1.milkomeda.com",
+      ],
+    };
   await window.ethereum
     .request({
       method: "wallet_addEthereumChain",
@@ -95,7 +94,7 @@ export const toWei = (ada: string): BigInt =>
 export const fromWei = (lovelace: BigInt | string) =>
   parseFloat(Web3.utils.fromWei(lovelace.toString(), "ether")).toLocaleString(
     "en-EN",
-    { maximumFractionDigits: 2 }
+    { maximumFractionDigits: 2 },
   ) + " ₳";
 
 export const isValidCardanoAddress = (address: string): boolean => {
