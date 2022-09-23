@@ -415,11 +415,16 @@ class SpaceBudzMarket {
       }
 
       const collateral = (
-        await window.cardano.selectedWallet.experimental.getCollateral()
-      ).map((utxo) =>
+        await (
+          window.cardano.selectedWallet.experimental ||
+          window.cardano.selectedWallet
+        ).getCollateral()
+      )?.map((utxo) =>
         Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
       );
-      if (collateral.length <= 0) throw new Error("NO_COLLATERAL");
+      if (!collateral || collateral.length <= 0) {
+        throw new Error("NO_COLLATERAL");
+      }
 
       collateral.slice(0, 2).forEach((coll) => {
         txBuilder.add_collateral(coll);
