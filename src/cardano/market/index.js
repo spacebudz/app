@@ -218,9 +218,23 @@ class SpaceBudzMarket {
   async getUtxo(policy, prefix, budId) {
     const asset = policy + fromAscii(prefix + budId);
 
-    const utxos = await this.blockfrostRequest(
+    let utxos = await this.blockfrostRequest(
       `/addresses/${CONTRACT_ADDRESS().to_bech32()}/utxos/${asset}`
     );
+
+    // We only do this because of a temporary bug in Blockfrost
+
+    if (utxos.length > 0) {
+      const checkUtxo = utxos[0];
+      utxos = utxos.filter(
+        (utxo) =>
+          utxo.tx_hash !== checkUtxo.tx_hash &&
+          utxo.output_index !== checkUtxo.output_index
+      );
+      utxos = [checkUtxo, ...utxos];
+    }
+
+    //
 
     return await Promise.all(
       utxos.map(async (utxo) => {

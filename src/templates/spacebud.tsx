@@ -134,7 +134,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
 
     if (
       // if not a StartBid
-      bidUtxo &&
       bidUtxo.datum.as_constr_plutus_data().alternative().to_str() !== "0"
     ) {
       if (isOwner(bidUtxo.tradeOwnerAddress.to_bech32())) {
