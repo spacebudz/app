@@ -5,17 +5,15 @@ import { toast } from "../../components/Toast";
 import { pendingTxToast, successTxToast, tradeErrorHandler } from "./Dialog";
 import { getSelectedWallet } from "../../utils";
 import { baseUrl, projectId } from "../../api";
-import {
-  Lucid,
-  Blockfrost,
-  updateIdentity,
-} from "@spacebudz/spacebudz-identity";
+import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
 
 type IdentityDialogProps = {
   identity: any;
   budId: number;
   checkTx: ({ txHash: string }) => void;
 };
+
+let lucid;
 
 export const IdentityDialog = React.forwardRef(
   ({ identity, budId, checkTx }: IdentityDialogProps, ref) => {
@@ -62,11 +60,6 @@ export const IdentityDialog = React.forwardRef(
         : setLoading((l) => ({ ...l, update: true }));
       const selectedWallet = await getSelectedWallet();
 
-      if (Lucid.txBuilderConfig) {
-        await Lucid.initialize(new Blockfrost(baseUrl, projectId));
-      }
-      await Lucid.selectWallet((selectedWallet as any).walletName);
-
       const metadata: any = {};
       if (!reset) {
         if (input.nickname) metadata.nickname = input.nickname;
@@ -77,9 +70,14 @@ export const IdentityDialog = React.forwardRef(
         if (input.email) metadata.email = [input.email];
       }
 
-      const txHash = await updateIdentity(budId, metadata).catch((e) =>
-        tradeErrorHandler(e)
-      );
+      lucid = await Lucid.new(new Blockfrost(baseUrl, projectId));
+
+      lucid.selectWallet(selectedWallet as any);
+      const contract = new Contract(lucid);
+
+      const txHash = await contract
+        .updateIdentity(budId, metadata)
+        .catch((e) => tradeErrorHandler(e));
 
       setLoading({ reset: false, update: false });
       if (!txHash) return;
@@ -198,7 +196,7 @@ export const checkTxIdentity = async ({ txHash }) => {
   if (!txHash) return;
   pendingTxToast();
 
-  await Lucid.awaitTx(txHash);
+  await lucid.awaitTx(txHash);
   toast.dismiss();
   successTxToast(txHash);
   await new Promise((res, rej) => setTimeout(() => res(1), 1000));

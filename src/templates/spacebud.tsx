@@ -34,7 +34,7 @@ import { Discord } from "@styled-icons/bootstrap/Discord";
 import { Mail } from "@styled-icons/ionicons-solid/Mail";
 import { TwitterSquare } from "@styled-icons/fa-brands/TwitterSquare";
 import { checkTxIdentity, IdentityDialog } from "../parts/spacebud/Identity";
-import { Lucid, Blockfrost, getIdentity } from "@spacebudz/spacebudz-identity";
+import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
 
 const SpaceBud = ({ data, pageContext: { budId } }) => {
   const { name, traits, image, type } = data.allMetadataJson.edges[0].node;
@@ -67,9 +67,9 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     isMounted.current && setLoading(true);
     const selectedWallet = await getSelectedWallet();
 
-    if (!Lucid.txBuilderConfig) {
-      await Lucid.initialize(new Blockfrost(baseUrl, projectId));
-    }
+    const contract = new Contract(
+      await Lucid.new(new Blockfrost(baseUrl, projectId))
+    );
 
     const walletAddresses = wallet.address
       ? (await selectedWallet.getUsedAddresses()).map((address) =>
@@ -183,7 +183,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     }
 
     /* Check identity */
-    const identity = await getIdentity(budId);
+    const identity = await contract.getIdentity(budId);
     setIdentity({
       ...identity,
     });
