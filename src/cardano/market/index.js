@@ -428,21 +428,21 @@ class SpaceBudzMarket {
         txBuilder.add_plutus_data(datums.get(i));
       }
 
-      const collateral = (
-        await (
-          window.cardano.selectedWallet.experimental ||
-          window.cardano.selectedWallet
-        ).getCollateral()
-      )?.map((utxo) =>
-        Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
-      );
-      if (!collateral || collateral.length <= 0) {
-        throw new Error("NO_COLLATERAL");
-      }
+      // const collateral = (
+      //   await (
+      //     window.cardano.selectedWallet.experimental ||
+      //     window.cardano.selectedWallet
+      //   ).getCollateral()
+      // )?.map((utxo) =>
+      //   Loader.Cardano.TransactionUnspentOutput.from_bytes(fromHex(utxo))
+      // );
+      // if (!collateral || collateral.length <= 0) {
+      //   throw new Error("NO_COLLATERAL");
+      // }
 
-      collateral.slice(0, 2).forEach((coll) => {
-        txBuilder.add_collateral(coll);
-      });
+      // collateral.slice(0, 2).forEach((coll) => {
+      //   txBuilder.add_collateral(coll);
+      // });
     }
     let aux_data;
     if (metadata) {
@@ -592,7 +592,7 @@ class SpaceBudzMarket {
       priceMem: parseFloat(p.price_mem),
       priceStep: parseFloat(p.price_step),
       maxCollateralInputs: parseInt(p.max_collateral_inputs),
-      collateralPercentage: 0, // parseInt(p.collateral_percent),
+      collateralPercentage: parseInt(p.collateral_percent),
       costModels: p.cost_models,
     };
 
