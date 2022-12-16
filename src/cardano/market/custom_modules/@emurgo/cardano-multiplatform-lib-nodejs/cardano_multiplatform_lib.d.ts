@@ -37,6 +37,19 @@ export function encrypt_with_password(password: string, salt: string, nonce: str
 */
 export function decrypt_with_password(password: string, data: string): string;
 /**
+* @param {Transaction} tx
+* @param {LinearFee} linear_fee
+* @param {ExUnitPrices} ex_unit_prices
+* @returns {BigNum}
+*/
+export function min_fee(tx: Transaction, linear_fee: LinearFee, ex_unit_prices: ExUnitPrices): BigNum;
+/**
+* @param {PlutusList} params
+* @param {PlutusScript} plutus_script
+* @returns {PlutusScript}
+*/
+export function apply_params_to_plutus_script(params: PlutusList, plutus_script: PlutusScript): PlutusScript;
+/**
 * @param {TransactionHash} tx_body_hash
 * @param {ByronAddress} addr
 * @param {LegacyDaedalusPrivateKey} key
@@ -135,13 +148,6 @@ export function encode_json_str_to_plutus_datum(json: string, schema: number): P
 * @returns {string}
 */
 export function decode_plutus_datum_to_json_str(datum: PlutusData, schema: number): string;
-/**
-* @param {Transaction} tx
-* @param {LinearFee} linear_fee
-* @param {ExUnitPrices} ex_unit_prices
-* @returns {BigNum}
-*/
-export function min_fee(tx: Transaction, linear_fee: LinearFee, ex_unit_prices: ExUnitPrices): BigNum;
 /**
 */
 export enum CertificateKind {
@@ -5694,9 +5700,10 @@ export class TransactionBuilder {
 * NOTE: is_valid set to true
 * @param {TransactionUnspentOutputs | undefined} collateral_utxos
 * @param {Address | undefined} collateral_change_address
+* @param {boolean | undefined} native_uplc
 * @returns {Promise<Transaction>}
 */
-  construct(collateral_utxos?: TransactionUnspentOutputs, collateral_change_address?: Address): Promise<Transaction>;
+  construct(collateral_utxos?: TransactionUnspentOutputs, collateral_change_address?: Address, native_uplc?: boolean): Promise<Transaction>;
 /**
 * Returns full Transaction object with the body and the auxiliary data
 * NOTE: witness_set will contain all mint_scripts if any been added or set
@@ -5782,10 +5789,11 @@ export class TransactionBuilderConfigBuilder {
   max_collateral_inputs(max_collateral_inputs: number): TransactionBuilderConfigBuilder;
 /**
 * @param {BigNum} zero_time
+* @param {BigNum} zero_slot
 * @param {number} slot_length
 * @returns {TransactionBuilderConfigBuilder}
 */
-  slot_config(zero_time: BigNum, slot_length: number): TransactionBuilderConfigBuilder;
+  slot_config(zero_time: BigNum, zero_slot: BigNum, slot_length: number): TransactionBuilderConfigBuilder;
 /**
 * @param {Blockfrost} blockfrost
 * @returns {TransactionBuilderConfigBuilder}
