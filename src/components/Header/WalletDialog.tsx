@@ -12,6 +12,7 @@ export const WalletDialog = React.forwardRef((props: any, ref: any) => {
         (walletName) =>
           walletName === "nami" ||
           walletName === "ccvault" ||
+          walletName === "eternl" ||
           walletName === "flint" ||
           walletName === "typhoncip30" ||
           walletName === "begin" ||
