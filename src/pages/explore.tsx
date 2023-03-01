@@ -10,10 +10,15 @@ import {
   SortSelection,
   FilterPanel,
 } from "../parts/explore";
-import { Image, Input, Spinner } from "../components";
+import { Input, Spinner } from "../components";
 import { FlatButton } from "../components/Button/FlatButton";
 import { Dialog } from "../components/Dialog";
-import { getActivity, getBidsMap, getListingsMap } from "../api";
+import {
+  getActivity,
+  getAllMigrated,
+  getBidsMap,
+  getListingsMap,
+} from "../api";
 import { useIsMounted } from "../hooks";
 import { Activity, RecentActivity } from "../parts/explore/RecentActivity";
 
@@ -57,6 +62,8 @@ const Explore = () => {
 
   const interval = React.useRef<NodeJS.Timer>();
 
+  const migratedBudz = React.useRef<number[]>([]);
+
   const init = async () => {
     if (!array || !lastUpdate || Date.now() - lastUpdate > 60000) {
       if (!array) setLoading(true);
@@ -64,9 +71,15 @@ const Explore = () => {
       const listings = await getListingsMap();
       const bids = await getBidsMap();
       const budImageMap = {};
+
+      migratedBudz.current = await getAllMigrated();
+
       const result = data.allMetadataJson.edges.map((node) => {
         // side effect, stores images in a map to look them up quicker in activity array
         budImageMap[node.node.budId] = node.node.image;
+        node.node.needsToMigrate = !migratedBudz.current.includes(
+          node.node.budId
+        );
 
         return {
           ...node.node,
@@ -83,6 +96,7 @@ const Explore = () => {
       const activity: Activity[] = activityRaw.map((ac) => ({
         ...ac,
         image: budImageMap[ac.budId],
+        needsToMigrate: !migratedBudz.current.includes(ac.budId),
       }));
 
       if (isMounted.current) {
@@ -104,6 +118,7 @@ const Explore = () => {
       const activity: Activity[] = activityRaw.map((ac) => ({
         ...ac,
         image: budImageMap[ac.budId],
+        needsToMigrate: !migratedBudz.current.includes(ac.budId),
       }));
       if (isMounted.current) {
         setActivity(activity);
@@ -164,6 +179,7 @@ const Explore = () => {
               <RecentActivity array={activity} />
               <div className="flex items-center py-4 w-full flex-col sm:flex-row">
                 <Input
+                  theme="space"
                   defaultValue={search}
                   onKeyDown={(e) =>
                     e.key === "Enter" &&
@@ -209,7 +225,7 @@ const Explore = () => {
           position="top"
           noOverlay
           noAutoClose
-          className="border-none rounded-none h-screen"
+          className="border-none rounded-none h-screen !bg-white"
         >
           <FilterPanel
             filter={filter}

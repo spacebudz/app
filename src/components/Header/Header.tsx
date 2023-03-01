@@ -9,7 +9,12 @@ import { WalletDialog } from ".";
 import { useStoreActions, useStoreState } from "easy-peasy";
 import { getAddressBech32, getCardano, getSelectedWallet } from "../../utils";
 import { setSelectedWallet } from "./wallet";
-import { DISCORD_LINK, TELEGRAM_LINK, TWITTER_LINK } from "../../config";
+import {
+  DISCORD_LINK,
+  GITHUB_LINK,
+  TELEGRAM_LINK,
+  TWITTER_LINK,
+} from "../../config";
 
 import Logo from "../../images/brand/logo.svg";
 
@@ -41,6 +46,13 @@ export const Header = (props: HeaderProps) => {
     }
     if (wallet.walletName === "nami") {
       const selectedWallet = await getSelectedWallet();
+      const walletAddress = getAddressBech32(
+        (await selectedWallet.getUsedAddresses())[0]
+      );
+      if (wallet.address !== walletAddress) {
+        reset();
+        return;
+      }
       selectedWallet.experimental.on("accountChange", async () => {
         const address = getAddressBech32(
           (await selectedWallet.getUsedAddresses())[0]
@@ -104,6 +116,19 @@ export const Header = (props: HeaderProps) => {
             </div>
           }
         >
+          <a href={GITHUB_LINK} target="_blank">
+            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
+              <span className="flex items-center">
+                <span className="text-md font-medium text-[#171515]">
+                  GitHub
+                </span>
+              </span>
+              <span className="block text-sm text-gray-500">
+                If you are interested in developing check out our GitHub
+                repositories
+              </span>
+            </div>
+          </a>
           <a href={DISCORD_LINK} target="_blank">
             <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
               <span className="flex items-center">
@@ -140,7 +165,8 @@ export const Header = (props: HeaderProps) => {
               </span>
             </div>
           </a>
-          <Link to="/communityTools/">
+          {/* Community tools disabled for now until links and images updated */}
+          {/* <Link to="/communityTools/">
             <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
               <span className="flex items-center">
                 <span className="text-md font-medium text-primary">
@@ -151,7 +177,7 @@ export const Header = (props: HeaderProps) => {
                 Explore helpful and useful tools created by the community
               </span>
             </div>
-          </Link>
+          </Link> */}
         </Popover>
         <Popover
           position="center"

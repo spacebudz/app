@@ -63,7 +63,7 @@ export const TYPES_GADGETS_COUNT = {
   },
 };
 
-export const POLICY_ID =
+export const DEPRECATED_POLICY_ID =
   "d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc";
 
 export const EXTRA_RECEIVING_ADDRESS =
@@ -75,3 +75,16 @@ export const CONTRACT_ADDRESS =
 export const DISCORD_LINK = "https://discord.com/invite/vtmm6RG2Bv";
 export const TWITTER_LINK = "https://twitter.com/spacebudzNFT";
 export const TELEGRAM_LINK = "https://t.me/spacebudz";
+export const GITHUB_LINK = "https://github.com/spacebudz";
+
+// Wormhole
+
+// TODO
+export const POLICY_ID =
+  "0000518f2f8c39ed3d53e3837310bb358e197b091c2f1a81b95de346";
+export const NEBULA_ADDRESS =
+  "addr1wyg3pakjz0hweutchtlmwlxzxs2q29kmk9yt5gc0dccnxnqcnkg72";
+export const NEBULA_HASH = "0000";
+
+export const LOCK_ADRESS =
+  "addr1wyp2997k6u7zrfxf5tgtk9r60z8zcsvjksleyt7f385m9vgqyzj4s";

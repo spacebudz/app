@@ -41,6 +41,7 @@ const CommunityWallet = () => {
 
   const init = async () => {
     setLoading(true);
+
     const balance = await getBalance(address);
     setBalance(
       balance.find((b) => b.unit === "lovelace")?.quantity || BigInt(0)

@@ -1,12 +1,13 @@
 import * as React from "react";
 import { Disclosure } from "../components";
+import { NEBULA_HASH, POLICY_ID } from "../config";
 import { MainLayout } from "../layouts/mainLayout";
 
 const FAQ = () => {
   return (
     <MainLayout title="SpaceBudz | FAQ" titleTwitter="SpaceBudz: FAQ">
       <div className="w-full flex justify-center items-center">
-        <div className="px-6 mt-4 md:mt-0 max-w-5xl w-full">
+        <div className="px-8 mt-4 md:mt-0 max-w-5xl w-full">
           <div className="font-bold text-primary text-3xl mb-16">FAQ</div>
           <div className="w-full">
             <Disclosure
@@ -17,7 +18,7 @@ const FAQ = () => {
             >
               <div className="px-4 pb-4">
                 <a
-                  className="text-teal-500 font-semibold"
+                  className="text-purple-500 font-semibold"
                   href="https://namiwallet.io"
                   target="_blank"
                 >
@@ -25,114 +26,149 @@ const FAQ = () => {
                 </a>
                 ,{" "}
                 <a
-                  className="text-orange-500 font-semibold"
+                  className="text-purple-500 font-semibold"
                   href="https://chrome.google.com/webstore/detail/flint-wallet/hnhobjmcibchnmglfbldbfabcgaknlkj"
                   target="_blank"
                 >
                   Flint
                 </a>{" "}
-                and{" "}
+                ,{" "}
                 <a
                   className="text-purple-500 font-semibold"
                   href="https://chrome.google.com/webstore/detail/ccvaultio/kmhcihpebfmpgmihbkipmjlmmioameka"
                   target="_blank"
                 >
-                  ccvault
+                  eternl
                 </a>{" "}
-                can be connected to the website and used for the marketplace.
+                ,{" "}
+                <a
+                  className="text-purple-500 font-semibold"
+                  href="https://chrome.google.com/webstore/detail/typhon-wallet/kfdniefadaanbjodldohaedphafoffoh"
+                  target="_blank"
+                >
+                  Typon
+                </a>{" "}
+                ,{" "}
+                <a
+                  className="text-purple-500 font-semibold"
+                  href="https://chrome.google.com/webstore/detail/begin-wallet/nhbicdelgedinnbcidconlnfeionhbml"
+                  target="_blank"
+                >
+                  Begin
+                </a>{" "}
+                ,{" "}
+                <a
+                  className="text-purple-500 font-semibold"
+                  href="https://chrome.google.com/webstore/detail/nufi/gpnihlnnodeiiaakbikldcihojploeca"
+                  target="_blank"
+                >
+                  NuFi
+                </a>{" "}
+                ,{" "}
+                <a
+                  className="text-purple-500 font-semibold"
+                  href="https://chrome.google.com/webstore/detail/cwallet/apnehcjmnengpnmccpaibjmhhoadaico"
+                  target="_blank"
+                >
+                  CWallet
+                </a>{" "}
+                and{" "}
+                <a
+                  className="text-purple-500 font-semibold"
+                  href="https://chrome.google.com/webstore/detail/gerowallet/bgpipimickeadkjlklgciifhnalhdjhe"
+                  target="_blank"
+                >
+                  Gero
+                </a>
+                .
               </div>
             </Disclosure>
             <Disclosure
-              title="Where are the metadata"
+              title="What is the policy id of SpaceBudz"
               className="mt-4 min-h-[2.75rem] !h-auto"
               classNameInner="min-h-[2.75.rem] !h-auto"
               theme="white"
             >
               <div className="px-4 pb-4">
-                The metadata for each token are on-chain and follow{" "}
+                The policy id is based on a plutus contract. You can find the
+                source code{" "}
                 <a
-                  className="text-purple-500 font-semibold"
-                  href="https://github.com/cardano-foundation/CIPs/blob/master/CIP-0025/CIP-0025.md"
+                  className="text-purple-500 font-semibold break-words"
+                  href="https://github.com/spacebudz/wormhole"
                   target="_blank"
                 >
-                  CIP-25
+                  here
                 </a>
-                , which was proposed by SpaceBudz and is now used in the
-                majority of NFT projects. The metadata itself links to an image
-                on IPFS and Arweave in order to keep the data immutable and
-                retrievable forever. The metadata are in the minting transaction
-                of the token. Check out this{" "}
+                .
+                <br />
+                <br />
+                The policy id:
+                <br />
                 <a
-                  className="text-purple-500 font-semibold"
-                  href="https://cardanoscan.io/transaction/c8671bf7fe1cd75c8a387822b84c8e4f5fe61043c60618dc9ad68d6ebcd12c7f?tab=metadata"
+                  className="text-purple-500 font-semibold break-all"
+                  href={`https://cardanoscan.io/tokenPolicy/${POLICY_ID}`}
                   target="_blank"
                 >
-                  example
+                  {POLICY_ID}
                 </a>
-                . Scroll down to the metadata and click on it to view more.
               </div>
             </Disclosure>
             <Disclosure
-              title="Is this actually an NFT"
+              title="What is the wormhole"
               className="mt-4 min-h-[2.75rem] !h-auto"
               classNameInner="min-h-[2.75.rem] !h-auto"
               theme="white"
             >
               <div className="px-4 pb-4">
-                These tokens are unique forever. The minting policy is time
-                based and closed on the 22nd of August 2021.
-                <br /> The minting script:
-                <br />
-                <br />
-                <span className="break-all">
-                  {`{
-                    type: "all",
-                    scripts: [
-                      { slot: 38082894, type: "before" },
-                      {
-                        keyHash:
-                          "c74140d3c5946dc5fdb4cf97f0c9fed6f138969005d81d3ba12b714c",
-                        type: "sig"
-                      }
-                    ]
-                  }`}
-                </span>
-                <br />
-                <br />
-                Hash it and you get the following Policy ID:
-                <br />
+                The wormhole is a migration contract for SpaceBudz to move the
+                NFTs from{" "}
                 <a
-                  className="text-purple-500 font-semibold break-all"
-                  href="https://cardanoscan.io/tokenPolicy/d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc"
+                  className="text-purple-500 font-semibold break-words"
+                  href="https://github.com/cardano-foundation/CIPs/tree/master/CIP-0025"
                   target="_blank"
                 >
-                  d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc
-                </a>
+                  CIP-0025
+                </a>{" "}
+                to{" "}
+                <a
+                  className="text-purple-500 font-semibold break-words"
+                  href="https://github.com/cardano-foundation/CIPs/tree/master/CIP-0068"
+                  target="_blank"
+                >
+                  CIP-0068
+                </a>{" "}
+                with enhanced functionality.
+                <br />
+                In order to migrate SpaceBudz connect your wallet and got to
+                your profile. You will see migration buttons appear above the
+                SpaceBudz that need to be migrated. <br /> The old policy id is
+                deprecated and no longer associated with SpaceBudz.
+                <br />
               </div>
-            </Disclosure>{" "}
+            </Disclosure>
             <Disclosure
-              title="Does the market place use smart contracts"
+              title="Does the marketplace use smart contracts"
               className="mt-4 min-h-[2.75rem] !h-auto"
               classNameInner="min-h-[2.75.rem] !h-auto"
               theme="white"
             >
               <div className="px-4 pb-4">
-                Yes the market place is fully based on a contract. There is no
-                3rd party or middleman involved.
-                <br /> The contract address:{" "}
-                <a
-                  className="text-purple-500 font-semibold break-all"
-                  href="https://cardanoscan.io/address/addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq"
-                  target="_blank"
-                >
-                  addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq
-                </a>
-                <br />
-                <br />
-                The full source code you can find{" "}
+                Yes the marketplace is fully contract based and uses the{" "}
                 <a
                   className="text-purple-500 font-semibold"
-                  href="https://github.com/Berry-Pool/spacebudz"
+                  href="https://github.com/spacebudz/nebula"
+                  target="_blank"
+                >
+                  Nebula protocol
+                </a>
+                . There is no 3rd party or middleman involved.
+                <br /> The contract hash: {NEBULA_HASH}
+                <br />
+                <br />
+                The full source code can be found{" "}
+                <a
+                  className="text-purple-500 font-semibold"
+                  href="https://github.com/spacebudz/nebula"
                   target="_blank"
                 >
                   here
@@ -186,6 +222,10 @@ const FAQ = () => {
                   ADA amount from the contract (happens all in the contract
                   transaction of course).
                 </div>
+                <div className="mt-6">
+                  The SpaceBudz marketplace currently uses only a subset of
+                  features that are availabe in Nebula.
+                </div>
               </div>
             </Disclosure>
             <Disclosure
@@ -202,23 +242,14 @@ const FAQ = () => {
               </div>
             </Disclosure>
             <Disclosure
-              title="What fees are involved in the market place"
+              title="What fees are involved in the marketplace"
               className="mt-4 min-h-[2.75rem] !h-auto"
               classNameInner="min-h-[2.75.rem] !h-auto"
               theme="white"
             >
               <div className="px-4 pb-4">
-                Besides Cardano network fees, the market place charges a 2.4%
-                service fee. 0.4% of it are available to market place hosting
-                providers. Find out more about it{" "}
-                <a
-                  className="text-purple-500 font-semibold"
-                  href="https://github.com/Berry-Pool/spacebudz/tree/main/src/cardano/market"
-                  target="_blank"
-                >
-                  here
-                </a>
-                .
+                Besides Cardano network fees, the marketplace charges a 2.4%
+                service fee.
               </div>
             </Disclosure>
             <Disclosure

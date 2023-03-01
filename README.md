@@ -1,8 +1,7 @@
 <p align="center">
   <img width="100px" src="./src/images/brand/logo.png" align="center" />
   <h1 align="center">SpaceBudz</h1>
-  <p align="center">SpaceBudz is an NFT collection on Cardano consisting of 10,000 unique little astronauts. We make use of Cardano's multi asset ledger for the NFTs and Plutus validators for the marketplace.
-This repository contains the full marketplace implementation including the frontend interface.
+  <p align="center">SpaceBudz is an NFT collection built on Cardano, featuring 10,000 little astronauts. Leveraging Cardano's multi-asset ledger, each SpaceBudz NFT is uniquely identified and traceable on the blockchain. Moreover, the project utilizes Plutus validators to create a secure and efficient marketplace for buyers and sellers to exchange SpaceBudz NFTs.
 Our official website: <a href="https://spacebudz.io">spacebudz.io</a></p>
 
   <p align="center">
@@ -18,26 +17,23 @@ Our official website: <a href="https://spacebudz.io">spacebudz.io</a></p>
 ### Validity
 
 To make sure you have a real SpaceBud the policy id must match the following:
-**`d5e6bf0500378d4f0da4e8dde6becec7621cd8cbf5cbb9b87013d4cc`**
+**`TODO`**
 
-You can find the according policy script in `./collection_data/minting_policy.json`
+You can find the contract based policy in the [Wormhole](https://github.com/spacebudz/wormhole) repository.
 
 The contract address for the official SpaceBudz marketplace:
-**`addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq`**
+**`TODO`**
 
 ### Metadata
 
-We follow [CIP-25](https://github.com/cardano-foundation/CIPs/blob/master/CIP-0025/CIP-0025.md), the NFT metadata standard on Cardano, which was created by SpaceBudz.
+We follow [CIP-68](https://github.com/cardano-foundation/CIPs/blob/master/CIP-0025/CIP-0068.md), the Datum NFT metadata standard on Cardano, which was co-created by SpaceBudz.
 
-Images are stored on IPFS and Arweave and you find the image link to a SpaceBud inside the metadata.
+Images are stored on IPFS and you find the image link as well as the SHA-256 hash to the image inside the metadata of the SpaceBud.
 
 ### Marketplace
 
-The marketplace can be run by members of the community. They can host the marketplace with their own custom interface and earn 0.4% per trade.
+The SpaceBudz marketplace is built on top of the [Nebula protocol](https://github.com/spacebudz/nebula).
 
-We have a seperate module inside this repository for the marketplace with the full source code.
-
-Check it out [here](./src/cardano/market/).
 
 ### Community tools
 

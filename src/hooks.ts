@@ -1,11 +1,12 @@
 import * as React from "react";
+import { getLucid } from "./utils";
 
 export const useIsIntersecting = (ref: { current: any }, rootMargin: any) => {
   const [isIntersecting, setIntersecting] = React.useState(false);
   React.useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]: any) => setIntersecting(entry.isIntersecting),
-      { rootMargin }
+      { rootMargin },
     );
     observer.observe(ref.current);
     return () => {

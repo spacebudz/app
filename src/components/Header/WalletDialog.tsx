@@ -25,23 +25,36 @@ export const WalletDialog = React.forwardRef((props: any, ref: any) => {
     <Dialog ref={ref}>
       <div className="w-full flex flex-col items-center">
         <div className="w-full text-2xl font-semibold mb-4">Select wallet</div>
-        <div className="w-full self-start mb-10 font-light">
-          Select a wallet to view your collection and interact with the
+        <div className="w-full self-start pt-2 pb-10 px-8 font-light">
+          Choose a wallet to view your collection and interact with the
           marketplace, where you can buy, sell and bid on SpaceBudz.
         </div>
         {existingWallets.length > 0 ? (
-          existingWallets.map((walletName, index) => (
-            <WalletSelection
-              key={index}
-              walletName={walletName}
-              setWallet={setWallet}
-              cardano={cardano}
-              ref={ref}
-            />
-          ))
+          <>
+            {existingWallets.map((walletName, index) => (
+              <WalletSelection
+                key={index}
+                walletName={walletName}
+                setWallet={setWallet}
+                cardano={cardano}
+                ref={ref}
+              />
+            ))}
+            <div className="text-sm py-4 max-w-[280px] text-center">
+              By connecting a wallet you agree to our{" "}
+              <a
+                className="font-bold"
+                href="/termsAndConditions"
+                target="_blank"
+              >
+                Terms of Service
+              </a>
+              .
+            </div>
+          </>
         ) : (
           <div className="text-center">
-            <div>No wallet found :(</div>
+            <div>No wallet found</div>
             <div className="mt-2 font-bold">
               Get started with{" "}
               <a

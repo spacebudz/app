@@ -19,6 +19,7 @@ export type Activity = {
   budId: number;
   slot: number;
   image: string;
+  needsToMigrate?: boolean;
 };
 
 type RecentActivityProps = {
@@ -47,7 +48,7 @@ export const RecentActivity = ({ array }: RecentActivityProps) => {
     };
   }, []);
   return (
-    <div className="h-48 w-full bg-slate-800 border-2 border-b-4 border-slate-900 rounded-xl text-white overflow-hidden relative">
+    <div className="h-48 w-full bg-slate-900 border-2 border-b-4 border-slate-900 rounded-xl text-white overflow-hidden relative">
       <div
         id="activity"
         className="h-full flex items-center overflow-x-scroll scroll-smooth overflow-y-hidden space-x-1 justify-start scrollbar-none"
@@ -63,9 +64,13 @@ export const RecentActivity = ({ array }: RecentActivityProps) => {
                 <Link to={`/spacebud/${activity.budId}/`}>
                   <div>
                     <Image
+                      className={`mt-24 ${
+                        activity.needsToMigrate
+                          ? "brightness-[16%] blur-md"
+                          : ""
+                      }`}
                       scrollPosition={scrollPosition}
                       threshold={700}
-                      className="mt-24"
                       width={700}
                       src={ipfsToHttps(activity.image)}
                     />
