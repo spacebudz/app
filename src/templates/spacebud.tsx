@@ -4,37 +4,48 @@ import { Button, Ellipsis, Image, Spinner } from "../components";
 import {
   CONTRACT_ADDRESS,
   EXTRA_RECEIVING_ADDRESS,
-  POLICY_ID,
+  DEPRECATED_POLICY_ID,
   TYPES_GADGETS_COUNT,
+  POLICY_ID,
+  NEBULA_ADDRESS,
+  LOCK_ADRESS,
 } from "../config";
 import { useIsMounted } from "../hooks";
 import { MainLayout } from "../layouts/mainLayout";
 import {
+  findAsync,
   fromLovelace,
   fromLovelaceDisplay,
   getAddressBech32,
+  getLucid,
+  getNebula,
   getSelectedWallet,
+  getWormhole,
+  idToBud,
   ipfsToHttps,
 } from "../utils";
 import { useStoreState } from "easy-peasy";
 import Market from "../cardano/market";
 import secrets from "../../secrets";
 import { SpecialButton } from "../parts/spacebud/SpecialButton";
-import {
-  baseUrl,
-  getLastSale,
-  getOwners,
-  getPriceUSD,
-  projectId,
-} from "../api";
+import { baseUrl, getLastSale, getOwners, getPriceUSD } from "../api";
 import { checkTx, ConfirmDialog, TradeDialog } from "../parts/spacebud/Dialog";
 import { downloadPFP } from "../parts/spacebud/utils";
 import { Sigil } from "../parts/spacebud/Sigil";
 import { Discord } from "@styled-icons/bootstrap/Discord";
 import { Mail } from "@styled-icons/ionicons-solid/Mail";
 import { TwitterSquare } from "@styled-icons/fa-brands/TwitterSquare";
-import { checkTxIdentity, IdentityDialog } from "../parts/spacebud/Identity";
-import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
+import {
+  Credential,
+  fromText,
+  paymentCredentialOf,
+  toLabel,
+  toUnit,
+} from "lucid-cardano";
+import * as Nebula from "@spacebudz/nebula";
+import { Contract as Wormhole } from "@spacebudz/wormhole";
+// import { checkTxIdentity, IdentityDialog } from "../parts/spacebud/Identity";
+// import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
 
 const SpaceBud = ({ data, pageContext: { budId } }) => {
   const { name, traits, image, type } = data.allMetadataJson.edges[0].node;
@@ -43,33 +54,49 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
   const wallet = useStoreState<any>((state) => state.wallet.wallet);
 
   const defaultDetails = {
-    bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
-    listing: { listingUtxo: null, lovelace: null, usd: null, owner: false },
+    bid: {
+      bidUtxo: null,
+      lovelace: null,
+      usd: null,
+      owner: false,
+      isNebula: false,
+    },
+    listing: {
+      listingUtxo: null,
+      lovelace: null,
+      usd: null,
+      owner: false,
+      isNebula: false,
+    },
     lastSale: { lovelace: null, usd: null },
+    fee: 0,
   };
 
   const [details, setDetails] = React.useState(defaultDetails);
   const [owners, setOwners] = React.useState([]);
-  const [identity, setIdentity] = React.useState<{
-    nickname?: string;
-    color?: string;
-    urbit?: string[];
-    twitter?: string[];
-    discord?: string[];
-    email?: string[];
-  }>({});
+  // const [identity, setIdentity] = React.useState<{
+  //   nickname?: string;
+  //   color?: string;
+  //   urbit?: string[];
+  //   twitter?: string[];
+  //   discord?: string[];
+  //   email?: string[];
+  // }>({});
 
   const confirmRef = React.useRef<any>();
   const tradeRef = React.useRef<any>();
-  const identityRef = React.useRef<any>();
+  // const identityRef = React.useRef<any>();
 
   const loadData = async () => {
     isMounted.current && setLoading(true);
     const selectedWallet = await getSelectedWallet();
 
-    const contract = new Contract(
-      await Lucid.new(new Blockfrost(baseUrl, projectId))
-    );
+    // const contract = new Contract(
+    //   await Lucid.new(new Blockfrost(baseUrl, projectId))
+    // );
+
+    const wormhole = await getWormhole();
+    const hasMigrated = await wormhole.hasMigrated(budId);
 
     const walletAddresses = wallet.address
       ? (await selectedWallet.getUsedAddresses()).map((address) =>
@@ -77,8 +104,18 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         )
       : [];
 
-    const unit = POLICY_ID + Buffer.from(`SpaceBud${budId}`).toString("hex");
-    const owners = await getOwners(unit);
+    const owners = (
+      await getOwners(
+        toUnit(DEPRECATED_POLICY_ID, fromText(`SpaceBud${budId}`))
+      )
+    )
+      .concat(await getOwners(toUnit(POLICY_ID, fromText(`Bud${budId}`), 222)))
+      .filter(
+        (owner) =>
+          paymentCredentialOf(owner).hash !==
+          paymentCredentialOf(LOCK_ADRESS).hash
+      );
+
     let usdPrice = 0;
     try {
       usdPrice = await getPriceUSD();
@@ -90,14 +127,31 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
 
     const details = JSON.parse(
       JSON.stringify({
-        bid: { bidUtxo: null, lovelace: null, usd: null, owner: false },
-        listing: { listingUtxo: null, lovelace: null, usd: null, owner: false },
+        bid: {
+          bidUtxo: null,
+          lovelace: null,
+          usd: null,
+          owner: false,
+          isNebula: false,
+        },
+        listing: {
+          listingUtxo: null,
+          lovelace: null,
+          usd: null,
+          owner: false,
+          isNebula: false,
+        },
         lastSale: { lovelace: null, usd: null },
+        fee: 0,
       })
     );
 
     const isOwner = (address: string): boolean =>
-      walletAddresses.some((_address) => _address === address);
+      walletAddresses.some(
+        (_address) =>
+          paymentCredentialOf(_address).hash ===
+          paymentCredentialOf(address).hash
+      );
 
     const replaceContractWithOwner = (address: string) => {
       const index = owners.indexOf(CONTRACT_ADDRESS);
@@ -148,9 +202,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       });
     }
 
-    if (owners.find((address) => isOwner(address)))
-      details.listing.owner = true;
-
     if (listingUtxo) {
       const listingAddress = listingUtxo.tradeOwnerAddress.to_bech32();
       replaceContractWithOwner(listingAddress);
@@ -177,33 +228,151 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       );
     }
 
+    // Nebula
+
+    const lucid = await getLucid();
+
+    const replaceNebulaWithOwner = (address: string) => {
+      const index = owners.findIndex(
+        (owner) =>
+          paymentCredentialOf(owner).hash ===
+          paymentCredentialOf(NEBULA_ADDRESS).hash
+      );
+      if (index !== -1) owners[index] = address;
+    };
+
+    const _nebula = await getNebula();
+
+    // Sorted in descending order by price
+    const [bidUtxoNebula] = await _nebula.getBids({
+      assetName: idToBud(budId),
+    });
+    // Sorted in ascending order by price
+    const [listingUtxoNebula, listingUtxoTwin1] = await _nebula.getListings(
+      idToBud(budId)
+    );
+
+    if (listingUtxoTwin1) {
+      const owner = Nebula.toAddress(
+        (
+          await lucid.datumOf<Nebula.TradeDatum>(
+            listingUtxoTwin1,
+            Nebula.TradeDatum
+          )
+        ).Listing[0].owner,
+        lucid
+      );
+      replaceNebulaWithOwner(owner);
+    }
+
+    // The twin owner is able to his own listing even if his listing is not the lowest by price
+    const finalListingUtxoNebula =
+      (await findAsync([listingUtxoNebula, listingUtxoTwin1], async (utxo) => {
+        if (utxo) {
+          isOwner(
+            Nebula.toAddress(
+              (await lucid.datumOf<Nebula.TradeDatum>(utxo, Nebula.TradeDatum))
+                .Listing[0].owner,
+              lucid
+            )
+          );
+        } else {
+          return false;
+        }
+      })) || listingUtxoNebula;
+
+    if (finalListingUtxoNebula) {
+      const listingDetails = (
+        await lucid.datumOf<Nebula.TradeDatum>(
+          finalListingUtxoNebula,
+          Nebula.TradeDatum
+        )
+      ).Listing[0];
+      const owner = Nebula.toAddress(listingDetails.owner, lucid);
+      const lovelace = listingDetails.requestedLovelace;
+      replaceNebulaWithOwner(owner);
+      if (isOwner(owner)) {
+        details.listing.owner = true;
+      }
+      details.listing.lovelace = lovelace;
+      details.listing.usd = (fromLovelace(lovelace) * usdPrice).toLocaleString(
+        "en-EN",
+        {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2,
+        }
+      );
+      details.listing.listingUtxo = finalListingUtxoNebula;
+      details.listing.isNebula = true;
+    }
+
+    if (bidUtxoNebula) {
+      const biddingDetails = (
+        await lucid.datumOf<Nebula.TradeDatum>(bidUtxoNebula, Nebula.TradeDatum)
+      ).Bid[0];
+      const owner = Nebula.toAddress(biddingDetails.owner, lucid);
+      if (isOwner(owner)) {
+        details.bid.owner = true;
+      }
+      details.bid.lovelace = bidUtxoNebula.assets.lovelace;
+      details.bid.usd = (
+        fromLovelace(bidUtxoNebula.assets.lovelace) * usdPrice
+      ).toLocaleString("en-EN", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      });
+      details.bid.bidUtxo = bidUtxoNebula;
+      details.bid.isNebula = true;
+    }
+
+    const royaltyRecipients = await _nebula.getRoyalty();
+
+    details.fee = royaltyRecipients.reduce((prev, curr) => prev + curr.fee, 0);
+
+    // Nebula (End)
+
+    let isBudOwner = false;
+    if (owners.find((address) => isOwner(address))) {
+      details.listing.owner = true;
+      isBudOwner = true;
+    }
+
     /* if both owner address are the same no need to display two addresses => consolidate to one */
     if (owners.length >= 2 && owners[0] === owners[1]) {
       delete owners[1];
     }
 
     /* Check identity */
-    const identity = await contract.getIdentity(budId);
-    setIdentity({
-      ...identity,
-    });
+    // const identity = await contract.getIdentity(budId);
 
     if (isMounted.current) {
       setDetails(details);
       setOwners(owners);
       setLoading(false);
+
+      // setIdentity({
+      //   ...identity,
+      // });
+
+      // Wormhole
+      setIsBudOwner(isBudOwner);
+      setHasMigrated(hasMigrated);
     }
   };
 
   const { current: market } = React.useRef(
     new Market(
       {
-        base: "https://cardano-mainnet.blockfrost.io/api/v0",
+        base: baseUrl,
         projectId: secrets.PROJECT_ID,
       },
       EXTRA_RECEIVING_ADDRESS
     )
   );
+
+  const nebula = React.useRef<Nebula.Contract>();
+
+  const wormhole = React.useRef<Wormhole>();
 
   const isMounted = useIsMounted();
   const firstRender = React.useRef(true);
@@ -211,11 +380,17 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     setLoading(true);
     if (firstRender.current) {
       await market.load();
+      nebula.current = await getNebula();
+      wormhole.current = await getWormhole();
       firstRender.current = false;
       window.addEventListener("confirm", loadData);
     }
     await loadData();
   };
+
+  // Wormhole
+  const [hasMigrated, setHasMigrated] = React.useState(false);
+  const [isBudOwner, setIsBudOwner] = React.useState(false);
 
   React.useEffect(() => {
     init();
@@ -231,19 +406,54 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       image={imageLink}
     >
       <>
+        {!loading && !hasMigrated && (
+          <div className="w-full flex items-center justify-center mb-10">
+            <div className="w-[90%] max-w-[800px] bg-primary border-violet-600 border-2 border-b-4 rounded-xl p-4 font-bold text-white">
+              As the proud owner, you hold the key to unlocking the secrets of
+              the universe. Connect your wallet and join us on the other side of
+              the wormhole. <br />
+              <div className="text-sm mt-4">
+                Cancel listing first in order to migrate.
+              </div>
+              <Button
+                className="mt-4"
+                size="sm"
+                disabled={
+                  !wallet.address || !isBudOwner || details.listing.listingUtxo
+                }
+                loading={loading}
+                onClick={() => {
+                  confirmRef.current.open({
+                    type: "Wormhole",
+                    wormhole: { contract: wormhole.current, ids: [budId] },
+                    budId,
+                  });
+                }}
+              >
+                Migrate
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="w-full flex flex-wrap mb-40">
           <div className="w-full lg:w-2/4 flex flex-grow relative">
-            <div className="w-full lg:sticky lg:top-4 pb-[100%] md:pb-[80%] lg:pb-0 bg-slate-800 border-2 border-b-4 border-slate-900 rounded-xl mx-4 mb-4 lg:mx-0 lg:mb-0 lg:ml-4 md:h-[calc(100vh-9rem)] relative">
+            <div className="w-full lg:sticky lg:top-4 pb-[100%] md:pb-[80%] lg:pb-0 bg-slate-900 border-2 border-b-4 border-slate-800 rounded-xl mx-4 mb-4 lg:mx-0 lg:mb-0 lg:ml-4 md:h-[calc(100vh-9rem)] relative">
               <div className="absolute left-0 top-0 flex justify-center items-center w-full h-full">
                 <div className="flex justify-center items-center w-full">
                   <div className="w-[90%] md:w-[80%] md:max-w-3xl">
                     <div className="w-full h-full max-h-36 flex justify-center items-center">
-                      <Image src={`${imageLink}`} />
+                      <Image
+                        src={`${imageLink}`}
+                        className={
+                          !hasMigrated ? "brightness-[14%] blur-md" : ""
+                        }
+                      />
                     </div>
                   </div>
                 </div>
               </div>
-              <Button
+              {/* <Button
                 className="absolute bottom-3 right-3"
                 theme="space"
                 size="sm"
@@ -252,12 +462,12 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                 }}
               >
                 PFP
-              </Button>
+              </Button> */}
             </div>
           </div>
           <div className="w-full lg:w-2/4 px-8 lg:px-10 flex flex-col">
-            <div className="text-4xl font-bold font-title">{name}</div>
-            <Link to={`/explore/?type=${type}`}>
+            <div className="text-4xl font-bold font-title w-fit">{name}</div>
+            <Link to={`/explore/?type=${type}`} className="w-fit">
               <div className="text-3xl font-semibold font-title text-slate-500">
                 {type}
               </div>
@@ -271,14 +481,14 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               </div>
             ) : (
               <>
-                {identity?.nickname && (
+                {/* {identity?.nickname && (
                   <div
                     className={`text-3xl font-bold font-title mt-4`}
                     style={{ color: identity?.color }}
                   >
                     {identity?.nickname}
                   </div>
-                )}
+                )} */}
                 <div className="h-10" />
                 <div className="flex flex-wrap">
                   <div className="mr-8 mb-6">
@@ -302,22 +512,40 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                       {details.listing.owner ? (
                         <SpecialButton
                           disabledMessage={
-                            details.listing.lovelace &&
-                            "To update listing cancel it first"
+                            (!details.listing.isNebula &&
+                              details.listing.lovelace &&
+                              "To update listing cancel it first") ||
+                            !hasMigrated
                           }
                           onClick={() => {
                             tradeRef.current.open({
                               type: "List",
                               minAda: BigInt(70000000),
+                              budId,
                             });
                           }}
                           cancel={
                             details.listing.lovelace
                               ? () => {
-                                  confirmRef.current.open({
-                                    type: "CancelListing",
-                                    lovelace: details.listing.lovelace,
-                                  });
+                                  if (details.listing.isNebula) {
+                                    confirmRef.current.open({
+                                      type: "CancelListing",
+                                      lovelace: details.listing.lovelace,
+                                      market: nebula.current,
+                                      isNebula: true,
+                                      details,
+                                      budId,
+                                    });
+                                  } else {
+                                    confirmRef.current.open({
+                                      type: "CancelListing",
+                                      lovelace: details.listing.lovelace,
+                                      market,
+                                      isNebula: false,
+                                      details,
+                                      budId,
+                                    });
+                                  }
                                 }
                               : null
                           }
@@ -332,6 +560,10 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                             confirmRef.current.open({
                               type: "Buy",
                               lovelace: details.listing.lovelace,
+                              market: nebula.current,
+                              isNebula: true,
+                              details,
+                              budId,
                             });
                           }}
                           theme="violet"
@@ -340,7 +572,10 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                             (!wallet.address &&
                               "Login to buy and make offers") ||
                             !details.listing.lovelace ||
-                            (details.bid.owner && "To buy cancel offer first")
+                            (details.bid.owner &&
+                              "To buy cancel offer first") ||
+                            !details.listing.isNebula ||
+                            !hasMigrated
                           }
                         >
                           Buy
@@ -372,6 +607,10 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                             confirmRef.current.open({
                               type: "Sell",
                               lovelace: details.bid.lovelace,
+                              market: nebula.current,
+                              isNebula: true,
+                              details,
+                              budId,
                             });
                           }}
                           theme="orange"
@@ -380,7 +619,9 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                             (details.listing.lovelace &&
                               details.bid.lovelace &&
                               "To sell cancel listing first") ||
-                            !details.bid.lovelace
+                            !details.bid.lovelace ||
+                            !details.bid.isNebula ||
+                            !hasMigrated
                           }
                         >
                           Sell
@@ -393,6 +634,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                               minAda: details.bid.lovelace
                                 ? details.bid.lovelace + BigInt(10000)
                                 : BigInt(70000000),
+                              budId,
                             });
                           }}
                           theme="orange"
@@ -400,16 +642,32 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                           cancel={
                             details.bid.owner
                               ? () => {
-                                  confirmRef.current.open({
-                                    type: "CancelBid",
-                                    lovelace: details.bid.lovelace,
-                                  });
+                                  if (details.bid.isNebula) {
+                                    confirmRef.current.open({
+                                      type: "CancelBid",
+                                      lovelace: details.bid.lovelace,
+                                      market: nebula.current,
+                                      isNebula: true,
+                                      details,
+                                      budId,
+                                    });
+                                  } else {
+                                    confirmRef.current.open({
+                                      type: "CancelBid",
+                                      lovelace: details.bid.lovelace,
+                                      market,
+                                      isNebula: false,
+                                      details,
+                                      budId,
+                                    });
+                                  }
                                 }
                               : null
                           }
                           disabledMessage={
                             !wallet.address ||
-                            (details.listing.owner && details.bid.owner)
+                            (details.listing.owner && details.bid.owner) ||
+                            !hasMigrated
                           }
                         >
                           Make offer
@@ -467,7 +725,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                     ))
                   )}
                 </div>
-                {(identity?.urbit ||
+                {/* {(identity?.urbit ||
                   identity?.twitter ||
                   identity?.discord ||
                   identity?.email ||
@@ -517,36 +775,28 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                       </div>
                     )}
                   </>
-                )}
+                )} */}
               </>
             )}
           </div>
         </div>
         <ConfirmDialog
           ref={confirmRef}
-          market={market}
-          details={details}
-          budId={budId}
           checkTx={({ txHash }) =>
             checkTx({
               txHash,
-              market,
             })
           }
         />
         <TradeDialog
           ref={tradeRef}
-          market={market}
-          details={details}
-          budId={budId}
           checkTx={({ txHash }) =>
             checkTx({
               txHash,
-              market,
             })
           }
         />
-        <IdentityDialog
+        {/* <IdentityDialog
           ref={identityRef}
           identity={identity}
           budId={budId}
@@ -555,7 +805,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               txHash,
             })
           }
-        />
+        /> */}
       </>
     </MainLayout>
   );

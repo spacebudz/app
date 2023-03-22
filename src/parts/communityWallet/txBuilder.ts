@@ -8,8 +8,8 @@ import {
 import { getSelectedWallet, toHex } from "../../utils";
 import { Blockfrost, C, fromHex, Lucid, Tx, TxComplete } from "lucid-cardano";
 
-typeof window !== "undefined" &&
-  (await Lucid.initialize(new Blockfrost(baseUrl, projectId), "Mainnet"));
+const lucid = typeof window !== "undefined" &&
+  await Lucid.new(new Blockfrost(baseUrl, projectId), "Mainnet");
 
 type MultiSig = {
   script: string;
@@ -31,27 +31,27 @@ export const createMultisig = (): MultiSig => {
     coSignersScripts.add(
       C.NativeScript.new_script_pubkey(
         C.ScriptPubkey.new(
-          C.Ed25519KeyHash.from_bytes(Buffer.from(coSigner, "hex"))
-        )
-      )
+          C.Ed25519KeyHash.from_bytes(Buffer.from(coSigner, "hex")),
+        ),
+      ),
     );
   });
 
   const multisig = C.NativeScript.new_script_n_of_k(
-    C.ScriptNOfK.new(3, coSignersScripts)
+    C.ScriptNOfK.new(3, coSignersScripts),
   );
 
   const address = C.BaseAddress.new(
     C.NetworkInfo.mainnet().network_id(),
     C.StakeCredential.from_scripthash(
-      multisig.hash(C.ScriptHashNamespace.NativeScript)
+      multisig.hash(C.ScriptHashNamespace.NativeScript),
     ),
     C.StakeCredential.from_scripthash(
-      multisig.hash(C.ScriptHashNamespace.NativeScript)
-    )
+      multisig.hash(C.ScriptHashNamespace.NativeScript),
+    ),
   )
     .to_address()
-    .to_bech32();
+    .to_bech32(undefined);
 
   return {
     script: toHex(multisig.to_bytes()),
@@ -59,16 +59,16 @@ export const createMultisig = (): MultiSig => {
   };
 };
 
-export type Recipient = { address: string; amount: BigInt };
+export type Recipient = { address: string; amount: bigint };
 
 export const createTransaction = async (
   recipients: Recipient[],
-  message: string
+  message: string,
 ): Promise<string> => {
   const multisig = createMultisig();
-  await Lucid.selectWalletFromUtxos({ address: multisig.address });
+  lucid.selectWalletFrom({ address: multisig.address });
 
-  const tx = Tx.new();
+  const tx = lucid.newTx();
   recipients.forEach((recipient) => {
     tx.payToAddress(recipient.address, { lovelace: recipient.amount });
   });
@@ -91,12 +91,12 @@ type Action = "Signed" | { Submitted: string } | undefined;
 
 export const signTransaction = async (
   session: string,
-  tx: string
+  tx: string,
 ): Promise<Action> => {
   const selectedWallet = await getSelectedWallet();
-  await Lucid.selectWallet((selectedWallet as any).walletName);
+  lucid.selectWallet((selectedWallet as any).walletName);
 
-  const txComplete = new TxComplete(C.Transaction.from_bytes(fromHex(tx)));
+  const txComplete = lucid.fromTx(tx);
 
   const witness = await txComplete.partialSign().catch((e) => {
     throw new Error("Transaction signature refused");
@@ -110,32 +110,35 @@ export const signTransaction = async (
     C.TransactionWitnessSet.from_bytes(Buffer.from(w, "hex"))
   );
 
-  if (parsedWitness.vkeys().len() <= 0)
+  if (parsedWitness.vkeys().len() <= 0) {
     throw new Error("Transaction could not be signed");
+  }
 
   if (
     parsedWitnesses.some(
       (w) =>
         Buffer.from(
-          w.vkeys().get(0).vkey().public_key().hash().to_bytes()
+          w.vkeys().get(0).vkey().public_key().hash().to_bytes(),
         ).toString("hex") ===
-        Buffer.from(
-          parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes()
-        ).toString("hex")
+          Buffer.from(
+            parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes(),
+          ).toString("hex"),
     )
-  )
+  ) {
     throw new Error("Transaction already signed");
+  }
 
   if (
     !coSigners.some(
       (cosigner) =>
         cosigner ===
-        Buffer.from(
-          parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes()
-        ).toString("hex")
+          Buffer.from(
+            parsedWitness.vkeys().get(0).vkey().public_key().hash().to_bytes(),
+          ).toString("hex"),
     )
-  )
+  ) {
     throw new Error("Transaction signed by invalid co-signer");
+  }
 
   await addWitnessToMultisigSession(session, witness);
 
@@ -144,8 +147,8 @@ export const signTransaction = async (
   txComplete.assemble(witnesses);
   const signedTx = await txComplete.complete();
 
-  const txHash = await Lucid.wallet
-    .submitTx(signedTx.txSigned)
+  const txHash = await lucid.wallet
+    .submitTx(signedTx.toString())
     .catch((e) => console.error(e));
 
   if (txHash) return { Submitted: txHash };

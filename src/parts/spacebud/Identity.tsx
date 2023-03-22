@@ -5,12 +5,12 @@ import { toast } from "../../components/Toast";
 import { pendingTxToast, successTxToast, tradeErrorHandler } from "./Dialog";
 import { getSelectedWallet } from "../../utils";
 import { baseUrl, projectId } from "../../api";
-import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
+// import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
 
 type IdentityDialogProps = {
   identity: any;
   budId: number;
-  checkTx: ({ txHash: string }) => void;
+  checkTx: ({ txHash }) => void;
 };
 
 let lucid;
@@ -70,20 +70,20 @@ export const IdentityDialog = React.forwardRef(
         if (input.email) metadata.email = [input.email];
       }
 
-      lucid = await Lucid.new(new Blockfrost(baseUrl, projectId));
+      // lucid = await Lucid.new(new Blockfrost(baseUrl, projectId));
 
       lucid.selectWallet(selectedWallet as any);
-      const contract = new Contract(lucid);
+      // const contract = new Contract(lucid);
 
-      const txHash = await contract
-        .updateIdentity(budId, metadata)
-        .catch((e) => tradeErrorHandler(e));
+      // const txHash = await contract
+      //   .updateIdentity(budId, metadata)
+      //   .catch((e) => tradeErrorHandler(e));
 
       setLoading({ reset: false, update: false });
-      if (!txHash) return;
-      checkTx({
-        txHash,
-      });
+      // if (!txHash) return;
+      // checkTx({
+      //   txHash,
+      // });
       dialogRef.current.close();
     };
 

@@ -1,7 +1,11 @@
+import { Blockfrost, fromText, Lucid, toLabel } from "lucid-cardano";
+import secrets from "../secrets";
 import { UTxO } from "./api";
 import { TransactionUnspentOutput } from "./cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-browser/cardano_multiplatform_lib";
 import { Value } from "./cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-nodejs/cardano_multiplatform_lib";
 import { IPFS_GATEWAY } from "./config";
+import { Contract as Wormhole } from "@spacebudz/wormhole";
+import { Contract as Nebula } from "@spacebudz/nebula";
 const S = await import(
   "./cardano/market/custom_modules/@emurgo/cardano-multiplatform-lib-browser"
 );
@@ -10,8 +14,8 @@ export const ipfsToHttps = (ipfs: string): string =>
   IPFS_GATEWAY + "/" + ipfs.split("ipfs://")[1];
 
 export const toLovelace = (
-  ada: string | number | BigInt,
-): BigInt | undefined => {
+  ada: string | number | bigint,
+): bigint | undefined => {
   if (!ada) return;
   return BigInt(
     parseFloat(ada.toString().replace(/[,\s]/g, ""))
@@ -166,3 +170,56 @@ export const utxoToCSLFormat = (utxo: UTxO): TransactionUnspentOutput => {
     ),
   );
 };
+
+export const getLucid = async (): Promise<Lucid> => {
+  if ((window as any).lucid) return (window as any).lucid;
+  (window as any).lucid = await Lucid.new(
+    new Blockfrost(
+      "https://cardano-mainnet.blockfrost.io/api/v0",
+      secrets.PROJECT_ID,
+    ),
+  );
+  return (window as any).lucid;
+};
+
+export const getWormhole = async (): Promise<Wormhole> => {
+  const lucid = await getLucid();
+  const walletApi = await getSelectedWallet();
+  if ((window as any).wormhole) {
+    ((window as any).wormhole as Wormhole).lucid.selectWallet(walletApi);
+    return (window as any).wormhole;
+  }
+  lucid.selectWallet(walletApi);
+  const wormhole = new Wormhole(lucid);
+  (window as any).wormhole = wormhole;
+  return wormhole;
+};
+
+export const getNebula = async (): Promise<Nebula> => {
+  const lucid = await getLucid();
+  const walletApi = await getSelectedWallet();
+  if ((window as any).nebula) {
+    ((window as any).nebula as Wormhole).lucid.selectWallet(walletApi);
+    return (window as any).nebula;
+  }
+  lucid.selectWallet(walletApi);
+  const nebula = new Nebula(lucid);
+  (window as any).nebula = nebula;
+  return nebula;
+};
+
+export function idToBud(id: number): string {
+  return toLabel(222) + fromText(`Bud${id}`);
+}
+
+export async function findAsync<T>(
+  array: T[],
+  predicate: (t: T) => Promise<boolean>,
+): Promise<T | undefined> {
+  for (const t of array) {
+    if (await predicate(t)) {
+      return t;
+    }
+  }
+  return undefined;
+}

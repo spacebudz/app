@@ -171,7 +171,7 @@ export const makeSort = (
   sort: DecodedValueMap<Sort>
 ) => {
   if (!sort) return;
-  const ordering = sort as Order;
+  const ordering = sort as unknown as Order;
   switch (ordering) {
     case "ASC_BUY": {
       if (!a.buy) return 1;
@@ -275,8 +275,12 @@ export const FilterTile = ({
   const negatedName = selected?.startsWith("NOT_") && selected.slice(4);
   return (
     <div
-      className={`border-2 p-2 border-slate-900 rounded-xl text-xs cursor-pointer flex justify-center items-center text-center font-bold ${
-        selected ? (negatedName ? "bg-rose-400" : "bg-primary") : ""
+      className={`border-2 p-2 rounded-xl text-xs cursor-pointer flex justify-center items-center text-center font-bold ${
+        selected
+          ? negatedName
+            ? "bg-rose-400 text-white"
+            : "bg-primary text-white"
+          : ""
       }`}
       onClick={() => {
         if (selected && negatedName) {
@@ -339,7 +343,7 @@ export const RangeFilter = ({
       <NumberFormat
         className="text-sm"
         classNameContainer="w-[6.9rem]"
-        theme="space"
+        theme="white"
         placeholder={placeholderMin}
         customInput={Input}
         allowNegative={false}
@@ -358,7 +362,7 @@ export const RangeFilter = ({
       <NumberFormat
         className="text-sm"
         classNameContainer="w-[6.9rem]"
-        theme="space"
+        theme="white"
         placeholder={placeholderMax}
         customInput={Input}
         allowNegative={false}
@@ -410,14 +414,15 @@ const sortOptions: SortOption[] = [
     name: "Bid: High to low",
     value: "DESC_BID",
   },
-  {
-    name: "Mint: Old to new",
-    value: "ASC_MINT",
-  },
-  {
-    name: "Mint: New to old",
-    value: "DESC_MINT",
-  },
+  // Disabled. Doesn't make sense anymore
+  // {
+  //   name: "Mint: Old to new",
+  //   value: "ASC_MINT",
+  // },
+  // {
+  //   name: "Mint: New to old",
+  //   value: "DESC_MINT",
+  // },
 ];
 
 export const SortSelection = ({ sort, setSort }) => {
@@ -449,11 +454,11 @@ export const FilterPanel = ({
   const checkBid = Boolean(filter.onBid);
 
   return (
-    <div className="lg:sticky w-full lg:top-0 pb-20 lg:p-6 lg:border-2 lg:border-l-0 lg:border-slate-900 lg:bg-slate-800 text-white lg:rounded-r-xl lg:h-[100vh] overflow-auto scrollbar-none">
+    <div className="lg:sticky w-full lg:top-0 pb-20 lg:p-6 lg:border-2 lg:border-l-0  text-slate-900 lg:rounded-r-xl lg:h-[100vh] overflow-auto scrollbar-none">
       <div className="text-xl w-full font-bold mb-10 flex justify-left items-center">
         <FilterAlt size={24} className="mr-2" /> <div>Filters</div>
       </div>
-      <Disclosure title="Types" theme="space">
+      <Disclosure title="Species" theme="white" defaultOpen>
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(TYPES_GADGETS_COUNT.types).map((entry, index) => (
             <FilterTile
@@ -467,7 +472,7 @@ export const FilterPanel = ({
         </div>
       </Disclosure>
       <div className="h-6" />
-      <Disclosure title="Gadgets" theme="space">
+      <Disclosure title="Gadgets" theme="white">
         <div className="grid grid-cols-3 gap-2">
           {Object.entries(TYPES_GADGETS_COUNT.gadgets).map((entry, index) => (
             <FilterTile
@@ -482,7 +487,7 @@ export const FilterPanel = ({
         </div>
       </Disclosure>
       <div className="h-6" />
-      <Disclosure title="Ranges" theme="space">
+      <Disclosure title="Ranges" theme="white">
         <div>
           <div className="mb-3 text-md font-bold">Number of gadgets</div>
           <RangeFilter

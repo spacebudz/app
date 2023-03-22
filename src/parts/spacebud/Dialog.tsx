@@ -1,30 +1,51 @@
 import * as React from "react";
 import { Button, createToast, Input, Spinner, toast } from "../../components";
 import { Dialog } from "../../components/Dialog";
-import { fromLovelaceDisplay, toLovelace } from "../../utils";
+import {
+  findAsync,
+  fromLovelaceDisplay,
+  getLucid,
+  getNebula,
+  getSelectedWallet,
+  idToBud,
+  toLovelace,
+} from "../../utils";
 import { ExternalLink } from "@styled-icons/evaicons-solid/ExternalLink";
 import NumberFormat from "react-number-format";
+import { Wormhole } from "../../components/Wormhole";
+import { paymentCredentialOf } from "lucid-cardano";
+import * as Nebula from "@spacebudz/nebula";
 
 type Confirm = {
-  type: "CancelBid" | "CancelListing" | "Sell" | "Buy" | null;
-  lovelace: BigInt | null;
+  type: "CancelBid" | "CancelListing" | "Sell" | "Buy" | "Wormhole" | null;
+  lovelace: bigint | null;
+  market: any;
+  wormhole?: { contract: any; ids: number[] };
+  isNebula: boolean;
+  details: any;
+  budId: number;
 };
 
 type ConfirmDialogProps = {
-  market: any;
-  budId: number;
-  details: any;
-  checkTx: ({ txHash: string }) => void;
+  checkTx: ({ txHash }: { txHash: string }) => void;
 };
 
 export const ConfirmDialog = React.forwardRef(
-  ({ market, budId, details, checkTx }: ConfirmDialogProps, ref: any) => {
+  ({ checkTx }: ConfirmDialogProps, ref: any) => {
     const [confirm, setConfirm] = React.useState<Confirm>({
       type: null,
       lovelace: null,
+      market: null,
+      isNebula: true,
+      details: null,
+      budId: null,
     });
+
+    React.useEffect(() => {}, []);
+
     const [loading, setLoading] = React.useState(false);
     const dialogRef = React.useRef<any>();
+    const [startWormhole, setStartWormhole] = React.useState(false);
 
     React.useImperativeHandle(ref, () => ({
       open: (confirm: Confirm) => {
@@ -38,8 +59,8 @@ export const ConfirmDialog = React.forwardRef(
       (confirm.type === "CancelBid" && "Cancel bid") ||
       (confirm.type === "CancelListing" && "Cancel listing") ||
       (confirm.type === "Sell" && "Sell") ||
-      (confirm.type === "Buy" && "Buy");
-
+      (confirm.type === "Buy" && "Buy") ||
+      (confirm.type === "Wormhole" && "Wormhole");
     const content =
       (confirm.type === "CancelBid" && (
         <span>
@@ -47,7 +68,11 @@ export const ConfirmDialog = React.forwardRef(
           <span className="font-bold text-violet-400 inline-block">
             {fromLovelaceDisplay(confirm.lovelace)}
           </span>{" "}
-          on <span className="font-bold inline-block">SpaceBud #{budId}</span>?
+          on{" "}
+          <span className="font-bold inline-block">
+            SpaceBud #{confirm.budId}
+          </span>
+          ?
         </span>
       )) ||
       (confirm.type === "CancelListing" && (
@@ -56,13 +81,20 @@ export const ConfirmDialog = React.forwardRef(
           <span className="font-bold text-violet-400 inline-block">
             {fromLovelaceDisplay(confirm.lovelace)}
           </span>{" "}
-          on <span className="font-bold inline-block">SpaceBud #{budId}</span>?
+          on{" "}
+          <span className="font-bold inline-block">
+            SpaceBud #{confirm.budId}
+          </span>
+          ?
         </span>
       )) ||
       (confirm.type === "Sell" && (
         <span>
           Are you sure you want to sell{" "}
-          <span className="font-bold inline-block">SpaceBud #{budId}</span> for{" "}
+          <span className="font-bold inline-block">
+            SpaceBud #{confirm.budId}
+          </span>{" "}
+          for{" "}
           <span className="font-bold text-orange-400 break-after-all inline-block">
             {fromLovelaceDisplay(confirm.lovelace)}
           </span>
@@ -72,34 +104,119 @@ export const ConfirmDialog = React.forwardRef(
       (confirm.type === "Buy" && (
         <span>
           Are you sure you want to buy{" "}
-          <span className="font-bold inline-block">SpaceBud #{budId}</span> for{" "}
+          <span className="font-bold inline-block">
+            SpaceBud #{confirm.budId}
+          </span>{" "}
+          for{" "}
           <span className="font-bold text-violet-400 inline-block">
             {fromLovelaceDisplay(confirm.lovelace)}
           </span>
           ?
         </span>
+      )) ||
+      (confirm.type === "Wormhole" && (
+        <span>
+          {confirm.wormhole!.ids.length > 1 ? (
+            <>
+              A selection of SpaceBudz will embark on a journey through the
+              wormhole. These individuals will be carefully chosen from among
+              your collection. A group of approximately 4-7 will be able to make
+              the journey in each transaction.
+            </>
+          ) : (
+            <>
+              SpaceBud #{confirm.wormhole!.ids[0]} will embark on an
+              unforgettable adventure through the wormhole.
+            </>
+          )}
+        </span>
       ));
+
+    const [wormholeIds, setWormholeIds] = React.useState([]);
 
     const onConfirm = async () => {
       setLoading(true);
-      let txHash: string;
+      let txHash: string | void;
       if (confirm.type === "Buy") {
-        txHash = await market
-          .buy(details.listing.listingUtxo)
-          .catch((e) => tradeErrorHandler(e));
+        if (confirm.isNebula) {
+          txHash = await confirm.market
+            .buy([confirm.details.listing.listingUtxo])
+            .catch((e: any) => tradeErrorHandler(e));
+        } else {
+          txHash = await confirm.market
+            .buy(confirm.details.listing.listingUtxo)
+            .catch((e: any) => tradeErrorHandler(e));
+        }
       } else if (confirm.type === "Sell") {
-        txHash = await market
-          .sell(details.bid.bidUtxo)
-          .catch((e) => tradeErrorHandler(e));
+        if (confirm.isNebula) {
+          txHash = await confirm.market
+            .sell([{ bidUtxo: confirm.details.bid.bidUtxo }])
+            .catch((e: any) => tradeErrorHandler(e));
+        } else {
+          txHash = await confirm.market
+            .sell(confirm.details.bid.bidUtxo)
+            .catch((e: any) => tradeErrorHandler(e));
+        }
       } else if (confirm.type === "CancelBid") {
-        txHash = await market
-          .cancelBid(details.bid.bidUtxo)
-          .catch((e) => tradeErrorHandler(e));
+        if (confirm.isNebula) {
+          txHash = await confirm.market
+            .cancelBid(confirm.details.bid.bidUtxo)
+            .catch((e: any) => tradeErrorHandler(e));
+        } else {
+          txHash = await confirm.market
+            .cancelBid(confirm.details.bid.bidUtxo)
+            .catch((e: any) => tradeErrorHandler(e));
+        }
       } else if (confirm.type === "CancelListing") {
-        txHash = await market
-          .cancelOffer(details.listing.listingUtxo)
-          .catch((e) => tradeErrorHandler(e));
+        if (confirm.isNebula) {
+          txHash = await confirm.market
+            .cancelListing(confirm.details.listing.listingUtxo)
+            .catch((e: any) => tradeErrorHandler(e));
+        } else {
+          txHash = await confirm.market
+            .cancelOffer(confirm.details.listing.listingUtxo)
+            .catch((e: any) => tradeErrorHandler(e));
+        }
+      } else if (confirm.type === "Wormhole") {
+        setWormholeIds(confirm.wormhole.ids);
+        if (confirm.wormhole.ids.length === 1) {
+          txHash = await confirm
+            .wormhole!.contract.migrate(confirm.wormhole.ids)
+            .catch((e: any) => tradeErrorHandler(e));
+          setWormholeIds(confirm.wormhole.ids);
+        } else {
+          // Start with all, then slice of 1, then 2, then throw error
+          let userDeclined = false;
+          try {
+            txHash = await confirm.wormhole!.contract.migrate(
+              confirm.wormhole.ids
+            );
+            setWormholeIds(confirm.wormhole.ids);
+          } catch (e) {
+            userDeclined = e.code == 2;
+            if (userDeclined) tradeErrorHandler(e);
+          }
+          if (!userDeclined) {
+            try {
+              txHash = await confirm.wormhole!.contract.migrate(
+                confirm.wormhole.ids.slice(1)
+              );
+              setWormholeIds(confirm.wormhole.ids.slice(1));
+            } catch (e) {
+              userDeclined = e.code == 2;
+              if (userDeclined) tradeErrorHandler(e);
+            }
+          }
+          if (!userDeclined) {
+            txHash = await confirm
+              .wormhole!.contract.migrate(confirm.wormhole.ids.slice(2))
+              .catch((e: any) => tradeErrorHandler(e));
+            setWormholeIds(confirm.wormhole.ids.slice(2));
+          }
+        }
+        if (txHash) setTimeout(() => setStartWormhole(true), 2500);
       }
+
       setLoading(false);
       if (!txHash) return;
       checkTx({
@@ -108,25 +225,34 @@ export const ConfirmDialog = React.forwardRef(
       dialogRef.current.close();
     };
     return (
-      <Dialog ref={dialogRef} onClose={() => setLoading(false)}>
-        <div className="w-full flex flex-col items-center">
-          <div className="w-full text-2xl font-semibold mb-4">{title}</div>
-          <div className="w-full self-start mb-8 text-md">
-            <div>{content}</div>
-            {(confirm.type === "Buy" || confirm.type === "Sell") && (
-              <div className="mt-2 text-xs">Service fee: 2.4%</div>
-            )}
+      <>
+        <Dialog ref={dialogRef} onClose={() => setLoading(false)}>
+          <div className="w-full flex flex-col items-center">
+            <div className="w-full text-2xl font-semibold mb-4">{title}</div>
+            <div className="w-full self-start mb-8 text-md">
+              <div>{content}</div>
+              {(confirm.type === "Buy" || confirm.type === "Sell") && (
+                <div className="mt-2 text-xs">
+                  Service fee: {(confirm.details.fee * 100).toFixed(2)}%
+                </div>
+              )}
+            </div>
+            <div className="w-full flex justify-end">
+              <Button loading={loading} className="mr-2" onClick={onConfirm}>
+                Confirm
+              </Button>
+              <Button theme="space" onClick={() => dialogRef.current.close()}>
+                Cancel
+              </Button>
+            </div>
           </div>
-          <div className="w-full flex justify-end">
-            <Button loading={loading} className="mr-2" onClick={onConfirm}>
-              Confirm
-            </Button>
-            <Button theme="space" onClick={() => dialogRef.current.close()}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      </Dialog>
+        </Dialog>
+        <Wormhole
+          ids={wormholeIds}
+          hasStarted={startWormhole}
+          setHasStarted={setStartWormhole}
+        />
+      </>
     );
   }
 );
@@ -134,13 +260,17 @@ export const ConfirmDialog = React.forwardRef(
 type Trade = {
   type: "List" | "Offer" | null;
   minAda: BigInt;
+  budId: number;
+  owner?: string; // Address
 };
 
 export const TradeDialog = React.forwardRef(
-  ({ market, budId, details, checkTx }: ConfirmDialogProps, ref: any) => {
+  ({ checkTx }: ConfirmDialogProps, ref: any) => {
     const [trade, setTrade] = React.useState<Trade>({
       type: null,
       minAda: BigInt(0),
+      budId: null,
+      owner: null,
     });
     const [loading, setLoading] = React.useState(false);
     const [value, setValue] = React.useState("");
@@ -155,20 +285,26 @@ export const TradeDialog = React.forwardRef(
         <>
           {" "}
           Type in the amount of ADA you wish to list{" "}
-          <span className="font-bold inline-block">SpaceBud #{budId}</span> for.
+          <span className="font-bold inline-block">
+            SpaceBud #{trade.budId}
+          </span>{" "}
+          for.
         </>
       )) ||
       (trade.type === "Offer" && (
         <>
           {" "}
           Type in the amount of ADA you wish to make an offer for
-          <span className="font-bold inline-block">SpaceBud #{budId}</span>.
+          <span className="font-bold inline-block">
+            SpaceBud #{trade.budId}
+          </span>
+          .
         </>
       ));
 
     React.useImperativeHandle(ref, () => ({
-      open: (type: Trade) => {
-        setTrade(type);
+      open: (trade: Trade) => {
+        setTrade(trade);
         dialogRef.current.open();
       },
       close: () => dialogRef.current.close(),
@@ -177,15 +313,66 @@ export const TradeDialog = React.forwardRef(
     const onConfirm = async () => {
       setLoading(true);
       const lovelace = toLovelace(value);
-      let txHash: string;
+      let txHash: string | void;
+      const nebula = await getNebula();
+      const lucid = await getLucid();
+
+      const selectedWallet = await getSelectedWallet();
+      const selectedWalletAddresses = await selectedWallet.getUsedAddresses();
+
+      // NEBULA (market needs to be Nebula)
       if (trade.type === "List") {
-        txHash = await market
-          .offer(budId, lovelace.toString())
-          .catch((e) => tradeErrorHandler(e));
+        const listingUtxo = await findAsync(
+          await nebula.getListings(idToBud(trade.budId)),
+          async (utxo) => {
+            const owner = Nebula.toAddress(
+              (await lucid.datumOf<Nebula.TradeDatum>(utxo, Nebula.TradeDatum))
+                .Listing[0].owner,
+              lucid
+            );
+            return selectedWalletAddresses.some(
+              (address) =>
+                paymentCredentialOf(address).hash ===
+                paymentCredentialOf(owner).hash
+            );
+          }
+        );
+
+        if (listingUtxo) {
+          txHash = await nebula
+            .changeListing(listingUtxo, lovelace)
+            .catch((e) => tradeErrorHandler(e));
+        } else {
+          txHash = await nebula
+            .list([idToBud(trade.budId)], lovelace)
+            .catch((e) => tradeErrorHandler(e));
+        }
       } else if (trade.type === "Offer") {
-        txHash = await market
-          .bid(details.bid.bidUtxo, lovelace.toString())
-          .catch((e) => tradeErrorHandler(e));
+        const bidUtxo = await findAsync(
+          await nebula.getBids({ assetName: idToBud(trade.budId) }),
+          async (utxo) => {
+            const owner = Nebula.toAddress(
+              (await lucid.datumOf<Nebula.TradeDatum>(utxo, Nebula.TradeDatum))
+                .Bid[0].owner,
+              lucid
+            );
+            return selectedWalletAddresses.some(
+              (address) =>
+                paymentCredentialOf(address).hash ===
+                paymentCredentialOf(owner).hash
+            );
+          }
+        );
+        // We check if there is an existing bid already from this user. If there is we take this one and updated it, otherwise we create a new utxo.
+        if (bidUtxo) {
+          txHash = await nebula
+            .changeBid(bidUtxo, lovelace)
+            .catch((e) => tradeErrorHandler(e));
+        } else {
+          txHash = await nebula
+            .bid([idToBud(trade.budId)], lovelace)
+            .catch((e) => tradeErrorHandler(e));
+        }
       }
       setLoading(false);
       if (!txHash) return;
@@ -300,14 +487,14 @@ export const successTxToast = (txHash: string) => {
   });
 };
 
-export const checkTx = async ({ txHash, market }) => {
+export const checkTx = async ({ txHash }) => {
   if (!txHash) return;
   pendingTxToast();
 
-  await market.awaitConfirmation(txHash);
+  await (await getLucid()).awaitTx(txHash);
   toast.dismiss();
   successTxToast(txHash);
-  await new Promise((res, rej) => setTimeout(() => res(1), 1000));
+  await new Promise((res, rej) => setTimeout(() => res(1), 5000));
   const event = new Event("confirm");
   window.dispatchEvent(event);
 };
