@@ -42,12 +42,13 @@ export const Footer = () => {
             SpaceBudz
           </div>
         </div>
-        <Link
+        <a
+          target="_blank"
           className="text-sm font-light mb-1 text-primary"
-          to="/termsAndConditions/"
+          href="/terms.pdf"
         >
           Terms and Conditions
-        </Link>
+        </a>
         <div className="text-sm font-light text-slate-500">
           info@spacebudz.io
         </div>
@@ -63,6 +64,9 @@ export const Footer = () => {
           </Link>
           <Link className="hover:opacity-80 duration-200" to="/about/">
             About
+          </Link>
+          <Link className="hover:opacity-80 duration-200" to="/license/">
+            License
           </Link>
           <Link className="hover:opacity-80 duration-200" to="/FAQ/">
             Help

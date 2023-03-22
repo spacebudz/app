@@ -81,8 +81,12 @@ export const Wormhole = ({ ids, hasStarted, setHasStarted }: WormholeProps) => {
   React.useEffect(() => {
     // Preload wormhole animation
     (async () => {
-      const blob = await fetch("/wormhole.mp4").then((res) => res.blob());
-      setVideoSrc(URL.createObjectURL(blob));
+      const arrayBuffer = await fetch("/wormhole.mp4").then((res) =>
+        res.arrayBuffer()
+      );
+      setVideoSrc(
+        URL.createObjectURL(new Blob([arrayBuffer], { type: "video/mp4" }))
+      );
     })();
   }, []);
 

@@ -79,12 +79,12 @@ export const GITHUB_LINK = "https://github.com/spacebudz";
 
 // Wormhole
 
-// TODO
 export const POLICY_ID =
-  "0000518f2f8c39ed3d53e3837310bb358e197b091c2f1a81b95de346";
+  "4523c5e21d409b81c95b45b0aea275b8ea1406e6cafea5583b9f8a5f";
 export const NEBULA_ADDRESS =
-  "addr1wyg3pakjz0hweutchtlmwlxzxs2q29kmk9yt5gc0dccnxnqcnkg72";
-export const NEBULA_HASH = "0000";
+  "addr1w944m8a98j3gk5mm0as7lqep763t5csdlpzvua5a92h7t8g9dc2c9";
+export const NEBULA_HASH =
+  "6b5d9fa53ca28b537b7f61ef8321f6a2ba620df844ce769d2aafe59d";
 
 export const LOCK_ADRESS =
-  "addr1wyp2997k6u7zrfxf5tgtk9r60z8zcsvjksleyt7f385m9vgqyzj4s";
+  "addr1wyxzp0hufcllp5emldfrtcvlev4uj2g6huqq9wfhn7efw5q3zdavq";

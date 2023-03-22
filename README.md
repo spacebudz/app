@@ -17,12 +17,12 @@ Our official website: <a href="https://spacebudz.io">spacebudz.io</a></p>
 ### Validity
 
 To make sure you have a real SpaceBud the policy id must match the following:
-**`TODO`**
+**`4523c5e21d409b81c95b45b0aea275b8ea1406e6cafea5583b9f8a5f`**
 
 You can find the contract based policy in the [Wormhole](https://github.com/spacebudz/wormhole) repository.
 
 The contract address for the official SpaceBudz marketplace:
-**`TODO`**
+**`addr1w944m8a98j3gk5mm0as7lqep763t5csdlpzvua5a92h7t8g9dc2c9`**
 
 ### Metadata
 

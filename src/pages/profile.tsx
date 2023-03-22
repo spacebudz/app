@@ -341,6 +341,7 @@ const Profile = () => {
                           wormhole: {
                             contract: wormhole.current,
                             ids: array[0]
+                              .filter((owned) => owned.needsToMigrate)
                               .map((owned) => owned.budId)
                               .slice(0, 7),
                           },

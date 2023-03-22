@@ -33,7 +33,6 @@ const Explore = () => {
             image
             type
             traits
-            mint
           }
         }
       }
@@ -188,7 +187,7 @@ const Explore = () => {
                   onChange={(e) =>
                     !e.target.value && search && setSearch({ search: null })
                   }
-                  placeholder="Search id, type, gadget"
+                  placeholder="Search id, species, gadget"
                   classNameContainer="sm:flex-[0_0_60%]"
                   leftEl={<Search size={14} />}
                 />

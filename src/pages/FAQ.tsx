@@ -139,8 +139,8 @@ const FAQ = () => {
                 </a>{" "}
                 with enhanced functionality.
                 <br />
-                In order to migrate SpaceBudz connect your wallet and got to
-                your profile. You will see migration buttons appear above the
+                In order to migrate SpaceBudz connect your wallet and go to your
+                profile. You will see migration buttons appear above the
                 SpaceBudz that need to be migrated. <br /> The old policy id is
                 deprecated and no longer associated with SpaceBudz.
                 <br />

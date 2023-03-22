@@ -40,7 +40,7 @@ export const Header = (props: HeaderProps) => {
     if (!cardano) return;
     if (!wallet.address) return;
     const selected = await setSelectedWallet(wallet.walletName);
-    if (!selected) {
+    if (!selected || !localStorage["termsAccepted03162023"]) {
       reset();
       return;
     }
@@ -202,15 +202,12 @@ export const Header = (props: HeaderProps) => {
               </span>
             </div>
           </Link>
-          <Link to="/termsAndConditions/">
+          <Link to="/license/">
             <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
               <span className="flex items-center">
                 <span className="text-md font-medium text-black">
-                  NFT license
+                  NFT License
                 </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Our terms and conditions
               </span>
             </div>
           </Link>

@@ -179,7 +179,6 @@ export const ConfirmDialog = React.forwardRef(
         }
       } else if (confirm.type === "Wormhole") {
         setWormholeIds(confirm.wormhole.ids);
-        setTimeout(() => setStartWormhole(true), 2500);
         if (confirm.wormhole.ids.length === 1) {
           txHash = await confirm
             .wormhole!.contract.migrate(confirm.wormhole.ids)
@@ -202,7 +201,7 @@ export const ConfirmDialog = React.forwardRef(
               txHash = await confirm.wormhole!.contract.migrate(
                 confirm.wormhole.ids.slice(1)
               );
-              setWormholeIds(confirm.wormhole.ids.slice(2));
+              setWormholeIds(confirm.wormhole.ids.slice(1));
             } catch (e) {
               userDeclined = e.code == 2;
               if (userDeclined) tradeErrorHandler(e);
@@ -234,7 +233,7 @@ export const ConfirmDialog = React.forwardRef(
               <div>{content}</div>
               {(confirm.type === "Buy" || confirm.type === "Sell") && (
                 <div className="mt-2 text-xs">
-                  Service fee: {(confirm.details.fee * 100).toFixed(2)}
+                  Service fee: {(confirm.details.fee * 100).toFixed(2)}%
                 </div>
               )}
             </div>
