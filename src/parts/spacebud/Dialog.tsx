@@ -196,7 +196,7 @@ export const ConfirmDialog = React.forwardRef(
             userDeclined = e.code == 2;
             if (userDeclined) tradeErrorHandler(e);
           }
-          if (!userDeclined) {
+          if (!txHash && !userDeclined) {
             try {
               txHash = await confirm.wormhole!.contract.migrate(
                 confirm.wormhole.ids.slice(1)
@@ -207,7 +207,7 @@ export const ConfirmDialog = React.forwardRef(
               if (userDeclined) tradeErrorHandler(e);
             }
           }
-          if (!userDeclined) {
+          if (!txHash && !userDeclined) {
             txHash = await confirm
               .wormhole!.contract.migrate(confirm.wormhole.ids.slice(2))
               .catch((e: any) => tradeErrorHandler(e));
