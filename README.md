@@ -26,7 +26,7 @@ The contract address for the official SpaceBudz marketplace:
 
 ### Metadata
 
-We follow [CIP-0068](https://github.com/cardano-foundation/CIPs/blob/master/CIP-0068/CIP-0068.md), the Datum NFT metadata standard on Cardano, which was co-created by SpaceBudz.
+We follow [CIP-0068](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0068), the Datum NFT metadata standard on Cardano, which was co-created by SpaceBudz.
 
 Images are stored on IPFS and you find the image link as well as the SHA-256 hash to the image inside the metadata of the SpaceBud.
 
