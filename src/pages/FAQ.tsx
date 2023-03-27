@@ -162,7 +162,8 @@ const FAQ = () => {
                   Nebula protocol
                 </a>
                 . There is no 3rd party or middleman involved.
-                <br /> The contract hash: {NEBULA_HASH}
+                <br /> The contract hash:{" "}
+                <span className="font-semibold break-all">{NEBULA_HASH}</span>
                 <br />
                 <br />
                 The full source code can be found{" "}
