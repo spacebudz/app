@@ -250,7 +250,7 @@ const FAQ = () => {
             >
               <div className="px-4 pb-4">
                 Besides Cardano network fees, the marketplace charges a 2.4%
-                service fee.
+                royalty fee.
               </div>
             </Disclosure>
             <Disclosure

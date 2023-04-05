@@ -233,7 +233,7 @@ export const ConfirmDialog = React.forwardRef(
               <div>{content}</div>
               {(confirm.type === "Buy" || confirm.type === "Sell") && (
                 <div className="mt-2 text-xs">
-                  Service fee: {(confirm.details.fee * 100).toFixed(2)}%
+                  Fee: {(confirm.details.fee * 100).toFixed(2)}%
                 </div>
               )}
             </div>
