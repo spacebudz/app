@@ -18,7 +18,8 @@ export const WalletDialog = React.forwardRef((props: any, ref: any) => {
           walletName === "begin" ||
           walletName === "nufi" ||
           walletName === "cardwallet" ||
-          walletName === "gerowallet"
+          walletName === "gerowallet" ||
+          walletName === "lace"
       )
     : [];
   const setWallet = useStoreActions<any>((actions) => actions.wallet.setWallet);
