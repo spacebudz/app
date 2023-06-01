@@ -26,6 +26,15 @@
         ]
       },
       {
+        "source": "api/**",
+        "headers": [
+          {
+            "key": "cache-control",
+            "value": "public, max-age=10, stale-while-revalidate=59"
+          }
+        ]
+      },
+      {
         "source": "static/**",
         "headers": [
           {
