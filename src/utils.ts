@@ -85,7 +85,7 @@ export const getCardano = (): Cardano | undefined => {
 
 export const getSelectedWallet = async (): Promise<CardanoAPI | undefined> => {
   const cardano = getCardano();
-  await new Promise((res, rej) => setTimeout(() => res(1), 50)); // waiting until wallet is mounted in window object
+  await new Promise((res, rej) => setTimeout(() => res(1), 200)); // waiting until wallet is mounted in window object
   const selectedWallet: CardanoAPI = cardano?.selectedWallet as any;
   return selectedWallet;
 };
