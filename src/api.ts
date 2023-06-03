@@ -139,7 +139,7 @@ export const getActivity = async (): Promise<Activity[]> => {
   const result = await fetch(marketplaceUrl + `/v2v3/activity`).then((
     res,
   ) => res.json());
-  return result.map((r) => ({
+  return result.filter((r) => r.budId !== null).map((r) => ({
     budId: parseInt(r.budId),
     lovelace: BigInt(r.lovelace),
     slot: parseInt(r.slot),
