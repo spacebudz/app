@@ -39,7 +39,7 @@ export const MainLayout = (props: MainLayoutProps) => {
               props.landing ? "text-white" : "text-black"
             } min-h-screen w-full h-full flex flex-col`}
           >
-            {props.landing && (
+            {/* {props.landing && (
               <Link
                 to="/wormhole"
                 className="w-full h-16 bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600 z-10"
@@ -48,7 +48,7 @@ export const MainLayout = (props: MainLayoutProps) => {
                   <b>An enigmatic wormhole has materialized</b>
                 </div>
               </Link>
-            )}
+            )} */}
             <div className="relative">
               <Header landing={props.landing} />
             </div>
