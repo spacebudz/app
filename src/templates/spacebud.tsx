@@ -443,12 +443,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                 <div className="flex justify-center items-center w-full">
                   <div className="w-[90%] md:w-[80%] md:max-w-3xl">
                     <div className="w-full h-full max-h-36 flex justify-center items-center">
-                      <Image
-                        src={`${imageLink}`}
-                        className={
-                          !hasMigrated ? "brightness-[14%] blur-md" : ""
-                        }
-                      />
+                      <Image src={`${imageLink}`} />
                     </div>
                   </div>
                 </div>

@@ -64,11 +64,7 @@ export const RecentActivity = ({ array }: RecentActivityProps) => {
                 <Link to={`/spacebud/${activity.budId}/`}>
                   <div>
                     <Image
-                      className={`mt-24 ${
-                        activity.needsToMigrate
-                          ? "brightness-[16%] blur-md"
-                          : ""
-                      }`}
+                      className={`mt-24`}
                       scrollPosition={scrollPosition}
                       threshold={700}
                       width={700}

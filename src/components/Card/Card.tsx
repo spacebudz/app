@@ -140,13 +140,7 @@ export const Card = ({
             </div>
             {imageUpdate && (
               <div className="absolute left-0 top-0 w-full h-full hover:scale-[102%] duration-200 will-change-transform">
-                <Image
-                  className={
-                    node.needsToMigrate ? "brightness-[14%] blur-md" : ""
-                  }
-                  threshold={700}
-                  src={ipfsToHttps(node.image)}
-                />
+                <Image threshold={700} src={ipfsToHttps(node.image)} />
               </div>
             )}
           </div>
