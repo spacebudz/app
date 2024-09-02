@@ -12,6 +12,7 @@ import { setSelectedWallet } from "./wallet";
 import {
   DISCORD_LINK,
   GITHUB_LINK,
+  GUIDE_LINK,
   TELEGRAM_LINK,
   TWITTER_LINK,
 } from "../../config";
@@ -137,7 +138,7 @@ export const Header = (props: HeaderProps) => {
                 </span>
               </span>
               <span className="block text-sm text-gray-500">
-                Join our vibrant community on Discord with over 30K members
+                Join our vibrant community on Discord
               </span>
             </div>
           </a>
@@ -162,6 +163,18 @@ export const Header = (props: HeaderProps) => {
               </span>
               <span className="block text-sm text-gray-500">
                 Get to know our smaller and helpful community on Telegram
+              </span>
+            </div>
+          </a>
+          <a href={GUIDE_LINK} target="_blank">
+            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
+              <span className="flex items-center">
+                <span className="text-md font-medium text-[#15171C]">
+                  Guide
+                </span>
+              </span>
+              <span className="block text-sm text-gray-500">
+                Learn more about the project and the collection itself
               </span>
             </div>
           </a>

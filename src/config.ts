@@ -76,6 +76,7 @@ export const DISCORD_LINK = "https://discord.com/invite/vtmm6RG2Bv";
 export const TWITTER_LINK = "https://twitter.com/spacebudzNFT";
 export const TELEGRAM_LINK = "https://t.me/spacebudz";
 export const GITHUB_LINK = "https://github.com/spacebudz";
+export const GUIDE_LINK = "https://spacebudz.gitbook.io/spacebudz";
 
 // Wormhole
 
