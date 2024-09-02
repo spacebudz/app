@@ -43,6 +43,7 @@ import {
   toUnit,
 } from "lucid-cardano";
 import * as Nebula from "@spacebudz/nebula";
+import { NebulaSpend } from "../nebula_types";
 import { Contract as Wormhole } from "@spacebudz/wormhole";
 // import { checkTxIdentity, IdentityDialog } from "../parts/spacebud/Identity";
 // import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
@@ -254,12 +255,12 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
 
     if (listingUtxoTwin1) {
       const owner = Nebula.toAddress(
-        (
-          await lucid.datumOf<Nebula.TradeDatum>(
+        ((datum) => ("Listing" in datum ? datum.Listing[0].owner : null))(
+          await lucid.datumOf<NebulaSpend["datum"]>(
             listingUtxoTwin1,
-            Nebula.TradeDatum
+            NebulaSpend.datum
           )
-        ).Listing[0].owner,
+        ),
         lucid
       );
       replaceNebulaWithOwner(owner);
@@ -271,8 +272,12 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         if (utxo) {
           isOwner(
             Nebula.toAddress(
-              (await lucid.datumOf<Nebula.TradeDatum>(utxo, Nebula.TradeDatum))
-                .Listing[0].owner,
+              ((datum) => ("Listing" in datum ? datum.Listing[0].owner : null))(
+                await lucid.datumOf<NebulaSpend["datum"]>(
+                  utxo,
+                  NebulaSpend.datum
+                )
+              ),
               lucid
             )
           );
@@ -282,12 +287,14 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       })) || listingUtxoNebula;
 
     if (finalListingUtxoNebula) {
-      const listingDetails = (
-        await lucid.datumOf<Nebula.TradeDatum>(
+      const listingDetails = ((datum) =>
+        "Listing" in datum ? datum.Listing[0] : null)(
+        await lucid.datumOf<NebulaSpend["datum"]>(
           finalListingUtxoNebula,
-          Nebula.TradeDatum
+          NebulaSpend.datum
         )
-      ).Listing[0];
+      );
+
       const owner = Nebula.toAddress(listingDetails.owner, lucid);
       const lovelace = listingDetails.requestedLovelace;
       replaceNebulaWithOwner(owner);
@@ -307,9 +314,13 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     }
 
     if (bidUtxoNebula) {
-      const biddingDetails = (
-        await lucid.datumOf<Nebula.TradeDatum>(bidUtxoNebula, Nebula.TradeDatum)
-      ).Bid[0];
+      const biddingDetails = ((datum) =>
+        "Bid" in datum ? datum.Bid[0] : null)(
+        await lucid.datumOf<NebulaSpend["datum"]>(
+          bidUtxoNebula,
+          NebulaSpend.datum
+        )
+      );
       const owner = Nebula.toAddress(biddingDetails.owner, lucid);
       if (isOwner(owner)) {
         details.bid.owner = true;

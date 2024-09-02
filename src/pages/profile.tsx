@@ -43,6 +43,7 @@ import secrets from "../../secrets";
 import { fromUnit, paymentCredentialOf, toText } from "lucid-cardano";
 import { Contract as Wormhole } from "@spacebudz/wormhole";
 import * as Nebula from "@spacebudz/nebula";
+import { NebulaSpend } from "../nebula_types";
 
 const Profile = () => {
   const [address] = useQueryParam("address", StringParam);
@@ -474,12 +475,13 @@ const Profile = () => {
                                   outRef
                                 );
                                 if (!listing) return;
-                                const listingDetails = (
-                                  await lucid.datumOf<Nebula.TradeDatum>(
+                                const listingDetails = ((datum) =>
+                                  "Listing" in datum ? datum.Listing[0] : null)(
+                                  await lucid.datumOf<NebulaSpend["datum"]>(
                                     listing,
-                                    Nebula.TradeDatum
+                                    NebulaSpend.datum
                                   )
-                                ).Listing[0];
+                                );
                                 const lovelace =
                                   listingDetails.requestedLovelace;
                                 confirmRef.current.open({

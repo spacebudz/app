@@ -15,6 +15,7 @@ import NumberFormat from "react-number-format";
 import { Wormhole } from "../../components/Wormhole";
 import { paymentCredentialOf } from "lucid-cardano";
 import * as Nebula from "@spacebudz/nebula";
+import { NebulaSpend } from "../../nebula_types";
 
 type Confirm = {
   type: "CancelBid" | "CancelListing" | "Sell" | "Buy" | "Wormhole" | null;
@@ -326,8 +327,12 @@ export const TradeDialog = React.forwardRef(
           await nebula.getListings(idToBud(trade.budId)),
           async (utxo) => {
             const owner = Nebula.toAddress(
-              (await lucid.datumOf<Nebula.TradeDatum>(utxo, Nebula.TradeDatum))
-                .Listing[0].owner,
+              ((datum) => ("Listing" in datum ? datum.Listing[0].owner : null))(
+                await lucid.datumOf<NebulaSpend["datum"]>(
+                  utxo,
+                  NebulaSpend.datum
+                )
+              ),
               lucid
             );
             return selectedWalletAddresses.some(
@@ -352,8 +357,12 @@ export const TradeDialog = React.forwardRef(
           await nebula.getBids({ assetName: idToBud(trade.budId) }),
           async (utxo) => {
             const owner = Nebula.toAddress(
-              (await lucid.datumOf<Nebula.TradeDatum>(utxo, Nebula.TradeDatum))
-                .Bid[0].owner,
+              ((datum) => ("Bid" in datum ? datum.Bid[0].owner : null))(
+                await lucid.datumOf<NebulaSpend["datum"]>(
+                  utxo,
+                  NebulaSpend.datum
+                )
+              ),
               lucid
             );
             return selectedWalletAddresses.some(
@@ -426,7 +435,7 @@ export const TradeDialog = React.forwardRef(
           </div>
           <div className="w-full flex justify-end mt-10">
             <Button
-              disabled={!value || trade.minAda > toLovelace(value)}
+              disabled={!value || (trade.minAda as bigint) > toLovelace(value)}
               loading={loading}
               className="mr-2"
               onClick={onConfirm}
