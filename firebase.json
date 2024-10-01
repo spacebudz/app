@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "app-spacebudz",
     "public": "public",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "redirects": [

@@ -62,9 +62,9 @@ export const Footer = () => {
           <Link className="hover:opacity-80 duration-200" to="/explore/">
             Explore
           </Link>
-          <Link className="hover:opacity-80 duration-200" to="/about/">
+          {/* <Link className="hover:opacity-80 duration-200" to="/about/">
             About
-          </Link>
+          </Link> */}
           <Link className="hover:opacity-80 duration-200" to="/license/">
             License
           </Link>

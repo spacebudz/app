@@ -26,7 +26,7 @@ const Wormhole = () => (
             <img src={PartialWormhole} className="rotate-12 w-[30%] h-[30%]" />
           </div>
         </div>
-        <div className="mt-12 text-justify flex justify-center items-center w-full px-8 max-w-2xl">
+        <div className="mt-12 text-justify w-full px-8 max-w-2xl">
           One day, while SpaceBudz were exploring the vast reaches of space,
           they stumbled upon a wormhole. Without hesitation, they decided to fly
           through it, eager to see what lay on the other side. As they entered
@@ -39,6 +39,10 @@ const Wormhole = () => (
           too. They looked down at themselves and saw that their bodies had been
           transformed. They were excited to explore this new galaxy, and the new
           possibilities that their transformations had opened up for them.
+          <p className="mt-6">
+            To get started with the wormhole, connect your wallet and head to
+            your profile.
+          </p>
         </div>
       </div>
     </MainLayout>

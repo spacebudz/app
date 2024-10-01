@@ -224,13 +224,13 @@ export const Header = (props: HeaderProps) => {
               </span>
             </div>
           </Link>
-          <Link to="/about/">
+          {/* <Link to="/about/">
             <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
               <span className="flex items-center">
                 <span className="text-md font-medium text-black">About</span>
               </span>
             </div>
-          </Link>
+          </Link> */}
         </Popover>
         <div className="mr-4 md:mr-10 lg:mr-20 w-28 flex justify-end items-center">
           {wallet.address ? (
