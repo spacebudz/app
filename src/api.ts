@@ -7,7 +7,7 @@ import { Asset } from "./utils";
 export const projectId = secrets.PROJECT_ID;
 export const baseUrl = "https://cardano-mainnet.blockfrost.io/api/v0";
 
-const marketplaceUrl = "https://spacebudz.io/api";
+const marketplaceUrl = "https://app.spacebudz.io/api";
 
 type Bid = {
   budId: number;
@@ -231,14 +231,14 @@ type Session = {
 
 export const getMultisigSession = async (session: string): Promise<Session> => {
   const result = await fetch(
-    `https://spacebudz.io/api/multisig/${session}`,
+    `https://app.spacebudz.io/api/multisig/${session}`,
   ).then((res) => res.json());
   return result;
 };
 
 export const createMultisigSession = async (tx: string): Promise<string> => {
   const result = await fetch(
-    `https://spacebudz.io/api/multisig/createSession`,
+    `https://app.spacebudz.io/api/multisig/createSession`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -253,7 +253,7 @@ export const addWitnessToMultisigSession = async (
   witness: string,
 ): Promise<boolean> => {
   const result = await fetch(
-    `https://spacebudz.io/api/multisig/${session}/signature`,
+    `https://app.spacebudz.io/api/multisig/${session}/signature`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
