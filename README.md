@@ -55,4 +55,10 @@ The `image` property contains the relative path to the image: `../image/toolsReg
 The image should be in landscape mode (e.g. 600px width, 400px height).
 You could use the other tools in the registry as template in case something is unclear.
 
+#### Setup
 
+```
+npm install --python=/usr/bin/python2.7
+```
+
+(Do not remove the package-lock.json)
