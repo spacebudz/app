@@ -9,7 +9,8 @@
     "serve": "gatsby serve -H 0.0.0.0",
     "clean": "gatsby clean",
     "setup": "npm install --python=/usr/bin/python2.7",
-    "postinstall": "node ./scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.js",
+    "postuninstall": "node ./scripts/postinstall.js"
   },
   "dependencies": {
     "@headlessui/react": "0.0.0-dev.0ce63d8",
@@ -17,7 +18,6 @@
     "@spacebudz/wormhole": "^1.0.4",
     "@tlon/sigil-js": "^1.4.5",
     "agent-base": "^6.0.2",
-    "cool": "file:../lucid/dist",
     "easy-peasy": "^5.0.4",
     "focus-visible": "^5.2.0",
     "gatsby": "^4.14.1",
