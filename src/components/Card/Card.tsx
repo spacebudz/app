@@ -73,6 +73,7 @@ export const Card = ({
                 size="xs"
                 theme="orange"
                 loading={isLoading}
+                disabled
                 onClick={async (e) => {
                   e.preventDefault();
                   setIsLoading(true);

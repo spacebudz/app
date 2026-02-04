@@ -39,16 +39,22 @@ export const MainLayout = (props: MainLayoutProps) => {
               props.landing ? "text-white" : "text-black"
             } min-h-screen w-full h-full flex flex-col`}
           >
-            {/* {props.landing && (
-              <Link
-                to="/wormhole"
-                className="w-full h-16 bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600 z-10"
-              >
-                <div className="text-center">
-                  <b>An enigmatic wormhole has materialized</b>
-                </div>
-              </Link>
-            )} */}
+            <a
+              href="https://github.com/spacebudz/nebula"
+              className="w-full h-16 bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600 z-10 text-white"
+            >
+              <div className="text-center">
+                <b>
+                  The Nebula marketplace interface is being sunset, please
+                  delist and cancel your bids. Smart contract is open-source and
+                  available here:{" "}
+                  <a href="https://github.com/spacebudz/nebula">
+                    https://github.com/spacebudz/nebula
+                  </a>
+                </b>
+              </div>
+            </a>
+
             <div className="relative">
               <Header landing={props.landing} />
             </div>

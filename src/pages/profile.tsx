@@ -321,7 +321,7 @@ const Profile = () => {
             </div>
           ) : (
             <>
-              {!allMigrated && (
+              {/* {!allMigrated && (
                 <div className="w-full flex items-center justify-center mb-10 flex-col">
                   <div className="w-[90%] max-w-[800px] bg-primary border-violet-600 border-2 border-b-4 rounded-xl p-4 font-bold text-white">
                     As the proud owner, you hold the key to unlocking the
@@ -335,7 +335,8 @@ const Profile = () => {
                     </div>
                     <Button
                       className="mt-4"
-                      disabled={wallet.address !== address}
+                      // disabled={wallet.address !== address}
+                      disabled
                       onClick={() => {
                         confirmRef.current.open({
                           type: "Wormhole",
@@ -353,7 +354,7 @@ const Profile = () => {
                     </Button>
                   </div>
                 </div>
-              )}
+              )} */}
               <div className="w-full lg:w-1/4 flex flex-grow relative px-6 md:px-12">
                 <div className="lg:sticky lg:top-8 h-fit w-full">
                   <div className="text-3xl font-bold mb-2 mt-4 lg:mt-0">

@@ -243,17 +243,6 @@ const FAQ = () => {
               </div>
             </Disclosure>
             <Disclosure
-              title="What fees are involved in the marketplace"
-              className="mt-4 min-h-[2.75rem] !h-auto"
-              classNameInner="min-h-[2.75.rem] !h-auto"
-              theme="white"
-            >
-              <div className="px-4 pb-4">
-                Besides Cardano network fees, the marketplace charges a 2.4%
-                royalty fee.
-              </div>
-            </Disclosure>
-            <Disclosure
               title="I get the error: Transaction failed"
               className="mt-4 min-h-[2.75rem] !h-auto"
               classNameInner="min-h-[2.75.rem] !h-auto"

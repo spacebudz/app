@@ -417,7 +417,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       image={imageLink}
     >
       <>
-        {!loading && !hasMigrated && (
+        {/* {!loading && !hasMigrated && (
           <div className="w-full flex items-center justify-center mb-10">
             <div className="w-[90%] max-w-[800px] bg-primary border-violet-600 border-2 border-b-4 rounded-xl p-4 font-bold text-white">
               As the proud owner, you hold the key to unlocking the secrets of
@@ -429,9 +429,10 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               <Button
                 className="mt-4"
                 size="sm"
-                disabled={
-                  !wallet.address || !isBudOwner || details.listing.listingUtxo
-                }
+                // disabled={
+                //   !wallet.address || !isBudOwner || details.listing.listingUtxo
+                // }
+                disabled
                 loading={loading}
                 onClick={() => {
                   confirmRef.current.open({
@@ -445,7 +446,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               </Button>
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="w-full flex flex-wrap mb-40">
           <div className="w-full lg:w-2/4 flex flex-grow relative">
@@ -517,12 +518,13 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                     <div className="mt-4">
                       {details.listing.owner ? (
                         <SpecialButton
-                          disabledMessage={
-                            (!details.listing.isNebula &&
-                              details.listing.lovelace &&
-                              "To update listing cancel it first") ||
-                            !hasMigrated
-                          }
+                          disabledMessage
+                          // disabledMessage={
+                          //   (!details.listing.isNebula &&
+                          //     details.listing.lovelace &&
+                          //     "To update listing cancel it first") ||
+                          //   !hasMigrated
+                          // }
                           onClick={() => {
                             tradeRef.current.open({
                               type: "List",
@@ -574,15 +576,16 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                           }}
                           theme="violet"
                           className="w-36"
-                          disabledMessage={
-                            (!wallet.address &&
-                              "Login to buy and make offers") ||
-                            !details.listing.lovelace ||
-                            (details.bid.owner &&
-                              "To buy cancel offer first") ||
-                            !details.listing.isNebula ||
-                            !hasMigrated
-                          }
+                          disabledMessage
+                          // disabledMessage={
+                          //   (!wallet.address &&
+                          //     "Login to buy and make offers") ||
+                          //   !details.listing.lovelace ||
+                          //   (details.bid.owner &&
+                          //     "To buy cancel offer first") ||
+                          //   !details.listing.isNebula ||
+                          //   !hasMigrated
+                          // }
                         >
                           Buy
                         </SpecialButton>
@@ -621,14 +624,15 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                           }}
                           theme="orange"
                           className="w-36"
-                          disabledMessage={
-                            (details.listing.lovelace &&
-                              details.bid.lovelace &&
-                              "To sell cancel listing first") ||
-                            !details.bid.lovelace ||
-                            !details.bid.isNebula ||
-                            !hasMigrated
-                          }
+                          disabledMessage
+                          // disabledMessage={
+                          //   (details.listing.lovelace &&
+                          //     details.bid.lovelace &&
+                          //     "To sell cancel listing first") ||
+                          //   !details.bid.lovelace ||
+                          //   !details.bid.isNebula ||
+                          //   !hasMigrated
+                          // }
                         >
                           Sell
                         </SpecialButton>
@@ -670,11 +674,12 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                                 }
                               : null
                           }
-                          disabledMessage={
-                            !wallet.address ||
-                            (details.listing.owner && details.bid.owner) ||
-                            !hasMigrated
-                          }
+                          // disabledMessage={
+                          //   !wallet.address ||
+                          //   (details.listing.owner && details.bid.owner) ||
+                          //   !hasMigrated
+                          // }
+                          disabledMessage
                         >
                           Make offer
                         </SpecialButton>
