@@ -9,6 +9,7 @@ export * from "./Image";
 export * from "./Card";
 export * from "./Popover";
 export * from "./Header";
+export * from "./Footer";
 export * from "./Disclosure";
 export * from "./Select";
 export * from "./Ellipsis";

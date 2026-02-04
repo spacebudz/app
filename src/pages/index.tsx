@@ -116,6 +116,27 @@ const Index = () => {
             </BackgroundImage>
           </div>
         </div>
+<<<<<<< HEAD
+=======
+        {/* <div className="relative w-full min-h-screen md:h-screen bg-slate-900 -mt-16">
+          <img
+            className="absolute pointer-events-none"
+            style={{ top: -asteroidHeight }}
+            src={Asteroid}
+            ref={asteroidRef}
+          />
+          <div className="w-full h-full flex justify-center items-center">
+            <div className="w-full px-8 max-w-2xl text-justify my-80">
+              As a line of code revealed the yet unknown, something peculiar was
+              about to happen in selected places on planet earth. Seemingly out
+              of nowhere, the chosen ones would come together and embark on the
+              biggest adventure of their lifetimes. SpaceBudz would soon find
+              out, but right now, they were still unaware, completely oblivious
+              to their destiny.
+            </div>
+          </div>
+        </div> */}
+>>>>>>> c67d1ff (cleanup)
       </>
     </MainLayout>
   );

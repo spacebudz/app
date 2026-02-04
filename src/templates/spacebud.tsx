@@ -1,6 +1,6 @@
 import * as React from "react";
 import { graphql, Link } from "gatsby";
-import { Ellipsis, Image, Spinner } from "../components";
+import { Button, Ellipsis, Image, Spinner } from "../components";
 import {
   CONTRACT_ADDRESS,
   EXTRA_RECEIVING_ADDRESS,
@@ -9,6 +9,7 @@ import {
   POLICY_ID,
   NEBULA_ADDRESS,
   LOCK_ADRESS,
+  isEnabledWh,
 } from "../config";
 import { useIsMounted } from "../hooks";
 import { MainLayout } from "../layouts/mainLayout";
@@ -329,9 +330,11 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       details.bid.isNebula = true;
     }
 
-    const royaltyRecipients = await _nebula.getRoyalty();
+    // const royaltyRecipients = await _nebula.getRoyalty();
 
-    details.fee = royaltyRecipients.reduce((prev, curr) => prev + curr.fee, 0);
+    // details.fee = royaltyRecipients.reduce((prev, curr) => prev + curr.fee, 0);
+
+    details.fee = 0;
 
     // Nebula (End)
 
@@ -410,7 +413,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       image={imageLink}
     >
       <>
-        {/* {!loading && !hasMigrated && (
+        {isEnabledWh && !loading && !hasMigrated && (
           <div className="w-full flex items-center justify-center mb-10">
             <div className="w-[90%] max-w-[800px] bg-primary border-violet-600 border-2 border-b-4 rounded-xl p-4 font-bold text-white">
               As the proud owner, you hold the key to unlocking the secrets of
@@ -422,10 +425,9 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               <Button
                 className="mt-4"
                 size="sm"
-                // disabled={
-                //   !wallet.address || !isBudOwner || details.listing.listingUtxo
-                // }
-                disabled
+                disabled={
+                  !wallet.address || !isBudOwner || details.listing.listingUtxo
+                }
                 loading={loading}
                 onClick={() => {
                   confirmRef.current.open({
@@ -439,7 +441,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               </Button>
             </div>
           </div>
-        )} */}
+        )}
 
         <div className="w-full flex flex-wrap mb-40">
           <div className="w-full lg:w-2/4 flex flex-grow relative">

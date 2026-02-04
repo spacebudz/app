@@ -117,19 +117,25 @@ export const ConfirmDialog = React.forwardRef(
       )) ||
       (confirm.type === "Wormhole" && (
         <span>
-          {confirm.wormhole!.ids.length > 1 ? (
-            <>
-              A selection of SpaceBudz will embark on a journey through the
-              wormhole. These individuals will be carefully chosen from among
-              your collection. A group of approximately 4-7 will be able to make
-              the journey in each transaction.
-            </>
-          ) : (
-            <>
-              SpaceBud #{confirm.wormhole!.ids[0]} will embark on an
-              unforgettable adventure through the wormhole.
-            </>
-          )}
+          <>
+            {confirm.wormhole!.ids.length > 1 ? (
+              <>
+                A selection of SpaceBudz will embark on a journey through the
+                wormhole. These individuals will be carefully chosen from among
+                your collection. A group of approximately 4-7 will be able to
+                make the journey in each transaction.
+              </>
+            ) : (
+              <>
+                SpaceBud #{confirm.wormhole!.ids[0]} will embark on an
+                unforgettable adventure through the wormhole.
+              </>
+            )}
+            <div className="mt-2 text-sm">
+              Ensure the SpaceBudz are delisted; otherwise, the transaction will
+              fail.
+            </div>
+          </>
         </span>
       ));
 
@@ -190,7 +196,7 @@ export const ConfirmDialog = React.forwardRef(
           let userDeclined = false;
           try {
             txHash = await confirm.wormhole!.contract.migrate(
-              confirm.wormhole.ids
+              confirm.wormhole.ids,
             );
             setWormholeIds(confirm.wormhole.ids);
           } catch (e) {
@@ -200,7 +206,7 @@ export const ConfirmDialog = React.forwardRef(
           if (!txHash && !userDeclined) {
             try {
               txHash = await confirm.wormhole!.contract.migrate(
-                confirm.wormhole.ids.slice(1)
+                confirm.wormhole.ids.slice(1),
               );
               setWormholeIds(confirm.wormhole.ids.slice(1));
             } catch (e) {
@@ -232,6 +238,10 @@ export const ConfirmDialog = React.forwardRef(
             <div className="w-full text-2xl font-semibold mb-4">{title}</div>
             <div className="w-full self-start mb-8 text-md">
               <div>{content}</div>
+              <div className="mt-2 text-sm">
+                Always verify the contract and policy id. Proceed at your own
+                risk.
+              </div>
               {(confirm.type === "Buy" || confirm.type === "Sell") && (
                 <div className="mt-2 text-xs">
                   Fee: {(confirm.details.fee * 100).toFixed(2)}%
@@ -255,7 +265,7 @@ export const ConfirmDialog = React.forwardRef(
         />
       </>
     );
-  }
+  },
 );
 
 type Trade = {
@@ -330,17 +340,17 @@ export const TradeDialog = React.forwardRef(
               ((datum) => ("Listing" in datum ? datum.Listing[0].owner : null))(
                 await lucid.datumOf<NebulaSpend["datum"]>(
                   utxo,
-                  NebulaSpend.datum
-                )
+                  NebulaSpend.datum,
+                ),
               ),
-              lucid
+              lucid,
             );
             return selectedWalletAddresses.some(
               (address) =>
                 paymentCredentialOf(address).hash ===
-                paymentCredentialOf(owner).hash
+                paymentCredentialOf(owner).hash,
             );
-          }
+          },
         );
 
         if (listingUtxo) {
@@ -360,17 +370,17 @@ export const TradeDialog = React.forwardRef(
               ((datum) => ("Bid" in datum ? datum.Bid[0].owner : null))(
                 await lucid.datumOf<NebulaSpend["datum"]>(
                   utxo,
-                  NebulaSpend.datum
-                )
+                  NebulaSpend.datum,
+                ),
               ),
-              lucid
+              lucid,
             );
             return selectedWalletAddresses.some(
               (address) =>
                 paymentCredentialOf(address).hash ===
-                paymentCredentialOf(owner).hash
+                paymentCredentialOf(owner).hash,
             );
-          }
+          },
         );
         // We check if there is an existing bid already from this user. If there is we take this one and updated it, otherwise we create a new utxo.
         if (bidUtxo) {
@@ -449,7 +459,7 @@ export const TradeDialog = React.forwardRef(
         </div>
       </Dialog>
     );
-  }
+  },
 );
 
 const failedTxToast = (error: string) => {
@@ -517,26 +527,26 @@ export const tradeErrorHandler = (e) => {
       failedTxToast("Trade in use, try again.");
     else if (e.message.includes("INPUTS_EXHAUSTED"))
       failedTxToast(
-        "Insufficent balance. Send more ADA to your wallet or use a different one."
+        "Insufficent balance. Send more ADA to your wallet or use a different one.",
       );
     else if (e.message.includes("INPUT_LIMIT_EXCEEDED"))
       failedTxToast(
-        "Too many UTxOs. Reduce wallet size by sending out tokens to another wallet or consolidate wallet."
+        "Too many UTxOs. Reduce wallet size by sending out tokens to another wallet or consolidate wallet.",
       );
     else if (e.message.includes("MAX_SIZE_REACHED"))
       failedTxToast(
-        "Size too large. Reduce wallet size by sending out tokens to another wallet."
+        "Size too large. Reduce wallet size by sending out tokens to another wallet.",
       );
     else if (e.message.includes("NO_COLLATERAL"))
       failedTxToast(
-        "Collateral not set. Open up your wallet and set the collateral first."
+        "Collateral not set. Open up your wallet and set the collateral first.",
       );
   } else if (e.info) {
     failedTxToast(e.info);
   } else {
     if (e.includes("NFTs"))
       failedTxToast(
-        "Size too large. Reduce wallet size by sending out tokens to another wallet."
+        "Size too large. Reduce wallet size by sending out tokens to another wallet.",
       );
     else failedTxToast("Something went wrong");
   }

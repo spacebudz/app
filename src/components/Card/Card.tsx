@@ -4,6 +4,7 @@ import { Image, Spinner, Button } from "..";
 import { useIsIntersecting } from "../../hooks";
 import { fromLovelaceDisplay, ipfsToHttps } from "../../utils";
 import { OutRef } from "lucid-cardano";
+import { isEnabledWh } from "../../config";
 
 export type NodeContent = {
   budId: number;
@@ -65,6 +66,36 @@ export const Card = ({
     >
       {isIntersecting && (
         <div className="w-full absolute top-0 left-0 flex flex-col justify-center items-center">
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+          {isOwner &&
+=======
+          {isEnabledWh &&
+            isOwner &&
+>>>>>>> 7a557fe (prep for handover)
+            (!node.viewType || node.viewType === "Normal") &&
+            node.needsToMigrate && (
+              <Button
+                className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"
+                size="xs"
+                theme="orange"
+                loading={isLoading}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setIsLoading(true);
+                  await onAction({
+                    type: "Wormhole",
+                    budId: node.budId,
+                    outRef: node.outRef,
+                  });
+                  setIsLoading(false);
+                }}
+              >
+                Migrate
+              </Button>
+            )}
+>>>>>>> c67d1ff (cleanup)
           {isOwner && node.viewType === "Bid" && (
             <Button
               className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"

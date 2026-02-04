@@ -42,9 +42,11 @@ export const WalletDialog = React.forwardRef((props: any, ref: any) => {
               />
             ))}
             <div className="text-sm py-4 max-w-[280px] text-center">
-              Use this interface at your own risk. It comes without support,
-              updates, or ongoing maintenance. Make sure to verify the contract
-              and policy id yourself.
+              By connecting a wallet you agree to our{" "}
+              <a className="font-bold" href="/terms.pdf" target="_blank">
+                Terms and Conditions
+              </a>
+              .
             </div>
           </>
         ) : (
@@ -93,7 +95,7 @@ const WalletSelection = React.forwardRef(
             });
             ref.current.close();
           }
-          localStorage["termsAccepted03162023"] = true;
+          localStorage["termsAccepted2026"] = true;
           setLoading(false);
         }}
       >

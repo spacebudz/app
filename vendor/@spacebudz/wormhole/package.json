@@ -1,0 +1,41 @@
+{
+  "_from": "@spacebudz/wormhole@1.0.4",
+  "_generatedBy": "dnt@0.40.0",
+  "_id": "@spacebudz/wormhole@1.0.4",
+  "_inBundle": false,
+  "_integrity": "sha512-lWfVFzg0q1sPzSWN7PJixCZezaCoGs4etBnaLAN4vwgiGlQonjIyY3hSJFlGl6oF72uvk7RC+QOdM6TD/nxnVw==",
+  "_location": "/@spacebudz/wormhole",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@spacebudz/wormhole@1.0.4",
+    "name": "@spacebudz/wormhole",
+    "escapedName": "@spacebudz%2fwormhole",
+    "scope": "@spacebudz",
+    "rawSpec": "1.0.4",
+    "saveSpec": null,
+    "fetchSpec": "1.0.4"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@spacebudz/wormhole/-/wormhole-1.0.4.tgz",
+  "_spec": "1.0.4",
+  "engines": {
+    "node": ">=14"
+  },
+  "exports": {
+    ".": {
+      "import": "./esm/mod.js"
+    }
+  },
+  "main": "./esm/mod.js",
+  "module": "./esm/mod.js",
+  "name": "@spacebudz/wormhole",
+  "peerDependencies": {
+    "lucid-cardano": ">=0.10.9 <=0.10.9"
+  },
+  "type": "module",
+  "version": "1.0.4"
+}

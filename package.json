@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@headlessui/react": "0.0.0-dev.0ce63d8",
-    "@spacebudz/nebula": "^1.0.5",
-    "@spacebudz/wormhole": "^1.0.4",
+    "@spacebudz/nebula": "file:./vendor/@spacebudz/nebula",
+    "@spacebudz/wormhole": "file:./vendor/@spacebudz/wormhole",
     "@tlon/sigil-js": "^1.4.5",
     "agent-base": "^6.0.2",
     "easy-peasy": "^5.0.4",

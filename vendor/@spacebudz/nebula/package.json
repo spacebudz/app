@@ -1,0 +1,45 @@
+{
+  "_from": "@spacebudz/nebula@1.0.5",
+  "_generatedBy": "dnt@0.40.0",
+  "_id": "@spacebudz/nebula@1.0.5",
+  "_inBundle": false,
+  "_integrity": "sha512-vAULmpnzNSgtamGMBVJphUQ68cyly6iwBBdc2xf/N3dYWJJGiiypE+CBwMya60bsYRIy29ZOKxQpRw0EHk2S+w==",
+  "_location": "/@spacebudz/nebula",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@spacebudz/nebula@1.0.5",
+    "name": "@spacebudz/nebula",
+    "escapedName": "@spacebudz%2fnebula",
+    "scope": "@spacebudz",
+    "rawSpec": "1.0.5",
+    "saveSpec": null,
+    "fetchSpec": "1.0.5"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@spacebudz/nebula/-/nebula-1.0.5.tgz",
+  "_spec": "1.0.5",
+  "dependencies": {
+    "@cardano-ogmios/client": "*",
+    "@cardano-ogmios/schema": "*"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "exports": {
+    ".": {
+      "import": "./esm/contract/mod.js"
+    }
+  },
+  "main": "./esm/contract/mod.js",
+  "module": "./esm/contract/mod.js",
+  "name": "@spacebudz/nebula",
+  "peerDependencies": {
+    "lucid-cardano": "0.10.9"
+  },
+  "type": "module",
+  "version": "1.0.5"
+}

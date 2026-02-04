@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Toaster } from "react-hot-toast";
-import { Header } from "../components";
+import { Header, Footer } from "../components";
 import { Helmet } from "react-helmet";
 import { RehydrationContext } from "./storeProvider";
 
@@ -30,11 +30,12 @@ export const MainLayout = (props: MainLayoutProps) => {
           >
             <a
               href="https://github.com/spacebudz/nebula"
-              className="w-full bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600 z-10 text-white"
+              className="w-full h-20 bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600 z-10 text-white"
             >
               <div className="text-center">
                 <b>
                   The Nebula marketplace interface is being sunset, please
+<<<<<<< HEAD
                   delist and cancel your bids. Smart contract is open-source and
                   available here:{" "}
                   <a href="https://github.com/spacebudz/nebula">
@@ -44,6 +45,10 @@ export const MainLayout = (props: MainLayoutProps) => {
                   Use this interface at your own risk. It comes without support,
                   updates, or ongoing maintenance. Make sure to verify the
                   contract and policy id yourself.
+=======
+                  delist and cancel your bids. (Canceled listings/bids may still
+                  appear, simply ignore)
+>>>>>>> c67d1ff (cleanup)
                 </b>
               </div>
             </a>
@@ -54,6 +59,7 @@ export const MainLayout = (props: MainLayoutProps) => {
             <div className={`${props.landing ? "h-0" : "h-24 md:h-32"}`} />
             {props.children}
           </div>
+          <Footer />
           <Toaster position="bottom-right" />
         </div>
       ) : null}

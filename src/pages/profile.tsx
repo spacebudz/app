@@ -33,6 +33,7 @@ import {
 import {
   DEPRECATED_POLICY_ID,
   EXTRA_RECEIVING_ADDRESS,
+  isEnabledWh,
   POLICY_ID,
 } from "../config";
 import { ExternalLink } from "@styled-icons/evaicons-solid/ExternalLink";
@@ -160,7 +161,7 @@ const Profile = () => {
       const selectedWallet = await getSelectedWallet();
       const selectedWalletAddresses = wallet.address
         ? (await selectedWallet.getUsedAddresses()).map((addr) =>
-            getAddressBech32(addr)
+            getAddressBech32(addr),
           )
         : [];
 
@@ -169,7 +170,7 @@ const Profile = () => {
           ? selectedWalletAddresses.some(
               (addr) =>
                 paymentCredentialOf(addr).hash ===
-                paymentCredentialOf(owner).hash
+                paymentCredentialOf(owner).hash,
             )
           : false;
 
@@ -185,7 +186,7 @@ const Profile = () => {
         .filter(
           (listing) =>
             paymentCredentialOf(listing.owner).hash ===
-              paymentCredentialOf(address).hash || isOwner(listing.owner)
+              paymentCredentialOf(address).hash || isOwner(listing.owner),
         )
         .map((listing) => {
           const bid = bids.find((bid) => bid.budId === listing.budId)?.amount;
@@ -207,11 +208,11 @@ const Profile = () => {
         .filter(
           (bid) =>
             paymentCredentialOf(bid.owner).hash ===
-              paymentCredentialOf(address).hash || isOwner(bid.owner)
+              paymentCredentialOf(address).hash || isOwner(bid.owner),
         )
         .map((b) => {
           const buy = listings.find(
-            (listing) => b.budId === listing.budId
+            (listing) => b.budId === listing.budId,
           )?.amount;
           const bid = b.amount;
           const budId = b.budId;
@@ -235,7 +236,7 @@ const Profile = () => {
         .filter(
           (am) =>
             am.unit.startsWith(DEPRECATED_POLICY_ID) ||
-            am.unit.startsWith(POLICY_ID)
+            am.unit.startsWith(POLICY_ID),
         )
         .map((am) => {
           const isDeprecated = am.unit.startsWith(DEPRECATED_POLICY_ID);
@@ -243,7 +244,7 @@ const Profile = () => {
             ? parseInt(
                 Buffer.from(am.unit.slice(56), "hex")
                   .toString()
-                  .split("SpaceBud")[1]
+                  .split("SpaceBud")[1],
               )
             : parseInt(toText(fromUnit(am.unit).name).slice(3));
           const bid = bids.find((bid) => bid.budId === budId)?.amount;
@@ -260,9 +261,10 @@ const Profile = () => {
           };
         });
 
-      result[0] = accountOwned.concat(
-        accountListings.map((l) => ({ ...l, viewType: "Normal" }))
-      );
+      // result[0] = accountOwned.concat(
+      //   accountListings.map((l) => ({ ...l, viewType: "Normal" })),
+      // );
+      result[0] = accountOwned;
       result[1] = accountBids;
       result[2] = accountListings;
 
@@ -321,7 +323,7 @@ const Profile = () => {
             </div>
           ) : (
             <>
-              {/* {!allMigrated && (
+              {isEnabledWh && !allMigrated && (
                 <div className="w-full flex items-center justify-center mb-10 flex-col">
                   <div className="w-[90%] max-w-[800px] bg-primary border-violet-600 border-2 border-b-4 rounded-xl p-4 font-bold text-white">
                     As the proud owner, you hold the key to unlocking the
@@ -335,8 +337,7 @@ const Profile = () => {
                     </div>
                     <Button
                       className="mt-4"
-                      // disabled={wallet.address !== address}
-                      disabled
+                      disabled={wallet.address !== address}
                       onClick={() => {
                         confirmRef.current.open({
                           type: "Wormhole",
@@ -354,7 +355,7 @@ const Profile = () => {
                     </Button>
                   </div>
                 </div>
-              )} */}
+              )}
               <div className="w-full lg:w-1/4 flex flex-grow relative px-6 md:px-12">
                 <div className="lg:sticky lg:top-8 h-fit w-full">
                   <div className="text-3xl font-bold mb-2 mt-4 lg:mt-0">
@@ -435,7 +436,7 @@ const Profile = () => {
                               if (isNebula) {
                                 const nebula = await getNebula();
                                 const bid = await nebula.getListingOrBid(
-                                  outRef
+                                  outRef,
                                 );
                                 if (!bid) return;
 
@@ -453,7 +454,7 @@ const Profile = () => {
                                     base: baseUrl,
                                     projectId: secrets.PROJECT_ID,
                                   },
-                                  EXTRA_RECEIVING_ADDRESS
+                                  EXTRA_RECEIVING_ADDRESS,
                                 );
                                 await market.load();
                                 const bid = await market.getBid(budId);
@@ -473,15 +474,15 @@ const Profile = () => {
                                 const lucid = await getLucid();
                                 const nebula = await getNebula();
                                 const listing = await nebula.getListingOrBid(
-                                  outRef
+                                  outRef,
                                 );
                                 if (!listing) return;
                                 const listingDetails = ((datum) =>
                                   "Listing" in datum ? datum.Listing[0] : null)(
                                   await lucid.datumOf<NebulaSpend["datum"]>(
                                     listing,
-                                    NebulaSpend.datum
-                                  )
+                                    NebulaSpend.datum,
+                                  ),
                                 );
                                 const lovelace =
                                   listingDetails.requestedLovelace;
@@ -501,7 +502,7 @@ const Profile = () => {
                                     base: baseUrl,
                                     projectId: secrets.PROJECT_ID,
                                   },
-                                  EXTRA_RECEIVING_ADDRESS
+                                  EXTRA_RECEIVING_ADDRESS,
                                 );
                                 await market.load();
                                 const listings = await market.getOffer(budId);
@@ -524,9 +525,9 @@ const Profile = () => {
                                             isBrowser() &&
                                             paymentCredentialOf(addr).hash ===
                                               paymentCredentialOf(
-                                                listing.tradeOwnerAddress.to_bech32()
-                                              ).hash
-                                        )
+                                                listing.tradeOwnerAddress.to_bech32(),
+                                              ).hash,
+                                        ),
                                       )
                                     : listings;
 
@@ -550,7 +551,19 @@ const Profile = () => {
                   </div>
                 ) : (
                   <div className="w-full h-full font-medium text-slate-500 flex justify-center items-center mt-10 lg:mt-0">
-                    {index === 0 && "No SpaceBudz found"}
+                    {index === 0 && (
+                      <div className="flex flex-col items-center gap-4">
+                        <div>No SpaceBudz found</div>
+                        <Button
+                          onClick={() => {
+                            setIndex(2);
+                            if (!breakpoints.lg) window.scrollTo(0, 0);
+                          }}
+                        >
+                          Check listings
+                        </Button>
+                      </div>
+                    )}
                     {index === 1 && "No bids found"}
                     {index === 2 && "No listings found"}
                   </div>
