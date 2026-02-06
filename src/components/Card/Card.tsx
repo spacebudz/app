@@ -65,29 +65,6 @@ export const Card = ({
     >
       {isIntersecting && (
         <div className="w-full absolute top-0 left-0 flex flex-col justify-center items-center">
-          {isOwner &&
-            (!node.viewType || node.viewType === "Normal") &&
-            node.needsToMigrate && (
-              <Button
-                className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"
-                size="xs"
-                theme="orange"
-                loading={isLoading}
-                disabled
-                onClick={async (e) => {
-                  e.preventDefault();
-                  setIsLoading(true);
-                  await onAction({
-                    type: "Wormhole",
-                    budId: node.budId,
-                    outRef: node.outRef,
-                  });
-                  setIsLoading(false);
-                }}
-              >
-                Migrate
-              </Button>
-            )}
           {isOwner && node.viewType === "Bid" && (
             <Button
               className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"

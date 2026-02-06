@@ -19,7 +19,7 @@ export const WalletDialog = React.forwardRef((props: any, ref: any) => {
           walletName === "nufi" ||
           walletName === "cardwallet" ||
           walletName === "gerowallet" ||
-          walletName === "lace"
+          walletName === "lace",
       )
     : [];
   const setWallet = useStoreActions<any>((actions) => actions.wallet.setWallet);
@@ -28,8 +28,7 @@ export const WalletDialog = React.forwardRef((props: any, ref: any) => {
       <div className="w-full flex flex-col items-center">
         <div className="w-full text-2xl font-semibold mb-4">Select wallet</div>
         <div className="w-full self-start pt-2 pb-10 px-8 font-light">
-          Choose a wallet to view your collection and interact with the
-          marketplace, where you can buy, sell and bid on SpaceBudz.
+          Choose a wallet to view your collection
         </div>
         {existingWallets.length > 0 ? (
           <>
@@ -43,11 +42,9 @@ export const WalletDialog = React.forwardRef((props: any, ref: any) => {
               />
             ))}
             <div className="text-sm py-4 max-w-[280px] text-center">
-              By connecting a wallet you agree to our{" "}
-              <a className="font-bold" href="/terms.pdf" target="_blank">
-                Terms and Conditions
-              </a>
-              .
+              Use this interface at your own risk. It comes without support,
+              updates, or ongoing maintenance. Make sure to verify the contract
+              and policy id yourself.
             </div>
           </>
         ) : (
@@ -103,5 +100,5 @@ const WalletSelection = React.forwardRef(
         {cardano[walletName].name}
       </Button>
     );
-  }
+  },
 );

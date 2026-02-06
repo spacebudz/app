@@ -11,8 +11,7 @@ const S = await import(
 );
 
 export const ipfsToHttps = (ipfs: string): string =>
-  IPFS_GATEWAY + "/" + ipfs.split("ipfs://")[1] +
-  `?pinataGatewayToken=${secrets.ACCESS_TOKEN_IPFS}`;
+  IPFS_GATEWAY + "/" + ipfs.split("ipfs://")[1];
 
 export const toLovelace = (
   ada: string | number | bigint,

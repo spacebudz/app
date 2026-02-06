@@ -1,4 +1,4 @@
-export const IPFS_GATEWAY = "https://spacebudz.mypinata.cloud/ipfs";
+export const IPFS_GATEWAY = "https://ipfs.io/ipfs";
 
 export const TYPES_GADGETS_COUNT = {
   types: {
@@ -71,12 +71,6 @@ export const EXTRA_RECEIVING_ADDRESS =
 
 export const CONTRACT_ADDRESS =
   "addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq";
-
-export const DISCORD_LINK = "https://discord.com/invite/vtmm6RG2Bv";
-export const TWITTER_LINK = "https://twitter.com/spacebudzNFT";
-export const TELEGRAM_LINK = "https://t.me/spacebudz";
-export const GITHUB_LINK = "https://github.com/spacebudz";
-export const GUIDE_LINK = "https://spacebudz.gitbook.io/spacebudz";
 
 // Wormhole
 

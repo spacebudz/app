@@ -1,6 +1,6 @@
 import * as React from "react";
 import { graphql, Link } from "gatsby";
-import { Button, Ellipsis, Image, Spinner } from "../components";
+import { Ellipsis, Image, Spinner } from "../components";
 import {
   CONTRACT_ADDRESS,
   EXTRA_RECEIVING_ADDRESS,
@@ -30,11 +30,6 @@ import secrets from "../../secrets";
 import { SpecialButton } from "../parts/spacebud/SpecialButton";
 import { baseUrl, getLastSale, getOwners, getPriceUSD } from "../api";
 import { checkTx, ConfirmDialog, TradeDialog } from "../parts/spacebud/Dialog";
-import { downloadPFP } from "../parts/spacebud/utils";
-import { Sigil } from "../parts/spacebud/Sigil";
-import { Discord } from "@styled-icons/bootstrap/Discord";
-import { Mail } from "@styled-icons/ionicons-solid/Mail";
-import { TwitterSquare } from "@styled-icons/fa-brands/TwitterSquare";
 import {
   Credential,
   fromText,
@@ -45,8 +40,6 @@ import {
 import * as Nebula from "@spacebudz/nebula";
 import { NebulaSpend } from "../nebula_types";
 import { Contract as Wormhole } from "@spacebudz/wormhole";
-// import { checkTxIdentity, IdentityDialog } from "../parts/spacebud/Identity";
-// import { Lucid, Blockfrost, Contract } from "@spacebudz/spacebudz-identity";
 
 const SpaceBud = ({ data, pageContext: { budId } }) => {
   const { name, traits, image, type } = data.allMetadataJson.edges[0].node;
@@ -101,20 +94,20 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
 
     const walletAddresses = wallet.address
       ? (await selectedWallet.getUsedAddresses()).map((address) =>
-          getAddressBech32(address)
+          getAddressBech32(address),
         )
       : [];
 
     const owners = (
       await getOwners(
-        toUnit(DEPRECATED_POLICY_ID, fromText(`SpaceBud${budId}`))
+        toUnit(DEPRECATED_POLICY_ID, fromText(`SpaceBud${budId}`)),
       )
     )
       .concat(await getOwners(toUnit(POLICY_ID, fromText(`Bud${budId}`), 222)))
       .filter(
         (owner) =>
           paymentCredentialOf(owner).hash !==
-          paymentCredentialOf(LOCK_ADRESS).hash
+          paymentCredentialOf(LOCK_ADRESS).hash,
       );
 
     let usdPrice = 0;
@@ -144,14 +137,14 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         },
         lastSale: { lovelace: null, usd: null },
         fee: 0,
-      })
+      }),
     );
 
     const isOwner = (address: string): boolean =>
       walletAddresses.some(
         (_address) =>
           paymentCredentialOf(_address).hash ===
-          paymentCredentialOf(address).hash
+          paymentCredentialOf(address).hash,
       );
 
     const replaceContractWithOwner = (address: string) => {
@@ -163,7 +156,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     if (Array.isArray(listingUtxo)) {
       if (listingUtxo.length === 2 && (budId === 1903 || budId === 6413)) {
         const ownListingUtxo = listingUtxo.find((utxo) =>
-          isOwner(utxo.tradeOwnerAddress.to_bech32())
+          isOwner(utxo.tradeOwnerAddress.to_bech32()),
         );
         if (ownListingUtxo) listingUtxo = ownListingUtxo;
         else {
@@ -180,7 +173,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         }
       } else
         throw new Error(
-          "Listing utxo is an array but doesn't include a twin 1903 or 6413."
+          "Listing utxo is an array but doesn't include a twin 1903 or 6413.",
         );
     }
 
@@ -225,7 +218,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         {
           minimumFractionDigits: 0,
           maximumFractionDigits: 2,
-        }
+        },
       );
     }
 
@@ -237,7 +230,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
       const index = owners.findIndex(
         (owner) =>
           paymentCredentialOf(owner).hash ===
-          paymentCredentialOf(NEBULA_ADDRESS).hash
+          paymentCredentialOf(NEBULA_ADDRESS).hash,
       );
       if (index !== -1) owners[index] = address;
     };
@@ -250,7 +243,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
     });
     // Sorted in ascending order by price
     const [listingUtxoNebula, listingUtxoTwin1] = await _nebula.getListings(
-      idToBud(budId)
+      idToBud(budId),
     );
 
     if (listingUtxoTwin1) {
@@ -258,10 +251,10 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         ((datum) => ("Listing" in datum ? datum.Listing[0].owner : null))(
           await lucid.datumOf<NebulaSpend["datum"]>(
             listingUtxoTwin1,
-            NebulaSpend.datum
-          )
+            NebulaSpend.datum,
+          ),
         ),
-        lucid
+        lucid,
       );
       replaceNebulaWithOwner(owner);
     }
@@ -275,11 +268,11 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               ((datum) => ("Listing" in datum ? datum.Listing[0].owner : null))(
                 await lucid.datumOf<NebulaSpend["datum"]>(
                   utxo,
-                  NebulaSpend.datum
-                )
+                  NebulaSpend.datum,
+                ),
               ),
-              lucid
-            )
+              lucid,
+            ),
           );
         } else {
           return false;
@@ -291,8 +284,8 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         "Listing" in datum ? datum.Listing[0] : null)(
         await lucid.datumOf<NebulaSpend["datum"]>(
           finalListingUtxoNebula,
-          NebulaSpend.datum
-        )
+          NebulaSpend.datum,
+        ),
       );
 
       const owner = Nebula.toAddress(listingDetails.owner, lucid);
@@ -307,7 +300,7 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         {
           minimumFractionDigits: 0,
           maximumFractionDigits: 2,
-        }
+        },
       );
       details.listing.listingUtxo = finalListingUtxoNebula;
       details.listing.isNebula = true;
@@ -318,8 +311,8 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         "Bid" in datum ? datum.Bid[0] : null)(
         await lucid.datumOf<NebulaSpend["datum"]>(
           bidUtxoNebula,
-          NebulaSpend.datum
-        )
+          NebulaSpend.datum,
+        ),
       );
       const owner = Nebula.toAddress(biddingDetails.owner, lucid);
       if (isOwner(owner)) {
@@ -377,8 +370,8 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
         base: baseUrl,
         projectId: secrets.PROJECT_ID,
       },
-      EXTRA_RECEIVING_ADDRESS
-    )
+      EXTRA_RECEIVING_ADDRESS,
+    ),
   );
 
   const nebula = React.useRef<Nebula.Contract>();
@@ -460,16 +453,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                   </div>
                 </div>
               </div>
-              {/* <Button
-                className="absolute bottom-3 right-3"
-                theme="space"
-                size="sm"
-                onClick={() => {
-                  downloadPFP(budId, imageLink, identity?.color);
-                }}
-              >
-                PFP
-              </Button> */}
             </div>
           </div>
           <div className="w-full lg:w-2/4 px-8 lg:px-10 flex flex-col">
@@ -488,14 +471,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
               </div>
             ) : (
               <>
-                {/* {identity?.nickname && (
-                  <div
-                    className={`text-3xl font-bold font-title mt-4`}
-                    style={{ color: identity?.color }}
-                  >
-                    {identity?.nickname}
-                  </div>
-                )} */}
                 <div className="h-10" />
                 <div className="flex flex-wrap">
                   <div className="mr-8 mb-6">
@@ -736,57 +711,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
                     ))
                   )}
                 </div>
-                {/* {(identity?.urbit ||
-                  identity?.twitter ||
-                  identity?.discord ||
-                  identity?.email ||
-                  details.listing.owner) && (
-                  <>
-                    <div className="h-10" />
-                    <div className="text-2xl font-semibold mb-2">Identity</div>
-                    <div className="w-full max-w-3xl flex items-center flex-wrap">
-                      {identity?.urbit &&
-                        identity?.urbit.map((patp) => (
-                          <div className="flex flex-row justify-center items-center pr-6 py-4">
-                            <Sigil patp={patp} size={30} />
-                            <div className="ml-3 font-semibold">{patp}</div>
-                          </div>
-                        ))}
-                      {identity?.twitter &&
-                        identity?.twitter.map((profile) => (
-                          <div className="flex flex-row justify-center items-center pr-6 py-4">
-                            <TwitterSquare size={30} />
-                            <div className="ml-3 font-semibold">{profile}</div>
-                          </div>
-                        ))}
-                      {identity?.discord &&
-                        identity?.discord.map((username) => (
-                          <div className="flex flex-row justify-center items-center pr-6 py-4">
-                            <Discord size={30} />
-                            <div className="ml-3 font-semibold">{username}</div>
-                          </div>
-                        ))}
-                      {identity?.email &&
-                        identity?.email.map((email) => (
-                          <div className="flex flex-row justify-center items-center pr-6 py-4">
-                            <Mail size={30} />
-                            <div className="ml-3 font-semibold">{email}</div>
-                          </div>
-                        ))}
-                    </div>
-                    {details.listing.owner && (
-                      <div className="mt-6">
-                        <Button
-                          onClick={() => identityRef.current.open()}
-                          size="sm"
-                          theme="white"
-                        >
-                          Update identity
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )} */}
               </>
             )}
           </div>
@@ -807,16 +731,6 @@ const SpaceBud = ({ data, pageContext: { budId } }) => {
             })
           }
         />
-        {/* <IdentityDialog
-          ref={identityRef}
-          identity={identity}
-          budId={budId}
-          checkTx={({ txHash }) =>
-            checkTxIdentity({
-              txHash,
-            })
-          }
-        /> */}
       </>
     </MainLayout>
   );

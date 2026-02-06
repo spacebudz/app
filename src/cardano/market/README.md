@@ -12,8 +12,6 @@ The `contract.hs` file contains the validator and the off-chain code written in 
 
 The SpaceBudz marketplace can be run by community members. **0.4%** of the traded amount goes to a community member, if trades happens through his market instance.
 
-Read our [Medium article](https://spacebudz.medium.com/spacebudz-market-71e79d1bbf34) to get a better understanding of the on-chain validator.
-
 The contract address:
 **`addr1wyzynye0nksztrfzpsulsq7whr3vgh7uvp0gm4p0x42ckkqqq6kxq`**
 
@@ -22,7 +20,7 @@ The contract address:
 #### Install
 
 ```
-git clone https://github.com/Berry-Pool/spacebudz
+git clone https://github.com/spacebudz/spacebudz
 cp -r spacebudz/src/cardano/market .
 cd market
 npm install

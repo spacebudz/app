@@ -10,7 +10,6 @@ export * from "./Card";
 export * from "./Popover";
 export * from "./Header";
 export * from "./Disclosure";
-export * from "./Footer";
 export * from "./Select";
 export * from "./Ellipsis";
 export * from "./RadioGroup";

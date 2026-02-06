@@ -1,10 +1,8 @@
 import * as React from "react";
 import { Toaster } from "react-hot-toast";
-import { Footer, Header } from "../components";
+import { Header } from "../components";
 import { Helmet } from "react-helmet";
-import Icon from "../images/icon.png";
 import { RehydrationContext } from "./storeProvider";
-import { Link } from "gatsby";
 
 type MainLayoutProps = {
   landing?: boolean; // different behaviour on landing page
@@ -22,15 +20,6 @@ export const MainLayout = (props: MainLayoutProps) => {
     <>
       <Helmet>
         <title>{props.title}</title>
-        <meta name="description" content={props.description} />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:site" content="@spacebudzNFT" />
-        <meta name="twitter:title" content={props.titleTwitter} />
-        <meta name="twitter:description" content={props.description} />
-        <meta
-          name="twitter:image"
-          content={props.image ? props.image : `https://spacebudz.io${Icon}`}
-        />
       </Helmet>
       {isRehydrated ? (
         <div className="w-full">
@@ -41,7 +30,7 @@ export const MainLayout = (props: MainLayoutProps) => {
           >
             <a
               href="https://github.com/spacebudz/nebula"
-              className="w-full h-16 bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600 z-10 text-white"
+              className="w-full bg-primary flex justify-center items-center cursor-pointer border-b-2 border-violet-600 z-10 text-white"
             >
               <div className="text-center">
                 <b>
@@ -51,6 +40,10 @@ export const MainLayout = (props: MainLayoutProps) => {
                   <a href="https://github.com/spacebudz/nebula">
                     https://github.com/spacebudz/nebula
                   </a>
+                  <br />
+                  Use this interface at your own risk. It comes without support,
+                  updates, or ongoing maintenance. Make sure to verify the
+                  contract and policy id yourself.
                 </b>
               </div>
             </a>
@@ -61,7 +54,6 @@ export const MainLayout = (props: MainLayoutProps) => {
             <div className={`${props.landing ? "h-0" : "h-24 md:h-32"}`} />
             {props.children}
           </div>
-          <Footer />
           <Toaster position="bottom-right" />
         </div>
       ) : null}

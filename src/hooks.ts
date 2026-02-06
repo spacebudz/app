@@ -1,5 +1,4 @@
 import * as React from "react";
-import { getLucid } from "./utils";
 
 export const useIsIntersecting = (ref: { current: any }, rootMargin: any) => {
   const [isIntersecting, setIntersecting] = React.useState(false);

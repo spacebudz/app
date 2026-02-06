@@ -2,20 +2,11 @@ import * as React from "react";
 import { Link } from "gatsby";
 import { Button, Ellipsis, Popover } from "..";
 import { Rocket } from "@styled-icons/boxicons-solid/Rocket";
-import { MoreHorizontalOutline } from "@styled-icons/evaicons-outline/MoreHorizontalOutline";
-import { People } from "@styled-icons/fluentui-system-filled/People";
 import { CloseCircle } from "@styled-icons/evaicons-solid/CloseCircle";
 import { WalletDialog } from ".";
 import { useStoreActions, useStoreState } from "easy-peasy";
 import { getAddressBech32, getCardano, getSelectedWallet } from "../../utils";
 import { setSelectedWallet } from "./wallet";
-import {
-  DISCORD_LINK,
-  GITHUB_LINK,
-  GUIDE_LINK,
-  TELEGRAM_LINK,
-  TWITTER_LINK,
-} from "../../config";
 
 import Logo from "../../images/brand/logo.svg";
 
@@ -48,7 +39,7 @@ export const Header = (props: HeaderProps) => {
     if (wallet.walletName === "nami") {
       const selectedWallet = await getSelectedWallet();
       const walletAddress = getAddressBech32(
-        (await selectedWallet.getUsedAddresses())[0]
+        (await selectedWallet.getUsedAddresses())[0],
       );
       if (wallet.address !== walletAddress) {
         reset();
@@ -56,7 +47,7 @@ export const Header = (props: HeaderProps) => {
       }
       selectedWallet.experimental.on("accountChange", async () => {
         const address = getAddressBech32(
-          (await selectedWallet.getUsedAddresses())[0]
+          (await selectedWallet.getUsedAddresses())[0],
         );
         setWallet({ ...wallet, address, sessionTime: Date.now() });
       });
@@ -98,139 +89,8 @@ export const Header = (props: HeaderProps) => {
                   SpaceBudz
                 </span>
               </span>
-              <span className="block text-sm text-gray-500">
-                Explore the collection of 10,000 unique animals and creatures
-              </span>
             </div>
           </Link>
-        </Popover>
-        <Popover
-          position="center"
-          trigger={
-            <div className="font-semibold flex justify-center items-center hover:brightness-75 duration-200 cursor-default">
-              <People
-                className={`${
-                  (!props.landing && "text-slate-900") || ""
-                } w-[1.4rem] md:w-[1.2em]`}
-              />
-              <div className="ml-2 hidden md:block">Community</div>
-            </div>
-          }
-        >
-          <a href={GITHUB_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#171515]">
-                  GitHub
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                If you are interested in developing check out our GitHub
-                repositories
-              </span>
-            </div>
-          </a>
-          <a href={DISCORD_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#7289DA]">
-                  Discord
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Join our vibrant community on Discord
-              </span>
-            </div>
-          </a>
-          <a href={TWITTER_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#1DA1F2]">
-                  Twitter
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Follow us on Twitter to see the latest news
-              </span>
-            </div>
-          </a>
-          <a href={TELEGRAM_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#229ED9]">
-                  Telegram
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Get to know our smaller and helpful community on Telegram
-              </span>
-            </div>
-          </a>
-          <a href={GUIDE_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#15171C]">
-                  Guide
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Learn more about the project and the collection itself
-              </span>
-            </div>
-          </a>
-          {/* Community tools disabled for now until links and images updated */}
-          {/* <Link to="/communityTools/">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-primary">
-                  Community tools
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Explore helpful and useful tools created by the community
-              </span>
-            </div>
-          </Link> */}
-        </Popover>
-        <Popover
-          position="center"
-          trigger={
-            <div className="font-semibold flex justify-center items-center hover:brightness-75 duration-200 cursor-default">
-              <MoreHorizontalOutline
-                className={`${
-                  (!props.landing && "text-slate-900") || ""
-                } w-[1.4rem] md:w-[1.2em]`}
-              />
-              <div className="ml-2 hidden md:block">More</div>
-            </div>
-          }
-        >
-          <Link to="/FAQ/">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-black">Help</span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Read through our FAQ
-              </span>
-            </div>
-          </Link>
-          <Link to="/license/">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-black">
-                  NFT License
-                </span>
-              </span>
-            </div>
-          </Link>
-          {/* <Link to="/about/">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-black">About</span>
-              </span>
-            </div>
-          </Link> */}
         </Popover>
         <div className="mr-4 md:mr-10 lg:mr-20 w-28 flex justify-end items-center">
           {wallet.address ? (
