@@ -69,13 +69,6 @@ export const Header = (props: HeaderProps) => {
         />
       </Link>
       <div className="ml-auto flex items-center justify-between w-[16rem] md:w-[34rem]">
-<<<<<<< HEAD
-        <Popover
-          position="center"
-          trigger={
-            <div className="font-semibold flex justify-center items-center hover:brightness-75 duration-200 cursor-default">
-              <Rocket
-=======
         <Link to="/explore/">
           <div className="font-semibold flex justify-center items-center hover:brightness-75 duration-200">
             <Rocket
@@ -91,12 +84,10 @@ export const Header = (props: HeaderProps) => {
           trigger={
             <div className="font-semibold flex justify-center items-center hover:brightness-75 duration-200 cursor-default">
               <People
->>>>>>> c67d1ff (cleanup)
                 className={`${
                   (!props.landing && "text-slate-900") || ""
                 } w-[1.4rem] md:w-[1.2em]`}
               />
-<<<<<<< HEAD
               <div className="ml-2 hidden md:block">Explore</div>
             </div>
           }
@@ -106,122 +97,11 @@ export const Header = (props: HeaderProps) => {
               <span className="flex items-center">
                 <span className="text-md font-medium text-primary">
                   SpaceBudz
-=======
-              <div className="ml-2 hidden md:block">Community</div>
-            </div>
-          }
-        >
-          <a href={GITHUB_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#171515]">
-                  GitHub
                 </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                If you are interested in developing check out our GitHub
-                repositories
-              </span>
-            </div>
-          </a>
-          <a href={DISCORD_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#7289DA]">
-                  Discord
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Join our vibrant community on Discord
-              </span>
-            </div>
-          </a>
-          <a href={TWITTER_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#1DA1F2]">X</span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Follow us on X to see the latest news
-              </span>
-            </div>
-          </a>
-          <a href={TELEGRAM_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#229ED9]">
-                  Telegram
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Get to know our smaller and helpful community on Telegram
-              </span>
-            </div>
-          </a>
-          <a href={GUIDE_LINK} target="_blank">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-[#15171C]">
-                  Guide
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Learn more about the project and the collection itself
-              </span>
-            </div>
-          </a>
-          Community tools disabled for now until links and images updated
-          <Link to="/communityTools/">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-primary">
-                  Community tools
-                </span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Explore helpful and useful tools created by the community
               </span>
             </div>
           </Link>
         </Popover> */}
-        {/* <Popover
-          position="center"
-          trigger={
-            <div className="font-semibold flex justify-center items-center hover:brightness-75 duration-200 cursor-default">
-              <MoreHorizontalOutline
-                className={`${
-                  (!props.landing && "text-slate-900") || ""
-                } w-[1.4rem] md:w-[1.2em]`}
-              />
-              <div className="ml-2 hidden md:block">More</div>
-            </div>
-          }
-        >
-          <Link to="/FAQ/">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-black">Help</span>
-              </span>
-              <span className="block text-sm text-gray-500">
-                Read through our FAQ
-              </span>
-            </div>
-          </Link>
-          <Link to="/license/">
-            <div className="px-4 py-2 transition duration-200 ease-in-out rounded-lg hover:bg-slate-100">
-              <span className="flex items-center">
-                <span className="text-md font-medium text-black">
-                  NFT License
->>>>>>> c67d1ff (cleanup)
-                </span>
-              </span>
-            </div>
-          </Link>
-<<<<<<< HEAD
-        </Popover>
-=======
-        </Popover> */}
->>>>>>> c67d1ff (cleanup)
         <div className="mr-4 md:mr-10 lg:mr-20 w-28 flex justify-end items-center">
           {wallet.address ? (
             <div className="text-white p-2 rounded-xl bg-primary border-2 border-b-4 border-violet-600 flex justify-center items-center">

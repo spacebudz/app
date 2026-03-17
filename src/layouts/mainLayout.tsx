@@ -35,20 +35,8 @@ export const MainLayout = (props: MainLayoutProps) => {
               <div className="text-center">
                 <b>
                   The Nebula marketplace interface is being sunset, please
-<<<<<<< HEAD
-                  delist and cancel your bids. Smart contract is open-source and
-                  available here:{" "}
-                  <a href="https://github.com/spacebudz/nebula">
-                    https://github.com/spacebudz/nebula
-                  </a>
-                  <br />
-                  Use this interface at your own risk. It comes without support,
-                  updates, or ongoing maintenance. Make sure to verify the
-                  contract and policy id yourself.
-=======
                   delist and cancel your bids. (Canceled listings/bids may still
                   appear, simply ignore)
->>>>>>> c67d1ff (cleanup)
                 </b>
               </div>
             </a>
