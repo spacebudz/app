@@ -1,3 +1,5 @@
+## [Deprecated]
+
 <p align="center">
   <a href="https://spacebudz.io">
     <img alt="Gatsby" src="../../images/brand/logo.png" width="90" />
@@ -20,13 +22,8 @@ The contract address:
 #### Install
 
 ```
-<<<<<<< HEAD
-git clone https://github.com/spacebudz/spacebudz
-cp -r spacebudz/src/cardano/market .
-=======
 git clone https://github.com/spacebudz/app
 cp -r app/src/cardano/market .
->>>>>>> c67d1ff (cleanup)
 cd market
 npm install
 ```
