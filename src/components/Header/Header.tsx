@@ -32,7 +32,7 @@ export const Header = (props: HeaderProps) => {
     if (!cardano) return;
     if (!wallet.address) return;
     const selected = await setSelectedWallet(wallet.walletName);
-    if (!selected || !localStorage["termsAccepted2026"]) {
+    if (!selected || !localStorage["termsAccepted202603"]) {
       reset();
       return;
     }

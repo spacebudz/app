@@ -95,7 +95,7 @@ const WalletSelection = React.forwardRef(
             });
             ref.current.close();
           }
-          localStorage["termsAccepted2026"] = true;
+          localStorage["termsAccepted202603"] = true;
           setLoading(false);
         }}
       >
