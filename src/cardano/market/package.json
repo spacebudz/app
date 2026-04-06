@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "description": "SpaceBudz-Market",
-  "author": "Alessandro",
+  "author": "Rightstuff Innovations",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
