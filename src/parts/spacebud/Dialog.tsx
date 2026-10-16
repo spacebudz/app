@@ -16,9 +16,21 @@ import { Wormhole } from "../../components/Wormhole";
 import { paymentCredentialOf } from "lucid-cardano";
 import * as Nebula from "@spacebudz/nebula";
 import { NebulaSpend } from "../../nebula_types";
+import {
+  cancelLegacyListing,
+  legacyErrorMessage,
+  waitForLegacyTx,
+} from "./legacyCancel";
 
 type Confirm = {
-  type: "CancelBid" | "CancelListing" | "Sell" | "Buy" | "Wormhole" | null;
+  type:
+    | "CancelBid"
+    | "CancelListing"
+    | "CancelListingLegacy"
+    | "Sell"
+    | "Buy"
+    | "Wormhole"
+    | null;
   lovelace: bigint | null;
   market: any;
   wormhole?: { contract: any; ids: number[] };
@@ -59,6 +71,7 @@ export const ConfirmDialog = React.forwardRef(
     const title =
       (confirm.type === "CancelBid" && "Cancel bid") ||
       (confirm.type === "CancelListing" && "Cancel listing") ||
+      (confirm.type === "CancelListingLegacy" && "Cancel legacy listing") ||
       (confirm.type === "Sell" && "Sell") ||
       (confirm.type === "Buy" && "Buy") ||
       (confirm.type === "Wormhole" && "Wormhole");
@@ -87,6 +100,22 @@ export const ConfirmDialog = React.forwardRef(
             SpaceBud #{confirm.budId}
           </span>
           ?
+        </span>
+      )) ||
+      (confirm.type === "CancelListingLegacy" && (
+        <span>
+          Are you sure you want to cancel your legacy listing of{" "}
+          <span className="font-bold text-violet-400 inline-block">
+            {fromLovelaceDisplay(confirm.lovelace)}
+          </span>{" "}
+          on{" "}
+          <span className="font-bold inline-block">
+            SpaceBud #{confirm.budId}
+          </span>
+          ?
+          <div className="mt-2 text-sm">
+            Only a network fee applies. The SpaceBud returns to your wallet.
+          </div>
         </span>
       )) ||
       (confirm.type === "Sell" && (
@@ -184,6 +213,16 @@ export const ConfirmDialog = React.forwardRef(
             .cancelOffer(confirm.details.listing.listingUtxo)
             .catch((e: any) => tradeErrorHandler(e));
         }
+      } else if (confirm.type === "CancelListingLegacy") {
+        // Separate flow (Lucid Evolution): the old libraries can't handle mainnet's cost models
+        txHash = await getSelectedWallet()
+          .then((walletApi) =>
+            cancelLegacyListing(walletApi, confirm.details.legacyListing),
+          )
+          .catch((e: any) => {
+            // must not return the toast id, a truthy txHash would count as success
+            failedTxToast(legacyErrorMessage(e));
+          });
       } else if (confirm.type === "Wormhole") {
         setWormholeIds(confirm.wormhole.ids);
         if (confirm.wormhole.ids.length === 1) {
@@ -226,9 +265,11 @@ export const ConfirmDialog = React.forwardRef(
 
       setLoading(false);
       if (!txHash) return;
-      checkTx({
-        txHash,
-      });
+      if (confirm.type === "CancelListingLegacy") checkLegacyTx({ txHash });
+      else
+        checkTx({
+          txHash,
+        });
       dialogRef.current.close();
     };
     return (
@@ -462,7 +503,7 @@ export const TradeDialog = React.forwardRef(
   },
 );
 
-const failedTxToast = (error: string) => {
+export const failedTxToast = (error: string) => {
   return createToast({
     children: (
       <div className="w-full h-full flex justify-start flex-col">
@@ -511,6 +552,25 @@ export const checkTx = async ({ txHash }) => {
   pendingTxToast();
 
   await (await getLucid()).awaitTx(txHash);
+  toast.dismiss();
+  successTxToast(txHash);
+  await new Promise((res, rej) => setTimeout(() => res(1), 5000));
+  const event = new Event("confirm");
+  window.dispatchEvent(event);
+};
+
+// Same as checkTx, but doesn't need the old Lucid (whose init fails on mainnet's cost models)
+export const checkLegacyTx = async ({ txHash }) => {
+  if (!txHash) return;
+  pendingTxToast();
+
+  try {
+    await waitForLegacyTx(txHash);
+  } catch (e) {
+    toast.dismiss();
+    failedTxToast(legacyErrorMessage(e));
+    return;
+  }
   toast.dismiss();
   successTxToast(txHash);
   await new Promise((res, rej) => setTimeout(() => res(1), 5000));

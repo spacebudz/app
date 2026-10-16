@@ -11,7 +11,12 @@
 
     /* for mixed ts/js codebase */
     "allowJs": true,
-    "outDir": "./build" /* this won't be used by ts-loader */
+    "outDir": "./build" /* this won't be used by ts-loader */,
+
+    /* the real types of this lib need a newer TS than 4.5, see the stub */
+    "paths": {
+      "@lucid-evolution/lucid": ["./src/types/lucid-evolution.d.ts"]
+    }
     /* other options... */
   }
 }

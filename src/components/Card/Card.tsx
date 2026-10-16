@@ -22,7 +22,7 @@ export type NodeContent = {
 };
 
 type Action = {
-  type: "Bid" | "Listing" | "Wormhole";
+  type: "Bid" | "Listing" | "ListingLegacy" | "Wormhole";
   budId: number;
   outRef?: { txHash: string; outputIndex: number };
   isNebula?: boolean;
@@ -129,6 +129,25 @@ export const Card = ({
               }}
             >
               Cancel
+            </Button>
+          )}
+          {isOwner && node.viewType === "Listing" && !node.isNebula && (
+            <Button
+              className="absolute top-11 left-2 md:top-14 md:left-4 z-[2]"
+              size="xs"
+              theme="rose"
+              loading={isLoading}
+              onClick={async (e) => {
+                e.preventDefault();
+                setIsLoading(true);
+                await onAction({
+                  type: "ListingLegacy",
+                  budId: node.budId,
+                });
+                setIsLoading(false);
+              }}
+            >
+              Cancel Legacy
             </Button>
           )}
           {isOwner && (!node.isNebula || node.needsToMigrate) && (

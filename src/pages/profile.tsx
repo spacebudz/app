@@ -38,7 +38,15 @@ import {
 } from "../config";
 import { ExternalLink } from "@styled-icons/evaicons-solid/ExternalLink";
 import { StringParam, useQueryParam } from "use-query-params";
-import { checkTx, ConfirmDialog } from "../parts/spacebud/Dialog";
+import {
+  checkTx,
+  ConfirmDialog,
+  failedTxToast,
+} from "../parts/spacebud/Dialog";
+import {
+  findLegacyListing,
+  legacyErrorMessage,
+} from "../parts/spacebud/legacyCancel";
 import Market from "../cardano/market";
 import secrets from "../../secrets";
 import { fromUnit, paymentCredentialOf, toText } from "lucid-cardano";
@@ -541,6 +549,26 @@ const Profile = () => {
                                   },
                                   budId,
                                 });
+                              }
+                              break;
+                            }
+                            case "ListingLegacy": {
+                              // Separate flow, independent of the old Market/Lucid code
+                              try {
+                                const legacyListing = await findLegacyListing(
+                                  budId,
+                                  await getSelectedWallet(),
+                                );
+                                confirmRef.current.open({
+                                  type: "CancelListingLegacy",
+                                  lovelace: legacyListing.lovelace,
+                                  market: null,
+                                  isNebula: false,
+                                  details: { legacyListing },
+                                  budId,
+                                });
+                              } catch (e) {
+                                failedTxToast(legacyErrorMessage(e));
                               }
                               break;
                             }
