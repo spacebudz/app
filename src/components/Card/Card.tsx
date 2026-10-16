@@ -22,7 +22,7 @@ export type NodeContent = {
 };
 
 type Action = {
-  type: "Bid" | "Listing" | "ListingLegacy" | "Wormhole";
+  type: "Bid" | "Listing" | "ListingLegacy" | "Wormhole" | "WormholeLegacy";
   budId: number;
   outRef?: { txHash: string; outputIndex: number };
   isNebula?: boolean;
@@ -70,24 +70,43 @@ export const Card = ({
             isOwner &&
             (!node.viewType || node.viewType === "Normal") &&
             node.needsToMigrate && (
-              <Button
-                className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"
-                size="xs"
-                theme="orange"
-                loading={isLoading}
-                onClick={async (e) => {
-                  e.preventDefault();
-                  setIsLoading(true);
-                  await onAction({
-                    type: "Wormhole",
-                    budId: node.budId,
-                    outRef: node.outRef,
-                  });
-                  setIsLoading(false);
-                }}
-              >
-                Migrate
-              </Button>
+              <>
+                <Button
+                  className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"
+                  size="xs"
+                  theme="orange"
+                  loading={isLoading}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    setIsLoading(true);
+                    await onAction({
+                      type: "Wormhole",
+                      budId: node.budId,
+                      outRef: node.outRef,
+                    });
+                    setIsLoading(false);
+                  }}
+                >
+                  Migrate
+                </Button>
+                <Button
+                  className="absolute top-11 left-2 md:top-14 md:left-4 z-[2]"
+                  size="xs"
+                  theme="orange"
+                  loading={isLoading}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    setIsLoading(true);
+                    await onAction({
+                      type: "WormholeLegacy",
+                      budId: node.budId,
+                    });
+                    setIsLoading(false);
+                  }}
+                >
+                  Migrate Legacy
+                </Button>
+              </>
             )}
           {isOwner && node.viewType === "Bid" && (
             <Button

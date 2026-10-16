@@ -361,6 +361,24 @@ const Profile = () => {
                     >
                       Migrate multiple
                     </Button>
+                    <Button
+                      className="mt-4 ml-2"
+                      disabled={wallet.address !== address}
+                      onClick={() => {
+                        // Separate flow, independent of the old Lucid / wormhole contract object
+                        confirmRef.current.open({
+                          type: "WormholeLegacy",
+                          wormhole: {
+                            ids: array[0]
+                              .filter((owned) => owned.needsToMigrate)
+                              .map((owned) => owned.budId)
+                              .slice(0, 7),
+                          },
+                        });
+                      }}
+                    >
+                      Migrate multiple Legacy
+                    </Button>
                   </div>
                 </div>
               )}
@@ -436,6 +454,14 @@ const Profile = () => {
                                   contract: wormhole.current,
                                   ids: [budId],
                                 },
+                                budId,
+                              });
+                              break;
+                            }
+                            case "WormholeLegacy": {
+                              confirmRef.current.open({
+                                type: "WormholeLegacy",
+                                wormhole: { ids: [budId] },
                                 budId,
                               });
                               break;

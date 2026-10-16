@@ -21,6 +21,7 @@ import {
   legacyErrorMessage,
   waitForLegacyTx,
 } from "./legacyCancel";
+import { migrateLegacy } from "./legacyMigrate";
 
 type Confirm = {
   type:
@@ -30,10 +31,11 @@ type Confirm = {
     | "Sell"
     | "Buy"
     | "Wormhole"
+    | "WormholeLegacy"
     | null;
   lovelace: bigint | null;
   market: any;
-  wormhole?: { contract: any; ids: number[] };
+  wormhole?: { contract?: any; ids: number[] };
   isNebula: boolean;
   details: any;
   budId: number;
@@ -74,7 +76,8 @@ export const ConfirmDialog = React.forwardRef(
       (confirm.type === "CancelListingLegacy" && "Cancel legacy listing") ||
       (confirm.type === "Sell" && "Sell") ||
       (confirm.type === "Buy" && "Buy") ||
-      (confirm.type === "Wormhole" && "Wormhole");
+      (confirm.type === "Wormhole" && "Wormhole") ||
+      (confirm.type === "WormholeLegacy" && "Wormhole (legacy)");
     const content =
       (confirm.type === "CancelBid" && (
         <span>
@@ -144,7 +147,7 @@ export const ConfirmDialog = React.forwardRef(
           ?
         </span>
       )) ||
-      (confirm.type === "Wormhole" && (
+      ((confirm.type === "Wormhole" || confirm.type === "WormholeLegacy") && (
         <span>
           <>
             {confirm.wormhole!.ids.length > 1 ? (
@@ -223,6 +226,15 @@ export const ConfirmDialog = React.forwardRef(
             // must not return the toast id, a truthy txHash would count as success
             failedTxToast(legacyErrorMessage(e));
           });
+      } else if (confirm.type === "WormholeLegacy") {
+        // Separate flow (Lucid Evolution), no animation: the video was removed from the site
+        const migration = await getSelectedWallet()
+          .then((walletApi) => migrateLegacy(walletApi, confirm.wormhole.ids))
+          .catch((e: any) => {
+            // must not return the toast id, a truthy txHash would count as success
+            failedTxToast(legacyErrorMessage(e));
+          });
+        if (migration) txHash = migration.txHash;
       } else if (confirm.type === "Wormhole") {
         setWormholeIds(confirm.wormhole.ids);
         if (confirm.wormhole.ids.length === 1) {
@@ -265,7 +277,11 @@ export const ConfirmDialog = React.forwardRef(
 
       setLoading(false);
       if (!txHash) return;
-      if (confirm.type === "CancelListingLegacy") checkLegacyTx({ txHash });
+      if (
+        confirm.type === "CancelListingLegacy" ||
+        confirm.type === "WormholeLegacy"
+      )
+        checkLegacyTx({ txHash });
       else
         checkTx({
           txHash,

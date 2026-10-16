@@ -19,6 +19,7 @@
     "@harmoniclabs/pair": "1.0.0",
     "@headlessui/react": "0.0.0-dev.0ce63d8",
     "@lucid-evolution/lucid": "0.8.2",
+    "@noble/hashes": "1.8.0",
     "@spacebudz/nebula": "file:./vendor/@spacebudz/nebula",
     "@spacebudz/wormhole": "file:./vendor/@spacebudz/wormhole",
     "@tlon/sigil-js": "^1.4.5",

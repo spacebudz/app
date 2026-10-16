@@ -13,6 +13,10 @@
 import { baseUrl, projectId } from "../../api";
 import { CONTRACT_ADDRESS, DEPRECATED_POLICY_ID } from "../../config";
 import { contract } from "../../cardano/market/plutus";
+import { blockfrost, loadLucid, unwrapError } from "./legacyShared";
+
+// Used by Dialog.tsx / profile.tsx
+export { legacyErrorMessage, waitForLegacyTx } from "./legacyShared";
 
 // Script hash of the legacy market validator (= payment credential of CONTRACT_ADDRESS)
 const LEGACY_SCRIPT_HASH =
@@ -31,45 +35,6 @@ export type LegacyListing = {
   datumCbor: string;
   ownerPkh: string;
   lovelace: bigint;
-};
-
-// Loaded on first use only, so the (large) library stays out of the main bundle.
-let lucidModule: Promise<any> | undefined;
-const loadLucid = (): Promise<any> => {
-  if (!lucidModule) {
-    lucidModule = import(
-      /* webpackChunkName: "legacy-cancel" */ "@lucid-evolution/lucid"
-    );
-  }
-  return lucidModule;
-};
-
-const blockfrost = async (path: string, init?: any): Promise<any> => {
-  const res = await fetch(baseUrl + path, {
-    ...init,
-    headers: { project_id: projectId, ...(init && init.headers) },
-  });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Blockfrost request failed (${res.status})`);
-  return res.json();
-};
-
-// Lucid Evolution runs on Effect: promise rejections are a FiberFailure whose message is just
-// `${cause}` ("[object Object]" for CIP-30 {code, info} errors). The original error is kept
-// under this symbol, so we dig it out to show the wallet's / builder's real message.
-const EFFECT_CAUSE = Symbol.for("effect/Runtime/FiberFailure/Cause");
-const unwrapError = (e: any): any => {
-  const root = (c: any): any =>
-    c == null
-      ? undefined
-      : c.error !== undefined
-      ? c.error
-      : c.defect !== undefined
-      ? c.defect
-      : root(c.left) ?? root(c.right);
-  const failure = e && e[EFFECT_CAUSE] ? root(e[EFFECT_CAUSE]) : undefined;
-  if (failure === undefined) return e;
-  return failure.cause !== undefined ? failure.cause : failure;
 };
 
 /** Payment key hashes of all addresses the connected (CIP-30) wallet exposes. */
@@ -219,30 +184,4 @@ export const cancelLegacyListing = async (
   } catch (e) {
     throw unwrapError(e);
   }
-};
-
-/** Resolves once the tx is on-chain (polls Blockfrost; does not depend on the old Lucid). */
-export const waitForLegacyTx = async (
-  txHash: string,
-  { intervalMs = 5000, timeoutMs = 20 * 60 * 1000 } = {}
-): Promise<void> => {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    try {
-      if (await blockfrost(`/txs/${txHash}`)) return;
-    } catch (e) {}
-    await new Promise((res) => setTimeout(res, intervalMs));
-  }
-  throw new Error("Timed out waiting for the transaction to be confirmed.");
-};
-
-/** Turns whatever the wallet / CML / Blockfrost threw into a readable message. */
-export const legacyErrorMessage = (e: any): string => {
-  console.log(e);
-  const err = unwrapError(e);
-  if (typeof err === "string") return err;
-  if (err && err.info) return String(err.info); // CIP-30 error: { code, info }
-  if (err && err.message && err.message !== "[object Object]")
-    return String(err.message);
-  return "Something went wrong";
 };
