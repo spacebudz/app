@@ -35,6 +35,7 @@ import {
   EXTRA_RECEIVING_ADDRESS,
   isEnabledWh,
   POLICY_ID,
+  USE_NEW_TX_LOGIC,
 } from "../config";
 import { ExternalLink } from "@styled-icons/evaicons-solid/ExternalLink";
 import { StringParam, useQueryParam } from "use-query-params";
@@ -347,37 +348,25 @@ const Profile = () => {
                       className="mt-4"
                       disabled={wallet.address !== address}
                       onClick={() => {
-                        confirmRef.current.open({
-                          type: "Wormhole",
-                          wormhole: {
-                            contract: wormhole.current,
-                            ids: array[0]
-                              .filter((owned) => owned.needsToMigrate)
-                              .map((owned) => owned.budId)
-                              .slice(0, 7),
-                          },
-                        });
+                        // At most 7 SpaceBudz fit into one transaction
+                        const ids = array[0]
+                          .filter((owned) => owned.needsToMigrate)
+                          .map((owned) => owned.budId)
+                          .slice(0, 7);
+                        confirmRef.current.open(
+                          USE_NEW_TX_LOGIC
+                            ? // Fixed flow on Lucid Evolution (src/parts/spacebud/legacyMigrate.ts),
+                              // independent of the old Lucid / wormhole contract object
+                              { type: "WormholeLegacy", wormhole: { ids } }
+                            : // Old logic, see USE_NEW_TX_LOGIC in config.ts
+                              {
+                                type: "Wormhole",
+                                wormhole: { contract: wormhole.current, ids },
+                              },
+                        );
                       }}
                     >
                       Migrate multiple
-                    </Button>
-                    <Button
-                      className="mt-4 ml-2"
-                      disabled={wallet.address !== address}
-                      onClick={() => {
-                        // Separate flow, independent of the old Lucid / wormhole contract object
-                        confirmRef.current.open({
-                          type: "WormholeLegacy",
-                          wormhole: {
-                            ids: array[0]
-                              .filter((owned) => owned.needsToMigrate)
-                              .map((owned) => owned.budId)
-                              .slice(0, 7),
-                          },
-                        });
-                      }}
-                    >
-                      Migrate multiple Legacy
                     </Button>
                   </div>
                 </div>
@@ -447,6 +436,8 @@ const Profile = () => {
                         node={node}
                         onAction={async ({ type, budId, isNebula, outRef }) => {
                           switch (type) {
+                            // Old migrate logic (old Lucid + @spacebudz/wormhole). Kept, but it fails on
+                            // mainnet's current cost models. Only used with USE_NEW_TX_LOGIC = false.
                             case "Wormhole": {
                               confirmRef.current.open({
                                 type: "Wormhole",
@@ -458,6 +449,7 @@ const Profile = () => {
                               });
                               break;
                             }
+                            // Fixed migrate flow (Lucid Evolution), see legacyMigrate.ts
                             case "WormholeLegacy": {
                               confirmRef.current.open({
                                 type: "WormholeLegacy",
@@ -503,6 +495,9 @@ const Profile = () => {
                               }
                               break;
                             }
+                            // Old cancel logic: listings of the new collection (Nebula), and listings of
+                            // old SpaceBudz (isNebula = false, old Market) when USE_NEW_TX_LOGIC = false.
+                            // The old Market part fails on mainnet's current cost models.
                             case "Listing": {
                               if (isNebula) {
                                 const lucid = await getLucid();
@@ -578,6 +573,8 @@ const Profile = () => {
                               }
                               break;
                             }
+                            // Fixed cancel flow for listings of old SpaceBudz (Lucid Evolution), see
+                            // legacyCancel.ts
                             case "ListingLegacy": {
                               // Separate flow, independent of the old Market/Lucid code
                               try {

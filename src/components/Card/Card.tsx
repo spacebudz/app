@@ -4,7 +4,7 @@ import { Image, Spinner, Button } from "..";
 import { useIsIntersecting } from "../../hooks";
 import { fromLovelaceDisplay, ipfsToHttps } from "../../utils";
 import { OutRef } from "lucid-cardano";
-import { isEnabledWh } from "../../config";
+import { isEnabledWh, USE_NEW_TX_LOGIC } from "../../config";
 
 export type NodeContent = {
   budId: number;
@@ -21,6 +21,8 @@ export type NodeContent = {
   outRef?: OutRef;
 };
 
+// "ListingLegacy" and "WormholeLegacy" are the standalone flows on Lucid Evolution
+// (legacyCancel.ts, legacyMigrate.ts). "Listing" and "Wormhole" are the old logic.
 type Action = {
   type: "Bid" | "Listing" | "ListingLegacy" | "Wormhole" | "WormholeLegacy";
   budId: number;
@@ -70,43 +72,25 @@ export const Card = ({
             isOwner &&
             (!node.viewType || node.viewType === "Normal") &&
             node.needsToMigrate && (
-              <>
-                <Button
-                  className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"
-                  size="xs"
-                  theme="orange"
-                  loading={isLoading}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    setIsLoading(true);
-                    await onAction({
-                      type: "Wormhole",
-                      budId: node.budId,
-                      outRef: node.outRef,
-                    });
-                    setIsLoading(false);
-                  }}
-                >
-                  Migrate
-                </Button>
-                <Button
-                  className="absolute top-11 left-2 md:top-14 md:left-4 z-[2]"
-                  size="xs"
-                  theme="orange"
-                  loading={isLoading}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    setIsLoading(true);
-                    await onAction({
-                      type: "WormholeLegacy",
-                      budId: node.budId,
-                    });
-                    setIsLoading(false);
-                  }}
-                >
-                  Migrate Legacy
-                </Button>
-              </>
+              <Button
+                className="absolute top-2 left-2 md:top-4 md:left-4 z-[2]"
+                size="xs"
+                theme="orange"
+                loading={isLoading}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setIsLoading(true);
+                  await onAction({
+                    // One button: the fixed flow, or the old logic (see USE_NEW_TX_LOGIC)
+                    type: USE_NEW_TX_LOGIC ? "WormholeLegacy" : "Wormhole",
+                    budId: node.budId,
+                    outRef: node.outRef,
+                  });
+                  setIsLoading(false);
+                }}
+              >
+                Migrate
+              </Button>
             )}
           {isOwner && node.viewType === "Bid" && (
             <Button
@@ -139,7 +123,13 @@ export const Card = ({
                 e.preventDefault();
                 setIsLoading(true);
                 await onAction({
-                  type: "Listing",
+                  // One button. Listings of old SpaceBudz (not Nebula) use the fixed flow, listings
+                  // of the new collection (Nebula) keep using the old logic. With
+                  // USE_NEW_TX_LOGIC = false everything uses the old logic again.
+                  type:
+                    USE_NEW_TX_LOGIC && !node.isNebula
+                      ? "ListingLegacy"
+                      : "Listing",
                   budId: node.budId,
                   outRef: node.outRef,
                   isNebula: node.isNebula,
@@ -148,25 +138,6 @@ export const Card = ({
               }}
             >
               Cancel
-            </Button>
-          )}
-          {isOwner && node.viewType === "Listing" && !node.isNebula && (
-            <Button
-              className="absolute top-11 left-2 md:top-14 md:left-4 z-[2]"
-              size="xs"
-              theme="rose"
-              loading={isLoading}
-              onClick={async (e) => {
-                e.preventDefault();
-                setIsLoading(true);
-                await onAction({
-                  type: "ListingLegacy",
-                  budId: node.budId,
-                });
-                setIsLoading(false);
-              }}
-            >
-              Cancel Legacy
             </Button>
           )}
           {isOwner && (!node.isNebula || node.needsToMigrate) && (

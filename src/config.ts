@@ -91,3 +91,14 @@ export const LOCK_ADRESS =
   "addr1wyxzp0hufcllp5emldfrtcvlev4uj2g6huqq9wfhn7efw5q3zdavq";
 
 export const isEnabledWh = true;
+
+// Which logic the "Cancel" button (listings of old SpaceBudz) and the "Migrate" buttons (wormhole) use.
+//
+// true:  the standalone flows built on Lucid Evolution (src/parts/spacebud/legacyCancel.ts and
+//        legacyMigrate.ts). This is needed since mainnet's PlutusV1/V2 cost models now have 332 values,
+//        while the old libraries (lucid-cardano 0.10.9, src/cardano/market) only accept 166 and fail with
+//        "CostModel operation 166 out of bounds". See README.md ("Cancel and migrate fix").
+// false: the old logic (kept in the code, but it currently fails on mainnet).
+//
+// Cancelling listings of the new collection (Nebula) always uses the old logic.
+export const USE_NEW_TX_LOGIC = true;

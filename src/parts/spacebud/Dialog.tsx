@@ -24,6 +24,9 @@ import {
 import { migrateLegacy } from "./legacyMigrate";
 
 type Confirm = {
+  // "CancelListingLegacy" and "WormholeLegacy" are the fixed standalone flows on Lucid Evolution
+  // (legacyCancel.ts, legacyMigrate.ts), see README.md ("Cancel and migrate fix").
+  // "CancelListing" and "Wormhole" are the old logic, which is kept (see USE_NEW_TX_LOGIC).
   type:
     | "CancelBid"
     | "CancelListing"
@@ -73,11 +76,11 @@ export const ConfirmDialog = React.forwardRef(
     const title =
       (confirm.type === "CancelBid" && "Cancel bid") ||
       (confirm.type === "CancelListing" && "Cancel listing") ||
-      (confirm.type === "CancelListingLegacy" && "Cancel legacy listing") ||
+      (confirm.type === "CancelListingLegacy" && "Cancel listing") ||
       (confirm.type === "Sell" && "Sell") ||
       (confirm.type === "Buy" && "Buy") ||
       (confirm.type === "Wormhole" && "Wormhole") ||
-      (confirm.type === "WormholeLegacy" && "Wormhole (legacy)");
+      (confirm.type === "WormholeLegacy" && "Wormhole");
     const content =
       (confirm.type === "CancelBid" && (
         <span>
@@ -107,7 +110,7 @@ export const ConfirmDialog = React.forwardRef(
       )) ||
       (confirm.type === "CancelListingLegacy" && (
         <span>
-          Are you sure you want to cancel your legacy listing of{" "}
+          Are you sure you want to cancel your listing of{" "}
           <span className="font-bold text-violet-400 inline-block">
             {fromLovelaceDisplay(confirm.lovelace)}
           </span>{" "}
@@ -207,6 +210,9 @@ export const ConfirmDialog = React.forwardRef(
             .catch((e: any) => tradeErrorHandler(e));
         }
       } else if (confirm.type === "CancelListing") {
+        // Old cancel logic, kept. Nebula listings (new collection) always go through here.
+        // The old Market branch (isNebula = false) fails on mainnet's current cost models and is
+        // only reachable with USE_NEW_TX_LOGIC = false; otherwise "CancelListingLegacy" is used.
         if (confirm.isNebula) {
           txHash = await confirm.market
             .cancelListing(confirm.details.listing.listingUtxo)
@@ -236,6 +242,9 @@ export const ConfirmDialog = React.forwardRef(
           });
         if (migration) txHash = migration.txHash;
       } else if (confirm.type === "Wormhole") {
+        // Old migrate logic (old Lucid + @spacebudz/wormhole), kept. It fails on mainnet's current
+        // cost models and is only reachable with USE_NEW_TX_LOGIC = false; otherwise
+        // "WormholeLegacy" is used. Note: its animation needs /wormhole.mp4, which was removed.
         setWormholeIds(confirm.wormhole.ids);
         if (confirm.wormhole.ids.length === 1) {
           txHash = await confirm
