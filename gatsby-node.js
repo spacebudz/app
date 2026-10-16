@@ -1,7 +1,18 @@
 const path = require("path");
 const webpack = require("webpack");
 
-exports.onCreateWebpackConfig = ({ stage, actions }) => {
+exports.onCreateWebpackConfig = ({ stage, actions, loaders }) => {
+  // Lucid Evolution is only loaded in the browser (dynamic import in
+  // src/parts/spacebud/legacyCancel.ts). Keep it out of the SSR bundles, where its
+  // dependencies fail on "node:" imports ("Unhandled scheme").
+  if (stage === "build-html" || stage === "develop-html") {
+    actions.setWebpackConfig({
+      module: {
+        rules: [{ test: /[\\/]@lucid-evolution[\\/]/, use: loaders.null() }],
+      },
+    });
+  }
+
   actions.setWebpackConfig({
     experiments: {
       asyncWebAssembly: true,
